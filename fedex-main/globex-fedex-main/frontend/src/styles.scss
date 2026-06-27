@@ -1,0 +1,463 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #5e17eb;
+  --color-accent: #ff6b00;
+  --color-primary-soft: #8b5cf6;
+  --bg-page: #f8f7fc;
+  --bg-card: #ffffff;
+  --text-primary: #111827;
+  --text-muted: #64748b;
+  --border-color: #ece8f4;
+  --radius-card: 24px;
+  --radius-input: 16px;
+  --radius-button: 14px;
+  --chat-list-gap: 1.15rem;
+  --chat-row-gap: 0.85rem;
+  --chat-bubble-pad-y: 0.9rem;
+  --chat-bubble-pad-x: 1.04rem;
+  --chat-bubble-font: 0.94rem;
+  --chat-font-family: var(--font-sans);
+  --ui-bg: #ece9f8;
+  --ui-surface: #ffffff;
+  --ui-surface-2: rgba(255,255,255,0.75);
+  --ui-text: #1a0033;
+  --ui-text-muted: #7c6e96;
+  --ui-border: rgba(255, 255, 255, 0.6);
+  --ui-hover: rgba(255, 255, 255, 0.55);
+  --ui-active: rgba(255, 255, 255, 0.75);
+  --ui-accent: #4d148c;
+  --ui-accent-secondary: #ff6600;
+  --ui-danger: #dc2626;
+  --ui-shadow-sm: 0 4px 16px rgba(77, 20, 140, 0.07);
+  --ui-shadow-md: 0 10px 32px rgba(77, 20, 140, 0.12);
+  --ui-shadow-lg: 0 24px 64px rgba(77, 20, 140, 0.18);
+  --ui-radius-sm: 10px;
+  --ui-radius-md: 14px;
+  --ui-radius-lg: 18px;
+  --fedex-purple: #4d148c;
+  --fedex-purple-deep: #3f1175;
+  --fedex-purple-soft: #6f36b0;
+  --fedex-orange: #ff6600;
+  --fedex-orange-deep: #e55b00;
+  --fedex-cream: #ffffff;
+  --fedex-surface: rgba(255, 255, 255, 0.85);
+  --fedex-ink: #1a0033;
+  --fedex-muted: #7c6e96;
+  --fedex-line: rgba(77, 20, 140, 0.1);
+  --fedex-glow: rgba(77, 20, 140, 0.15);
+  --radius-pill: 999px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --font-sans: "Inter", "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Inter", "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+.set-snack--ok {
+  --mdc-snackbar-container-color: #059669;
+  --mat-snack-bar-button-color: #fff;
+  color: #fff;
+}
+
+.set-snack--err {
+  --mdc-snackbar-container-color: #dc2626;
+  --mat-snack-bar-button-color: #fff;
+  color: #fff;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--ui-bg);
+  color: var(--ui-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Better contrast for placeholder text across the app */
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--ui-text-muted) 70%, #ffffff);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+
+body[data-color-mode='light'] {
+  background: #ffffff;
+  color: #121212;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] {
+  background: #1e1f23;
+  color: #ececec;
+}
+
+body[data-theme='dark'] {
+  background: #1e1f23;
+  color: #ececec;
+}
+
+body[data-theme='dark'] .sidebar,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page,
+body[data-theme='dark'], body[data-color-mode='dark'] .canvas,
+body[data-theme='dark'], body[data-color-mode='dark'] .thread,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__main,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__side {
+  background: #1e1f23 !important;
+  color: #ececec !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] input,
+body[data-theme='dark'], body[data-color-mode='dark'] select,
+body[data-theme='dark'], body[data-color-mode='dark'] textarea,
+body[data-theme='dark'], body[data-color-mode='dark'] button {
+  background-color: #2a2c31;
+  color: #ececec;
+  border-color: #3b3e45;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__side h1,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__main h2,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__main h3,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__main .subhead,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__main .row__title,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__main .choice-label,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__main .field,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__main .lead,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__main .hint,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__main .row__text,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__main .ok,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__side .back,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__side button {
+  color: #ececec !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__side button.active {
+  background: #2c2f36 !important;
+  border-color: #40434c !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__side button:hover,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page__side .back:hover {
+  background: #2a2d33 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page .preview,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page .choice-card,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page .toggle,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page .toggle span,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page .avatar--button {
+  border-color: #424651 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page .preview {
+  background: #2a2c33 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page .choice-card.active {
+  border-color: #7c5bcf !important;
+  box-shadow: 0 0 0 1px #7c5bcf inset !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page .save,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page .danger {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+  border-color: #f3f4f6 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page .light {
+  background: #2a2c31 !important;
+  color: #ececec !important;
+  border-color: #3b3e45 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page hr,
+body[data-theme='dark'], body[data-color-mode='dark'] .settings-page .row {
+  border-color: #3d4048 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] input::placeholder,
+body[data-theme='dark'], body[data-color-mode='dark'] textarea::placeholder {
+  color: #b8bcc7 !important;
+}
+
+/* Chat shell dark-mode coherence */
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar {
+  background: #191b20 !important;
+  border-right-color: #30343c !important;
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .wordmark,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__sessions-head,
+body[data-theme='dark'], body[data-color-mode='dark'] .session-item__title,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__user-meta strong,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__user-meta span,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__row-btn,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__link,
+body[data-theme='dark'], body[data-color-mode='dark'] .session-icon,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__row-icon,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__empty {
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__divider,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__user-card {
+  border-color: #353942 !important;
+  background: transparent !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .session-item:hover,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__row-btn:hover,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__link:hover {
+  background: #272b33 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .session-item.active,
+body[data-theme='dark'], body[data-color-mode='dark'] .sidebar__link.active {
+  background: #2f2840 !important;
+  border-color: #4b3a6a !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .canvas,
+body[data-theme='dark'], body[data-color-mode='dark'] .hero,
+body[data-theme='dark'], body[data-color-mode='dark'] .thread {
+  background: #1e2128 !important;
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .hero__title,
+body[data-theme='dark'], body[data-color-mode='dark'] .hero__lead,
+body[data-theme='dark'], body[data-color-mode='dark'] .thread__sub,
+body[data-theme='dark'], body[data-color-mode='dark'] .thread__pill,
+body[data-theme='dark'], body[data-color-mode='dark'] .thread__loading {
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .chip {
+  background: #2a2f39 !important;
+  border-color: #3c4350 !important;
+  color: #eef2f8 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .thread__scroll {
+  background: #22262e !important;
+  border-color: #363b46 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .bubble {
+  background: #2c323d !important;
+  border-color: #3c4451 !important;
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .bubble--user {
+  background: #4d148c !important;
+  border-color: #5f1ca8 !important;
+  color: #f8f5ff !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .source-chip {
+  background: rgba(255, 102, 0, 0.16) !important;
+  border-color: rgba(255, 102, 0, 0.42) !important;
+  color: #ffd7b8 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .pill {
+  background: #272c35 !important;
+  border-color: #3a414f !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .field {
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .search-overlay__panel,
+body[data-theme='dark'], body[data-color-mode='dark'] .discussions-view,
+body[data-theme='dark'], body[data-color-mode='dark'] .session-menu,
+body[data-theme='dark'], body[data-color-mode='dark'] .account-menu,
+body[data-theme='dark'], body[data-color-mode='dark'] .dialog-panel {
+  background: #232730 !important;
+  border-color: #3a414f !important;
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .search-overlay__input,
+body[data-theme='dark'], body[data-color-mode='dark'] .search-overlay__item,
+body[data-theme='dark'], body[data-color-mode='dark'] .search-overlay__new,
+body[data-theme='dark'], body[data-color-mode='dark'] .discussions-view__row,
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__row,
+body[data-theme='dark'], body[data-color-mode='dark'] .session-menu button,
+body[data-theme='dark'], body[data-color-mode='dark'] .account-menu button {
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__head h2,
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__empty h3,
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__row-title {
+  color: #eef2f8 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__empty p,
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__row-sub {
+  color: #aeb7c6 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__list {
+  background: #232730 !important;
+  border-color: #3a414f !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__row {
+  background: transparent !important;
+  border-bottom-color: #343b49 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__row:hover {
+  background: #2b303a !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__tabs {
+  background: #2a2f39 !important;
+  border-color: #3c4350 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__tabs button {
+  background: transparent !important;
+  color: #cbd5e1 !important;
+  border-color: transparent !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .project-view__tabs button.active {
+  background: #1f2530 !important;
+  border-color: #3b4352 !important;
+  color: #eef2f8 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .send {
+  background: #ff6600 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .send:hover:not(:disabled) {
+  background: #e55b00 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar__new-chat {
+  background: #4d148c !important;
+  border-color: #5f1ca8 !important;
+  color: #ffffff !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar__new-chat:hover {
+  background: #3f1175 !important;
+  border-color: #51208e !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar {
+  background: #191b20 !important;
+  border-right-color: #30343c !important;
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar__search,
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar__shortcut-card,
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar__tool {
+  background: #232730 !important;
+  border-color: #3a414f !important;
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar__folder-item:hover,
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar__nav-item:hover {
+  background: #272b33 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar__lang-flyout {
+  background: #232730 !important;
+  border-color: #3a414f !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35) !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar__lang-flyout-item {
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar__lang-flyout-item:hover {
+  background: #2f3540 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .ux-sidebar__menu-item--submenu-open {
+  background: #2f3540 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .chat-hero__title,
+body[data-theme='dark'], body[data-color-mode='dark'] .chat-hero__lead,
+body[data-theme='dark'], body[data-color-mode='dark'] .action-card__body strong {
+  color: #eef2f8 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .action-card {
+  background: #232730 !important;
+  border-color: #3a414f !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .chat-hero__visual {
+  background: linear-gradient(180deg, rgba(30, 33, 40, 0) 40%, rgba(30, 33, 40, 0.9) 100%),
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(77, 20, 140, 0.2), transparent 70%),
+    linear-gradient(135deg, #1a2332 0%, #2a1f3d 50%, #1f2836 100%) !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .topbar__btn {
+  background: #232730 !important;
+  border-color: #3a414f !important;
+  color: #e8ebf2 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .canvas {
+  background: #1e2128 !important;
+}
+
+body[data-theme='dark'], body[data-color-mode='dark'] .chat-header__share {
+  border-color: #5a4682 !important;
+  color: #d8c9ff !important;
+}
+
+body[data-chat-font='sans'] {
+  /* chat font scoped in _appearance-tokens.scss */
+}
+
+body[data-chat-font='system'] {
+  /* chat font scoped in _appearance-tokens.scss */
+}
+
+body[data-chat-font='dyslexic'] {
+  /* chat font scoped in _appearance-tokens.scss */
+}
+
+@keyframes subtleBgShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+body[data-motion-mode='on'],
+body[data-motion-mode='auto'] {
+  /* background animation handled by _appearance-tokens.scss with accent vars */
+}
+
+body[data-motion-mode='off'] {
+  animation: none;
+}
+
+@import './styles/appearance-tokens';

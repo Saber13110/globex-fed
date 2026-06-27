@@ -1,0 +1,48 @@
+<section class="client-ops-search-panel">
+  <div class="client-ops-search">
+    <span class="client-ops-icon client-ops-icon--search" data-icon="search"></span>
+    <input
+      type="search"
+      [ngModel]="q"
+      (ngModelChange)="onQInput($event)"
+      (keyup.enter)="applyFilters.emit()"
+      [placeholder]="'employee.clientOps.searchPlaceholder' | t"
+    />
+    @if (q) {
+      <button type="button" class="client-ops-search__clear" (click)="clearSearch.emit()">×</button>
+    }
+  </div>
+
+  @if (showSearchResults) {
+    <div class="client-ops-search-results">
+      @if (searching) {
+        <p class="client-ops-search-results__hint">{{ 'employee.clientOps.searching' | t }}</p>
+      } @else if (searchHits.length === 0) {
+        <p class="client-ops-search-results__hint">{{ 'employee.clientOps.noSearchResults' | t }}</p>
+      } @else {
+        @for (hit of searchHits; track hit.kind + hit.id) {
+          <button type="button" class="client-ops-search-hit" (click)="openHit.emit(hit)">
+            <span class="client-ops-search-hit__kind">{{ searchKindLabel(hit.kind) | t }}</span>
+            <strong>{{ hit.title }}</strong>
+            <small>{{ hit.subtitle }}</small>
+          </button>
+        }
+      }
+    </div>
+  }
+
+  <div class="client-ops-filters">
+    <select [ngModel]="status" (ngModelChange)="statusChange.emit($event); applyFilters.emit()">
+      <option value="all">{{ 'employee.filters.all' | t }}</option>
+      <option value="active">{{ 'employee.filters.active' | t }}</option>
+      <option value="invited">{{ 'employee.filters.invited' | t }}</option>
+    </select>
+    <select [ngModel]="activity" (ngModelChange)="activityChange.emit($event); applyFilters.emit()">
+      <option value="">{{ 'employee.filters.anyActivity' | t }}</option>
+      <option value="recent">{{ 'employee.filters.recentActivity' | t }}</option>
+    </select>
+    <button type="button" class="client-ops-btn client-ops-btn--primary" (click)="applyFilters.emit()">
+      {{ 'employee.filters.apply' | t }}
+    </button>
+  </div>
+</section>

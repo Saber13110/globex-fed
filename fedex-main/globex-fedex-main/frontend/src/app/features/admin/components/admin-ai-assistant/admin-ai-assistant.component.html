@@ -1,0 +1,769 @@
+<div class="ai-page" [class.ai-page--chat]="inChatMode()" @fadeIn>
+
+  <header class="ai-page__head">
+
+    <div>
+
+      <div class="ai-page__title-row">
+
+        <h1>FedEx</h1>
+
+        <span class="ai-page__beta">BETA</span>
+
+        @if (inChatMode() && agentMode()) {
+
+          <span class="ai-page__agent-pill">Mode Agent</span>
+
+        }
+
+      </div>
+
+      <p class="ai-page__subtitle">
+
+        @if (inChatMode()) {
+
+          Conversation FedEx — exécution des tâches admin avec approbation si nécessaire.
+
+        } @else {
+
+          FedEx — exécute les tâches admin (users, tracking, support…) avec approbation si nécessaire.
+
+        }
+
+      </p>
+
+    </div>
+
+    @if (inChatMode()) {
+
+      <button type="button" class="ai-page__clear" (click)="clearChat()">
+
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+
+          <path stroke-linecap="round" d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>
+
+        </svg>
+
+        Nouvelle conversation
+
+      </button>
+
+    }
+
+  </header>
+
+
+
+  <input
+
+    #fileInput
+
+    type="file"
+
+    class="ai-file-input"
+
+    accept=".pdf,.docx,.xlsx,.xls,.txt,.md,.csv,.jpg,.jpeg,.png,.webp,.gif,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+
+    (change)="onFileSelected($event)"
+
+  />
+
+
+
+  @if (!inChatMode()) {
+
+    <section class="ai-hero">
+
+      <div class="ai-hero__mesh" aria-hidden="true"></div>
+
+      <div class="ai-hero__inner">
+
+        <div class="ai-hero__left">
+
+          <div class="ai-hero__welcome">
+
+            <span class="ai-hero__spark" aria-hidden="true">✦</span>
+
+            <div>
+
+              <h2>How can I help you today?</h2>
+
+              <p>Ask me anything about your logistics operations. I can analyze data, generate reports, predict issues and provide intelligent insights.</p>
+
+            </div>
+
+          </div>
+
+
+
+          <ng-container *ngTemplateOutlet="composerBlock" />
+
+
+
+          @if (aiError()) {
+
+            <article class="ai-reply ai-reply--error"><p>{{ aiError() }}</p></article>
+
+          }
+
+        </div>
+
+
+
+        <div class="ai-holo" aria-hidden="true">
+
+          <div class="ai-holo__beam"></div>
+
+          <div class="ai-holo__particles">
+
+            @for (p of holoParticles; track p) {
+
+              <span class="ai-holo__dot"></span>
+
+            }
+
+          </div>
+
+
+
+          <article class="ai-holo__panel ai-holo__panel--tl">
+
+            <span class="ai-holo__panel-title">Inventory</span>
+
+            <div class="ai-holo__ring-chart"><span>78%</span></div>
+
+          </article>
+
+          <article class="ai-holo__panel ai-holo__panel--tr">
+
+            <span class="ai-holo__panel-title">Predictive</span>
+
+            <div class="ai-holo__bars"><span></span><span></span><span></span><span></span></div>
+
+          </article>
+
+          <article class="ai-holo__panel ai-holo__panel--ml">
+
+            <span class="ai-holo__panel-title">Performance</span>
+
+            <svg class="ai-holo__line" viewBox="0 0 60 24" aria-hidden="true"><polyline points="0,20 12,14 24,16 36,8 48,10 60,4" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+
+          </article>
+
+          <article class="ai-holo__panel ai-holo__panel--mr">
+
+            <span class="ai-holo__panel-title">Accuracy</span>
+
+            <strong class="ai-holo__metric">92.4%</strong>
+
+          </article>
+
+          <article class="ai-holo__panel ai-holo__panel--bl">
+
+            <span class="ai-holo__panel-title">Data Stream</span>
+
+            <div class="ai-holo__wave"><span></span><span></span><span></span></div>
+
+          </article>
+
+          <article class="ai-holo__panel ai-holo__panel--br">
+
+            <span class="ai-holo__panel-title">System Health</span>
+
+            <div class="ai-holo__shield">✓</div>
+
+          </article>
+
+
+
+          <div class="ai-holo__core">
+
+            <div class="ai-holo__glow"></div>
+
+            <div class="ai-holo__orbit ai-holo__orbit--1"></div>
+
+            <div class="ai-holo__orbit ai-holo__orbit--2"></div>
+
+            <picture>
+
+              <source [attr.srcset]="brainAssetWebp" type="image/webp" />
+
+              <img
+
+                class="ai-holo__brain"
+
+                [src]="brainAsset"
+
+                alt=""
+
+                width="480"
+
+                height="320"
+
+                fetchpriority="high"
+
+                loading="eager"
+
+                decoding="async"
+
+              />
+
+            </picture>
+
+            <div class="ai-holo__platform">
+
+              <span class="ai-holo__platform-ring"></span>
+
+              <span class="ai-holo__ai-label">AI</span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <section class="ai-quick">
+
+      <h3 class="ai-quick__label">Quick Commands</h3>
+
+      <div class="ai-quick__grid">
+
+        @for (card of quickActionCards; track card.title) {
+
+          <button type="button" class="ai-quick__card" (click)="runQuickCommand(card.title)">
+
+            <div class="ai-quick__card-top">
+
+              <span class="ai-quick__icon" [attr.data-icon]="card.icon" aria-hidden="true"></span>
+
+              <span class="ai-quick__chev" aria-hidden="true">
+
+                <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+
+              </span>
+
+            </div>
+
+            <strong>{{ card.title }}</strong>
+
+            <p>{{ card.description }}</p>
+
+          </button>
+
+        }
+
+      </div>
+
+    </section>
+
+
+
+    <section class="ai-recent">
+
+      <div class="ai-recent__head">
+
+        <h3>Recent AI Conversations</h3>
+
+        <button type="button" class="ai-recent__view">View all</button>
+
+      </div>
+
+      <div class="ai-recent__card">
+
+        @if (loading()) {
+
+          @for (i of [1,2,3,4,5,6]; track i) {
+
+            <div class="ai-recent__row ai-recent__row--skel"></div>
+
+          }
+
+        } @else {
+
+          @for (c of conversationItems(); track c.id) {
+
+            <article class="ai-recent__row">
+
+              <span class="ai-recent__bubble" aria-hidden="true">
+
+                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+
+              </span>
+
+              <p class="ai-recent__q">{{ c.question }}</p>
+
+              <span class="ai-recent__time">{{ c.relative }}</span>
+
+              <span class="ai-status" [ngClass]="statusClass(c.status)">
+
+                @if (isProcessing(c.status)) {
+
+                  <span class="ai-status__spin"></span>
+
+                }
+
+                {{ statusLabel(c.status) }}
+
+              </span>
+
+              <button type="button" class="ai-recent__menu" (click)="rerunConversation(c)" aria-label="More actions">
+
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+
+              </button>
+
+            </article>
+
+          }
+
+        }
+
+      </div>
+
+    </section>
+
+  } @else {
+
+    <section class="ai-chat-thread">
+
+      <div #chatBody class="ai-chat-thread__body" aria-live="polite">
+
+        @for (msg of chatMessages(); track msg.id) {
+
+          <article class="ai-copilot-chat__row" [class.ai-copilot-chat__row--admin]="msg.role === 'admin'">
+
+            <div class="ai-copilot-chat__bubble" [class.ai-copilot-chat__bubble--admin]="msg.role === 'admin'">
+
+              <header class="ai-copilot-chat__meta">
+
+                <strong>{{ msg.role === 'admin' ? 'Vous' : agentDisplayName(msg) }}</strong>
+
+                @if (msg.role === 'agent' && statusBadge(msg); as badge) {
+
+                  <span class="ai-copilot-chat__badge" [attr.data-status]="badge">{{ badge }}</span>
+
+                }
+
+              </header>
+
+              @if (msg.attachment) {
+
+                <div class="ai-copilot-chat__attachment" [class.ai-copilot-chat__attachment--image]="msg.attachment.kind === 'image'">
+
+                  @if (msg.attachment.kind === 'image' && msg.attachment.previewUrl) {
+
+                    <img [src]="msg.attachment.previewUrl" [alt]="msg.attachment.name" class="ai-copilot-chat__attachment-img" />
+
+                  } @else {
+
+                    <span class="ai-copilot-chat__attachment-icon">{{ fileIcon(msg.attachment.kind) }}</span>
+
+                  }
+
+                  <span class="ai-copilot-chat__attachment-name">{{ msg.attachment.name }}</span>
+
+                </div>
+
+              }
+
+              @if (msg.content) {
+
+                <div class="ai-copilot-chat__text" [innerHTML]="msg.content | chatFormattedText"></div>
+
+              }
+
+              @if (msg.role === 'agent' && providerTraceLabel(msg); as trace) {
+
+                <p class="ai-copilot-chat__meta-line">
+                  <span class="ai-copilot-chat__provider" [attr.data-tone]="providerTraceTone(msg)">{{ trace }}</span>@if (providerTraceDetails(msg); as details) { · {{ details }} }
+                </p>
+
+              }
+
+              @if (msg.toolsUsed && msg.toolsUsed.length) {
+
+                <p class="ai-copilot-chat__tools">
+                  <span class="ai-copilot-chat__badge">Outil</span> {{ msg.toolsUsed.join(', ') }}
+                </p>
+
+              }
+
+              @if (msg.requiresConfirmation && msg.exportPreview) {
+
+                <div class="ai-copilot-chat__export-workflow">
+                  <div class="ai-copilot-chat__export-header">
+                    <span class="ai-copilot-chat__badge ai-copilot-chat__badge--warn">Export</span>
+                    <span class="ai-copilot-chat__export-status">{{ exportStatusLabel(msg.exportStatus ?? 'pending') }}</span>
+                  </div>
+
+                  @if (msg.exportStatus === 'in_progress') {
+                    <div class="ai-copilot-chat__export-progress">
+                      <div class="ai-copilot-chat__export-step" [class.is-active]="(msg.exportProgressStep ?? 0) >= 1">Préparation</div>
+                      <div class="ai-copilot-chat__export-step" [class.is-active]="(msg.exportProgressStep ?? 0) >= 2">Analyse</div>
+                      <div class="ai-copilot-chat__export-step" [class.is-active]="(msg.exportProgressStep ?? 0) >= 3">Génération</div>
+                      <div class="ai-copilot-chat__export-step" [class.is-active]="(msg.exportProgressStep ?? 0) >= 4">Terminé</div>
+                    </div>
+                    <p class="ai-copilot-chat__export-step-label">{{ exportProgressLabel(msg.exportProgressStep) }}…</p>
+                  } @else {
+                    <div class="ai-copilot-chat__export-actions">
+                      <button
+                        type="button"
+                        class="ai-copilot-chat__export-btn ai-copilot-chat__export-btn--confirm"
+                        [disabled]="exportExecuting()"
+                        (click)="confirmExport(msg)"
+                      >
+                        {{ exportExecuting() ? 'Génération…' : 'Confirmer' }}
+                      </button>
+                      <button
+                        type="button"
+                        class="ai-copilot-chat__export-btn ai-copilot-chat__export-btn--cancel"
+                        [disabled]="exportExecuting()"
+                        (click)="cancelExport(msg)"
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                  }
+                </div>
+
+              } @else if (msg.requiresConfirmation) {
+
+                <div class="ai-copilot-chat__confirm">
+                  <span class="ai-copilot-chat__badge ai-copilot-chat__badge--warn">Confirmation requise</span>
+                  <p>Confirmez l'action pour continuer.</p>
+                </div>
+
+              }
+
+              @if (msg.agentSteps?.length) {
+
+                <div class="ai-copilot-chat__steps">
+
+                  @for (step of msg.agentSteps; track step.label) {
+
+                    <div class="ai-copilot-chat__step">
+
+                      <span class="ai-copilot-chat__dot" [ngClass]="stepDotClass(step.status)"></span>
+
+                      <span>{{ step.label }}@if (step.detail) { — {{ step.detail }} }</span>
+
+                    </div>
+
+                  }
+
+                </div>
+
+              }
+
+              @if (msg.reasoningSummary) {
+
+                <details class="ai-copilot-chat__reasoning">
+
+                  <summary>Raisonnement (résumé)</summary>
+
+                  <p>{{ msg.reasoningSummary }}</p>
+
+                </details>
+
+              } @else if (msg.agentReasoning?.objective) {
+
+                <details class="ai-copilot-chat__reasoning">
+
+                  <summary>Raisonnement agent</summary>
+
+                  <p><strong>Objectif :</strong> {{ msg.agentReasoning!.objective }}</p>
+
+                  @if (msg.agentReasoning!.plan?.length) {
+
+                    <ul>
+
+                      @for (item of msg.agentReasoning!.plan; track item) {
+
+                        <li>{{ item }}</li>
+
+                      }
+
+                    </ul>
+
+                  }
+
+                </details>
+
+              }
+
+              @if (msg.agentQuestionnaire) {
+                <app-agent-questionnaire
+                  [questionnaire]="msg.agentQuestionnaire"
+                  [disabled]="sending()"
+                  (submitAnswers)="onAgentAnswers($event)"
+                />
+              }
+              @if (msg.exportDownload) {
+                <button
+                  type="button"
+                  class="ai-copilot-chat__export-btn ai-copilot-chat__export-btn--download"
+                  (click)="downloadLogsExport(msg.exportDownload!)"
+                >
+                  Télécharger {{ msg.exportDownload.filename || 'le fichier' }}
+                </button>
+              }
+              @if (msg.needsApproval && msg.approvalId) {
+
+                <button
+
+                  type="button"
+
+                  class="ai-copilot-chat__approve"
+
+                  [disabled]="approving()"
+
+                  (click)="approveCopilot(msg.approvalId!)"
+
+                >
+
+                  {{ approving() ? 'Exécution…' : 'Approuver et exécuter' }}
+
+                </button>
+
+              }
+
+            </div>
+
+          </article>
+
+        }
+
+        @if (sending()) {
+
+          <article class="ai-copilot-chat__row ai-copilot-chat__row--thinking">
+
+            <div class="ai-copilot-chat__bubble">
+
+              <div class="ai-copilot-chat__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+
+              <span>L'agent réfléchit et exécute…</span>
+
+            </div>
+
+          </article>
+
+        }
+
+        @if (aiError()) {
+
+          <article class="ai-reply ai-reply--error ai-reply--inline"><p>{{ aiError() }}</p></article>
+
+        }
+
+      </div>
+
+
+
+      <footer class="ai-chat-thread__dock">
+
+        <div class="ai-chat-thread__dock-shell">
+
+          <ng-container *ngTemplateOutlet="composerBlock" />
+
+        </div>
+
+      </footer>
+
+    </section>
+
+  }
+
+</div>
+
+
+
+<ng-template #composerBlock>
+
+  <div
+
+    class="ai-composer"
+
+    [class.ai-composer--loading]="sending()"
+
+    [class.ai-composer--agent]="agentMode()"
+
+    [class.ai-composer--dock]="inChatMode()"
+
+    [class.ai-composer--has-file]="!!pendingAttachment()"
+
+  >
+
+    @if (pendingAttachment(); as att) {
+
+      <div class="ai-composer__attach-preview">
+
+        @if (att.kind === 'image' && att.previewUrl) {
+
+          <img [src]="att.previewUrl" [alt]="att.name" class="ai-composer__attach-img" />
+
+        } @else {
+
+          <span class="ai-composer__attach-icon">{{ fileIcon(att.kind) }}</span>
+
+        }
+
+        <div class="ai-composer__attach-meta">
+
+          <strong>{{ att.name }}</strong>
+
+          <small>Fichier prêt — envoyez votre message</small>
+
+        </div>
+
+        <button type="button" class="ai-composer__attach-remove" (click)="clearAttachment()" aria-label="Retirer le fichier">×</button>
+
+      </div>
+
+    }
+
+    <textarea
+
+      class="ai-composer__input"
+
+      [(ngModel)]="prompt"
+
+      rows="2"
+
+      placeholder="Posez une question ou joignez un fichier via le trombone…"
+
+      (keydown.enter)="$event.preventDefault(); sendPrompt()"
+
+    ></textarea>
+
+    <button
+
+      type="button"
+
+      class="ai-composer__send"
+
+      [disabled]="!canSend()"
+
+      (click)="sendPrompt()"
+
+      title="Send"
+
+      aria-label="Send"
+
+    >
+
+      @if (sending()) {
+
+        <span class="ai-composer__spinner"></span>
+
+      } @else {
+
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+
+          <path fill="currentColor" d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/>
+
+        </svg>
+
+      }
+
+    </button>
+
+  </div>
+
+
+
+  <div class="ai-hero__pills">
+
+    <button
+
+      type="button"
+
+      class="ai-hero__pill"
+
+      title="Ajouter PDF, Excel, Word ou image à votre message"
+
+      [class.ai-hero__pill--attached]="!!pendingAttachment()"
+
+      [class.ai-hero__pill--uploading]="uploadingKb()"
+
+      [disabled]="uploadingKb() || sending()"
+
+      (click)="onUploadClick()"
+
+    >
+
+      <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
+
+    </button>
+
+    <button
+
+      type="button"
+
+      class="ai-hero__pill ai-hero__pill--agent"
+
+      [class.ai-hero__pill--agent-on]="agentMode()"
+
+      [title]="agentMode() ? 'Mode Agent activé — cliquer pour désactiver' : 'Activer le mode Agent (exécution automatique)'"
+
+      [attr.aria-label]="agentMode() ? 'Mode Agent activé' : 'Activer le mode Agent'"
+
+      [attr.aria-pressed]="agentMode()"
+
+      [disabled]="sending()"
+
+      (click)="toggleAgentMode()"
+
+    >
+
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+
+        <rect x="3" y="3" width="7" height="7" rx="1"/>
+
+        <rect x="14" y="3" width="7" height="7" rx="1"/>
+
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+
+        <path d="M14 14h3v3h-3zM17 17h3v3h-3z"/>
+
+      </svg>
+
+    </button>
+
+    <span class="ai-hero__powered">
+
+      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2l1.8 4.2L18 8l-4.2 1.8L12 14l-1.8-4.2L6 8l4.2-1.8L12 2z"/></svg>
+
+      Powered by Globex AI
+
+    </span>
+
+  </div>
+
+
+
+  @if (agentMode()) {
+
+    <p class="ai-hero__agent-banner">
+
+      Mode Agent : j'exécute les tâches admin (users, tracking, support…) avec approbation si nécessaire.
+
+    </p>
+
+  }
+
+
+
+  @if (uploadingKb()) {
+
+    <p class="ai-hero__attached ai-hero__attached--indexing">Indexation du document en cours…</p>
+
+  }
+
+</ng-template>
+

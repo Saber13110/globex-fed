@@ -1,0 +1,293 @@
+<div class="emp-ai-ws" [class.emp-ai-ws--history-closed]="!historyOpen">
+
+  <!-- Conversation History -->
+  <aside class="emp-ai-ws__history" aria-label="Conversation History">
+    <button type="button" class="emp-ai-ws__new-chat" (click)="newChat()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      {{ 'employee.assistant.newConversation' | t }}
+    </button>
+
+    <div class="emp-ai-ws__history-list">
+      <h3>{{ 'employee.assistant.conversationHistory' | t }}</h3>
+      @for (session of sessions; track session.id) {
+        <button
+          type="button"
+          class="emp-ai-ws__history-item"
+          [class.emp-ai-ws__history-item--active]="activeSession?.id === session.id"
+          (click)="selectSession(session)"
+        >
+          <span class="emp-ai-ws__history-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>
+          </span>
+          <span class="emp-ai-ws__history-body">
+            @if (renamingId === session.id) {
+              <input
+                type="text"
+                class="emp-ai-ws__rename"
+                [(ngModel)]="renameDraft"
+                (keydown.enter)="saveRename(session)"
+                (keydown.escape)="cancelRename()"
+                (click)="$event.stopPropagation()"
+              />
+            } @else {
+              <span class="emp-ai-ws__history-title">{{ session.title }}</span>
+              <span class="emp-ai-ws__history-time">{{ sessionTimeAgo(session.updatedAt) }}</span>
+            }
+          </span>
+          <span class="emp-ai-ws__history-actions">
+            <button type="button" (click)="startRename(session, $event)" [attr.aria-label]="'employee.assistant.rename' | t">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button type="button" (click)="deleteSession(session, $event)" [attr.aria-label]="'employee.assistant.delete' | t">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </span>
+        </button>
+      } @empty {
+        <p class="emp-ai-ws__history-empty">{{ 'employee.assistant.noHistory' | t }}</p>
+      }
+    </div>
+
+    <button type="button" class="emp-ai-ws__view-all">{{ 'employee.assistant.viewAllConversations' | t }}</button>
+  </aside>
+
+  <!-- Main AI Workspace -->
+  <main class="emp-ai-ws__center">
+    <button type="button" class="emp-ai-ws__history-toggle" (click)="toggleHistory()" [attr.aria-label]="'employee.assistant.toggleSidebar' | t">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
+    <!-- Hero -->
+    <header class="emp-ai-ws__hero">
+      <div class="emp-ai-ws__hero-art" aria-hidden="true">
+        <img class="emp-ai-ws__hero-art-img" [src]="heroIllustration" alt="" width="1024" height="682" loading="eager" />
+      </div>
+      <div class="emp-ai-ws__hero-copy">
+        <span class="emp-ai-ws__eyebrow">{{ 'employee.ai.badge' | t }}</span>
+        <div class="emp-ai-ws__hero-title-row">
+          <h1>{{ 'employee.ai.title' | t }}</h1>
+          <span class="emp-ai-ws__online">{{ 'employee.ops.aiOnline' | t }}</span>
+        </div>
+        <p class="emp-ai-ws__hero-sub">{{ 'employee.assistant.subtitle' | t }}</p>
+      </div>
+    </header>
+
+    <!-- Quick Actions -->
+    <div class="emp-ai-ws__quick">
+      @for (action of quickActions; track action.promptKey) {
+        <button type="button" class="emp-ai-ws__quick-card" (click)="runQuickAction(action.promptKey)">
+          <span class="emp-ai-ws__quick-icon ops-icon" [attr.data-icon]="action.icon"></span>
+          <strong>{{ action.labelKey | t }}</strong>
+          <span>{{ action.descKey | t }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- Chat Thread -->
+    <div class="emp-ai-ws__thread" #threadEl>
+      @if (messages.length === 0 && !loading) {
+        <div class="emp-ai-ws__welcome">
+          <div class="emp-ai-ws__welcome-avatar">AI</div>
+          <h2>{{ 'employee.assistant.welcomeTitle' | t }}</h2>
+          <p>{{ 'employee.assistant.welcomeDesc' | t }}</p>
+        </div>
+      }
+
+      @for (msg of messages; track $index) {
+        <div class="emp-ai-ws__msg" [class.emp-ai-ws__msg--user]="msg.role === 'user'" [class.emp-ai-ws__msg--ai]="msg.role === 'assistant'">
+          <div class="emp-ai-ws__avatar" [class.emp-ai-ws__avatar--ai]="msg.role === 'assistant'">
+            {{ msg.role === 'user' ? employeeInitials : 'AI' }}
+          </div>
+          <div class="emp-ai-ws__msg-content">
+            @if (msg.role === 'user') {
+              <div class="emp-ai-ws__bubble emp-ai-ws__bubble--user">
+                <p>{{ msg.text }}</p>
+                @if (msg.attachments?.length) {
+                  <div class="emp-ai-ws__attachments">
+                    @for (att of msg.attachments; track att.name) {
+                      <span class="emp-ai-ws__attachment">{{ att.name }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              @if (msg.text) {
+                <div class="emp-ai-ws__bubble emp-ai-ws__bubble--ai">
+                  <div [innerHTML]="formatMarkdown(msg.text)"></div>
+                </div>
+              }
+
+              @if (msg.tracking) {
+                <article class="emp-ai-ws__tracking-card">
+                  <header class="emp-ai-ws__tracking-head">
+                    <div class="emp-ai-ws__tracking-title">
+                      <span class="emp-ai-ws__tracking-icon ops-icon" data-icon="package"></span>
+                      <div>
+                        <strong>{{ 'employee.assistant.shipmentInTransit' | t }}</strong>
+                        <span class="emp-ai-ws__badge" [class]="statusBadgeClass(msg.tracking.status)">{{ msg.tracking.status }}</span>
+                      </div>
+                    </div>
+                  </header>
+
+                  <dl class="emp-ai-ws__tracking-grid">
+                    <div>
+                      <dt>{{ 'employee.assistant.trackingNumber' | t }}</dt>
+                      <dd><code>{{ msg.tracking.tracking_number }}</code></dd>
+                    </div>
+                    <div>
+                      <dt>{{ 'employee.assistant.origin' | t }}</dt>
+                      <dd>{{ trackingView(msg.tracking).origin }}</dd>
+                    </div>
+                    <div>
+                      <dt>{{ 'employee.assistant.destination' | t }}</dt>
+                      <dd>{{ trackingView(msg.tracking).destination }}</dd>
+                    </div>
+                    <div>
+                      <dt>{{ 'employee.assistant.lastUpdate' | t }}</dt>
+                      <dd>{{ trackingView(msg.tracking).lastUpdate }}</dd>
+                    </div>
+                  </dl>
+
+                  <div class="emp-ai-ws__timeline">
+                    @for (step of trackingSteps(msg.tracking.status); track step.labelKey) {
+                      <div class="emp-ai-ws__timeline-step" [class.emp-ai-ws__timeline-step--done]="step.done" [class.emp-ai-ws__timeline-step--active]="step.active">
+                        <span class="emp-ai-ws__timeline-dot">
+                          @if (step.done) {
+                            <svg viewBox="0 0 24 24" width="12" height="12"><path fill="currentColor" d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                          }
+                        </span>
+                        <span class="emp-ai-ws__timeline-label">{{ step.labelKey | t }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="emp-ai-ws__eta">
+                    <span>{{ 'employee.assistant.estimatedDelivery' | t }}</span>
+                    <strong>{{ msg.tracking.estimated_delivery }}</strong>
+                  </div>
+
+                  <div class="emp-ai-ws__tracking-actions">
+                    <a [routerLink]="['/employee/tracking', msg.tracking.tracking_number]" class="emp-ai-ws__btn emp-ai-ws__btn--ghost">{{ 'employee.assistant.viewDetails' | t }}</a>
+                    <a [routerLink]="['/employee/tracking', msg.tracking.tracking_number]" class="emp-ai-ws__btn emp-ai-ws__btn--primary">{{ 'employee.assistant.trackLive' | t }}</a>
+                  </div>
+                </article>
+              }
+
+              @if (msg.clients?.length) {
+                @for (c of msg.clients; track c.id) {
+                  <article class="emp-ai-ws__result-card">
+                    <header><strong>{{ 'employee.copilot.clientFound' | t }}</strong></header>
+                    <h3>{{ c.full_name }}</h3>
+                    <dl>
+                      <div><dt>Email</dt><dd>{{ c.email }}</dd></div>
+                      <div><dt>Tracking</dt><dd>{{ c.total_trackings }} {{ 'employee.copilot.activeShipments' | t }}</dd></div>
+                    </dl>
+                    <a [routerLink]="['/employee/client', c.id]" class="emp-ai-ws__btn emp-ai-ws__btn--primary">{{ 'employee.copilot.openClient' | t }}</a>
+                  </article>
+                }
+              }
+
+              @if (msg.tickets?.length) {
+                @for (t of msg.tickets; track t.id) {
+                  <article class="emp-ai-ws__result-card">
+                    <header><code>{{ t.ticket_number }}</code></header>
+                    <strong>{{ t.subject }}</strong>
+                    <a [routerLink]="['/employee/support', t.id]" class="emp-ai-ws__btn emp-ai-ws__btn--primary">{{ 'employee.copilot.openTicket' | t }}</a>
+                  </article>
+                }
+              }
+            }
+          </div>
+        </div>
+      }
+
+      @if (loading) {
+        <div class="emp-ai-ws__msg emp-ai-ws__msg--ai">
+          <div class="emp-ai-ws__avatar emp-ai-ws__avatar--ai">AI</div>
+          <div class="emp-ai-ws__bubble emp-ai-ws__bubble--ai emp-ai-ws__bubble--thinking">
+            <div class="emp-ai-ws__typing"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Composer -->
+    <div class="emp-ai-ws__composer">
+      @if (pendingAttachments.length) {
+        <div class="emp-ai-ws__pending">
+          @for (att of pendingAttachments; track att.name; let i = $index) {
+            <span class="emp-ai-ws__pending-item">
+              {{ att.name }}
+              <button type="button" (click)="removeAttachment(i)" aria-label="Remove">×</button>
+            </span>
+          }
+        </div>
+      }
+      <div class="emp-ai-ws__composer-row">
+        <button type="button" class="emp-ai-ws__attach" (click)="triggerAttachment()" [attr.aria-label]="'employee.assistant.attach' | t">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <input type="file" #fileInput hidden multiple (change)="onFilesSelected($event)" />
+        <input
+          type="text"
+          class="emp-ai-ws__input"
+          [(ngModel)]="draft"
+          (keydown.enter)="onComposerEnter($event)"
+          [placeholder]="'employee.assistant.inputPlaceholder' | t"
+          [disabled]="loading"
+        />
+        <button type="button" class="emp-ai-ws__send" [disabled]="loading || (!draft.trim() && !pendingAttachments.length)" (click)="send()" [attr.aria-label]="'employee.ai.send' | t">
+          @if (loading) {
+            <span class="emp-ai-ws__spinner"></span>
+          } @else {
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          }
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Operational Summary -->
+  <aside class="emp-ai-ws__ops" aria-label="Operational Summary">
+    <h2 class="emp-ai-ws__ops-title">{{ 'employee.assistant.operationalSummary' | t }}</h2>
+
+    <div class="emp-ai-ws__ops-grid">
+      @for (metric of opsMetrics; track metric.labelKey) {
+        <article class="emp-ai-ws__ops-card" [class.emp-ai-ws__ops-card--danger]="metric.tone === 'danger'">
+          <div class="emp-ai-ws__ops-card-top">
+            <span class="emp-ai-ws__ops-icon ops-icon" [attr.data-icon]="metric.icon"></span>
+            <strong>{{ metric.value }}</strong>
+          </div>
+          <span class="emp-ai-ws__ops-label">{{ metric.labelKey | t }}</span>
+          <a [routerLink]="metric.route" class="emp-ai-ws__ops-link">{{ 'employee.ops.viewAll' | t }}</a>
+        </article>
+      }
+    </div>
+
+    <section class="emp-ai-ws__activity">
+      <h3>{{ 'employee.assistant.recentActivity' | t }}</h3>
+      <ul>
+        @for (item of recentActivity; track item.title + item.time) {
+          <li class="emp-ai-ws__activity-item">
+            <span class="emp-ai-ws__activity-icon ops-icon" [attr.data-icon]="item.icon"></span>
+            <div class="emp-ai-ws__activity-body">
+              <strong>{{ item.title }}</strong>
+              <span>{{ item.subtitle }}</span>
+            </div>
+            <time>{{ item.time }}</time>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <article class="emp-ai-ws__help">
+      <div class="emp-ai-ws__help-copy">
+        <h3>{{ 'employee.assistant.needHelp' | t }}</h3>
+        <a routerLink="/employee/admin-chat" class="emp-ai-ws__help-link">{{ 'employee.ops.chatAdmin' | t }}</a>
+        <p>{{ 'employee.assistant.helpDesc' | t }}</p>
+      </div>
+    </article>
+  </aside>
+</div>

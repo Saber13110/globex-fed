@@ -1,0 +1,182 @@
+<div class="rpt-page rpt-page--premium" @fadeIn>
+  <header class="ap-hero rpt-hero">
+    <div class="ap-hero__mesh"></div>
+    <div class="ap-hero__inner">
+      <div>
+        <span class="ap-hero__eyebrow">Analytics & Exports</span>
+        <h1>Reports Center</h1>
+        <p>Export, analyse and monitor all logistics data in real-time.</p>
+      </div>
+      <div class="rpt-hero__actions">
+        <button type="button" class="ap-btn-ghost" (click)="exportQuick('excel')">Download tracking (.xlsx)</button>
+        <button type="button" class="ap-invite-btn" [disabled]="generating()" (click)="generateNew()">
+          {{ generating() ? 'Generating…' : 'Generate New Report' }}
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="ap-kpi-grid rpt-kpis">
+    @if (kpisLoading()) {
+      @for (i of [1,2,3,4,5]; track i) { <div class="rpt-kpi rpt-kpi--skel"></div> }
+    }
+    @for (k of kpis(); track k.key) {
+      <article class="ap-kpi rpt-kpi" [attr.data-key]="k.key">
+        <span class="rpt-kpi__label">{{ k.label }}</span>
+        <strong>{{ k.display_value }}</strong>
+        <span class="rpt-kpi__trend" [class.rpt-kpi__trend--down]="!k.trend_up">
+          {{ k.trend_up ? '↗' : '↘' }} {{ k.trend_percent }}%
+        </span>
+        <svg class="rpt-kpi__spark" viewBox="0 0 72 28" aria-hidden="true">
+          <path [attr.d]="sparkPath(k.sparkline)" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </article>
+    }
+  </div>
+
+  <div class="rpt-body">
+    <div class="rpt-main">
+      <nav class="rpt-tabs">
+        @for (t of tabs; track t.id) {
+          <button type="button" [class.rpt-tabs__active]="activeTab() === t.id" (click)="setTab(t.id)">{{ t.label }}</button>
+        }
+      </nav>
+
+      <div class="ap-filter-toggle-row">
+        <button
+          type="button"
+          class="ap-filter-toggle-btn"
+          [class.ap-filter-toggle-btn--open]="filtersOpen()"
+          (click)="filtersOpen.set(!filtersOpen())"
+          [attr.aria-expanded]="filtersOpen()"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" d="M3 4h18M7 8h10M10 12h4"/>
+          </svg>
+          Filtres
+        </button>
+      </div>
+
+      @if (filtersOpen()) {
+      <div class="ap-filter-panel rpt-filters ap-filter-bar">
+        <div class="ap-filter-search rpt-search">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z"/></svg>
+          <input type="search" placeholder="Search reports..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keydown.enter)="applyFilters()" />
+        </div>
+        <div class="ap-filter-field">
+          <span class="ap-filter-label">Catégorie</span>
+          <div class="ap-filter-select-wrap">
+            <select class="ap-filter-select" [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event); applyFilters()">
+              <option value="all">Toutes</option>
+              <option value="shipments">Shipments</option>
+              <option value="performance">Performance</option>
+              <option value="exceptions">Exceptions</option>
+              <option value="finance">Finance</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+        </div>
+        <div class="ap-filter-field">
+          <span class="ap-filter-label">Format</span>
+          <div class="ap-filter-select-wrap">
+            <select class="ap-filter-select" [ngModel]="formatFilter()" (ngModelChange)="formatFilter.set($event); applyFilters()">
+              <option value="all">Tous</option>
+              <option value="xlsx">XLSX</option>
+              <option value="csv">CSV</option>
+              <option value="pdf">PDF</option>
+              <option value="json">JSON</option>
+            </select>
+          </div>
+        </div>
+        <div class="ap-filter-field">
+          <span class="ap-filter-label">Période</span>
+          <div class="rpt-dates__row">
+            <input type="date" class="ap-filter-select ap-filter-select--date" [(ngModel)]="dateFrom" (change)="applyFilters()" />
+            <span>—</span>
+            <input type="date" class="ap-filter-select ap-filter-select--date" [(ngModel)]="dateTo" (change)="applyFilters()" />
+          </div>
+        </div>
+        <button type="button" class="rpt-btn rpt-btn--ghost ap-btn-ghost ap-btn-ghost--sm" (click)="applyFilters()">Appliquer</button>
+      </div>
+      }
+
+      <section class="rpt-table-wrap">
+        <div class="rpt-table">
+          <div class="rpt-table__head">
+            <span>Report Name</span>
+            <span>Category</span>
+            <span>Format</span>
+            <span>Period</span>
+            <span>Generated By</span>
+            <span>Status</span>
+            <span>Actions</span>
+          </div>
+          @for (item of catalog(); track item.slug) {
+            <div class="rpt-table__row">
+              <div class="rpt-table__name">
+                <strong>{{ item.name }}</strong>
+                <small>{{ item.description }}</small>
+              </div>
+              <span class="rpt-cat" [ngClass]="categoryClass(item.category)">{{ item.category }}</span>
+              <span class="rpt-fmt" [ngClass]="formatClass(item.default_format)">{{ item.default_format | uppercase }}</span>
+              <span>{{ item.period }}</span>
+              <span>{{ item.generated_by_name ?? '—' }}</span>
+              <span class="rpt-status" [ngClass]="statusClass(item.last_status ?? 'scheduled')">{{ item.last_status ?? 'Scheduled' }}</span>
+              <div class="rpt-row-actions">
+                <button type="button" title="Download" (click)="generateReport(item.slug, item.default_format)">↓</button>
+                <button type="button" title="Preview" (click)="previewCatalog(item)">👁</button>
+                <button type="button" title="Share" (click)="shareCatalog(item)">⎘</button>
+              </div>
+            </div>
+          }
+          @if (catalog().length === 0) {
+            <p class="rpt-empty">Aucun rapport pour ces filtres.</p>
+          }
+        </div>
+        <footer class="rpt-pagination">
+          <span>Showing {{ catalog().length }} of {{ total() }} results</span>
+          <div>
+            <button type="button" class="rpt-page-btn" [disabled]="page() <= 1" (click)="page.set(page() - 1); loadList()">Prev</button>
+            <span>{{ page() }} / {{ totalPages() }}</span>
+            <button type="button" class="rpt-page-btn" [disabled]="page() >= totalPages()" (click)="page.set(page() + 1); loadList()">Next</button>
+          </div>
+          <select [ngModel]="pageSize()" (ngModelChange)="pageSize.set(+$event); page.set(1); loadList()">
+            <option [ngValue]="6">6</option>
+            <option [ngValue]="10">10</option>
+          </select>
+        </footer>
+      </section>
+    </div>
+
+    <aside class="rpt-side">
+      <section class="rpt-card rpt-card--ai">
+        <h3>AI Report Generator</h3>
+        <textarea [(ngModel)]="aiPrompt" rows="3" placeholder="Ask AI to generate a report…"></textarea>
+        <div class="rpt-ai-examples">
+          @for (ex of aiExamples; track ex) {
+            <button type="button" (click)="runAi(ex)">{{ ex }}</button>
+          }
+        </div>
+        <button type="button" class="rpt-btn rpt-btn--primary" [disabled]="aiLoading()" (click)="runAi()">
+          {{ aiLoading() ? 'Analyzing…' : 'Generate with AI' }}
+        </button>
+      </section>
+
+      <section class="rpt-card">
+        <h3>Recent Exports</h3>
+        <ul class="rpt-recent">
+          @for (r of recent(); track r.id) {
+            <li>
+              <div>
+                <strong>{{ r.name }}</strong>
+                <small>{{ r.created_at | date: 'dd/MM/yy HH:mm' }} · {{ r.format | uppercase }}</small>
+              </div>
+              <span class="rpt-status" [ngClass]="statusClass(r.status)">{{ r.status }}</span>
+              <button type="button" class="rpt-dl" (click)="downloadRun(r)" title="Download">↓</button>
+            </li>
+          }
+        </ul>
+      </section>
+    </aside>
+  </div>
+</div>

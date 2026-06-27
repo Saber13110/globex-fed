@@ -1,0 +1,240 @@
+<section class="am-detail">
+  <header class="am-detail__hero">
+    <div>
+      <a routerLink="/admin/agent-missions" class="am-detail__back">← Retour aux missions</a>
+      <h1>Détail de la mission</h1>
+    </div>
+    @if (mission(); as m) {
+      <div class="am-detail__hero-actions">
+        @if (m.status === 'draft' || m.status === 'scheduled' || m.status === 'failed' || m.status === 'waiting_plan_approval') {
+          <a [routerLink]="['/admin/agent-missions', m.id, 'edit']" class="am-detail__btn">Orchestrateur</a>
+          <button type="button" class="am-detail__btn am-detail__btn--primary" [disabled]="busy()" (click)="run()">
+            {{ busy() ? 'Exécution…' : m.status === 'failed' ? 'Relancer' : 'Lancer maintenant' }}
+          </button>
+        }
+      </div>
+    }
+  </header>
+
+  @if (error()) {
+    <p class="am-detail__error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="am-detail__loading">Chargement…</p>
+  } @else {
+    @if (mission(); as m) {
+    <div class="am-detail__summary">
+      <div>
+        <span class="am-detail__badge" [attr.data-status]="m.status">{{ statusLabel(m.status) }}</span>
+        <h2>{{ agentLabel(m.agent_type) }}</h2>
+        <p>{{ m.task_description }}</p>
+      </div>
+      <dl class="am-detail__meta">
+        <div><dt>Créée</dt><dd>{{ m.created_at | date: 'dd/MM/yy HH:mm' }}</dd></div>
+        <div><dt>Exécution</dt><dd>{{ m.schedule_type }}</dd></div>
+        <div><dt>Max éléments</dt><dd>{{ m.max_items }}</dd></div>
+        <div><dt>Max durée</dt><dd>{{ m.max_duration_minutes }} min</dd></div>
+      </dl>
+    </div>
+
+    @if (m.status === 'failed') {
+      <div class="am-detail__error-banner">
+        <strong>Mission échouée</strong>
+        <p>Consultez l'onglet Logs pour le détail. Cliquez sur « Relancer » pour réessayer.</p>
+      </div>
+    }
+
+    @if (hasRoleMismatch(m)) {
+      <div class="am-detail__warn-banner">
+        <strong>Hors rôle</strong>
+        <p>L'agent choisi n'est pas adapté à cette tâche. Consultez le schéma et les résultats pour l'agent recommandé.</p>
+      </div>
+    }
+
+    @if (m.pending_approvals.length) {
+      <section class="am-detail__panel am-detail__panel--warn">
+        <h3>Permission requise pour exécuter l'action</h3>
+        @for (approval of m.pending_approvals; track approval.id) {
+          <article class="am-detail__approval">
+            <p>{{ approval.description }}</p>
+            <small>{{ approval.action_type }}</small>
+            <div class="am-detail__panel-actions">
+              <button type="button" class="am-detail__btn am-detail__btn--primary" [disabled]="busy()" (click)="approveAction(approval.id)">
+                Approuver et exécuter
+              </button>
+              <button type="button" class="am-detail__btn am-detail__btn--danger" [disabled]="busy()" (click)="rejectAction(approval.id)">Refuser</button>
+            </div>
+          </article>
+        }
+      </section>
+    }
+
+    @if (needsApproval(m) && !m.pending_approvals.length) {
+      <div class="am-detail__warn-banner">
+        <strong>En attente</strong>
+        <p>Une action sensible a été identifiée. Consultez l'onglet Résultats.</p>
+      </div>
+    }
+
+    <nav class="am-detail__tabs" aria-label="Sections mission">
+      <button type="button" [class.active]="activeTab() === 'schema'" (click)="setTab('schema')">Schéma</button>
+      <button type="button" [class.active]="activeTab() === 'results'" (click)="setTab('results')">
+        Résultats
+        @if (m.results.has_results) {
+          <span class="am-detail__tab-dot"></span>
+        }
+      </button>
+      <button type="button" [class.active]="activeTab() === 'logs'" (click)="setTab('logs')">Logs</button>
+    </nav>
+
+    @if (activeTab() === 'schema') {
+      <section class="am-detail__panel">
+        <div class="am-detail__panel-head">
+          <h3>Workflow</h3>
+          @if (hasBuilderWorkflow(m)) {
+            <a [routerLink]="['/admin/agent-missions', m.id, 'edit']" class="am-detail__btn">Modifier l'orchestrateur</a>
+          }
+        </div>
+        @if (hasBuilderWorkflow(m)) {
+          <p class="am-detail__muted">
+            Cette mission utilise l'orchestrateur visuel. Ouvrez l'éditeur pour voir et modifier les blocs reliés.
+          </p>
+        } @else {
+          <app-agent-mission-schema [schema]="workflowSchema(m)" [missionStatus]="m.status" />
+        }
+      </section>
+    }
+
+    @if (activeTab() === 'results') {
+      <section class="am-detail__panel am-detail__panel--results" id="resultats">
+        <div class="am-detail__panel-head">
+          <h3>Conversation agent</h3>
+          @if (m.results.has_results || m.messages.length) {
+            <span class="am-detail__results-badge" [attr.data-status]="actionStatusLabel(m)">
+              {{ actionStatusLabel(m) }}
+            </span>
+          }
+        </div>
+
+        @if (!m.results.has_results && !m.messages.length && !isRunning(m)) {
+          <div class="am-detail__results-empty">
+            <p>Aucun résultat pour le moment.</p>
+            <small>Lancez la mission : l'agent exécute la tâche, affiche son raisonnement étape par étape, et demande votre approbation si nécessaire.</small>
+          </div>
+        } @else {
+          <div class="am-detail__chat">
+            @for (msg of chatMessages(m); track msg.id) {
+              <article class="am-detail__chat-row" [class.am-detail__chat-row--admin]="msg.sender === 'admin'">
+                <div class="am-detail__chat-bubble" [class.am-detail__chat-bubble--admin]="msg.sender === 'admin'">
+                  <header class="am-detail__chat-meta">
+                    <strong>{{ msg.sender === 'admin' ? 'Vous' : 'Agent' }}</strong>
+                    <time>{{ msg.created_at | date: 'dd/MM/yy HH:mm' }}</time>
+                  </header>
+                  <p class="am-detail__chat-text">{{ msg.content }}</p>
+                </div>
+              </article>
+            }
+
+            @if (isRunning(m)) {
+              <article class="am-detail__chat-row am-detail__chat-row--thinking" aria-live="polite">
+                <div class="am-detail__chat-bubble am-detail__chat-bubble--agent">
+                  <div class="am-detail__thinking-dots" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                  </div>
+                  <span class="am-detail__thinking-label">L'agent réfléchit…</span>
+                </div>
+              </article>
+            }
+          </div>
+
+          @if (displaySteps(m).length) {
+            <div class="am-detail__agent-steps">
+              <h4>Étapes d'exécution</h4>
+              @for (step of displaySteps(m); track step.label) {
+                <div class="am-detail__agent-step">
+                  <span class="am-detail__agent-step-dot" [ngClass]="stepDotClass(step.status)"></span>
+                  <span>{{ step.label }}@if (step.detail) { — {{ step.detail }} }</span>
+                </div>
+              }
+            </div>
+          }
+
+          @if (displayReasoning(m); as reasoning) {
+            <article class="am-detail__reasoning">
+              <h4>Raisonnement</h4>
+              @if (reasoning.objective) {
+                <p><strong>Objectif :</strong> {{ reasoning.objective }}</p>
+              }
+              @if (reasoning.plan?.length) {
+                <ul>
+                  @for (item of reasoning.plan; track item) {
+                    <li>{{ item }}</li>
+                  }
+                </ul>
+              }
+              @if (reasoning.action_label) {
+                <p><strong>Action :</strong> {{ reasoning.action_label }}</p>
+              }
+              @if (reasoning.verification) {
+                <p><strong>Vérification :</strong> {{ reasoning.verification }}</p>
+              }
+            </article>
+          }
+
+          @if (m.results.executive_summary) {
+            <article class="am-detail__summary-card" [class.am-detail__summary-card--warn]="hasRoleMismatch(m) || needsApproval(m)" [class.am-detail__summary-card--ok]="actionExecuted(m)">
+              <h4>Synthèse</h4>
+              <p>{{ m.results.executive_summary }}</p>
+            </article>
+          }
+
+          @if (m.results.step_results.length) {
+            <details class="am-detail__technical">
+              <summary>Détails techniques</summary>
+              <div class="am-detail__step-results">
+                @for (step of m.results.step_results; track step.step_id) {
+                  <article class="am-detail__result-card">
+                    <header>
+                      <strong>{{ step.title }}</strong>
+                      <span class="am-detail__step-badge" [attr.data-status]="step.status">{{ stepStatusLabel(step.status) }}</span>
+                    </header>
+                    @if (outputEntries(step).length) {
+                      <dl class="am-detail__result-kv">
+                        @for (entry of outputEntries(step); track entry.key) {
+                          <div>
+                            <dt>{{ metricLabel(entry.key) }}</dt>
+                            <dd>{{ entry.value }}</dd>
+                          </div>
+                        }
+                      </dl>
+                    }
+                  </article>
+                }
+              </div>
+            </details>
+          }
+        }
+      </section>
+    }
+
+    @if (activeTab() === 'logs') {
+    <section class="am-detail__panel">
+      <h3>Logs d'exécution</h3>
+      @if (!m.logs.length) {
+        <p class="am-detail__muted">Aucun log pour le moment.</p>
+      } @else {
+        <ul class="am-detail__logs">
+          @for (log of m.logs; track log.id) {
+            <li [attr.data-level]="log.level">
+              <time>{{ log.created_at | date: 'dd/MM/yy HH:mm:ss' }}</time>
+              <span>{{ log.message }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+    }
+    }
+  }
+</section>

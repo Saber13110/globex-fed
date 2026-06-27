@@ -1,0 +1,163 @@
+<div class="enotif">
+  <header class="enotif__hero">
+    <div>
+      <span class="enotif__badge">{{ 'employee.notifications.eyebrow' | t }}</span>
+      <h1>{{ 'employee.notifications.title' | t }}</h1>
+      <p>{{ 'employee.notifications.subtitle' | t }}</p>
+    </div>
+    <div class="enotif__hero-actions">
+      <button type="button" class="enotif-btn enotif-btn--ghost" [disabled]="refreshing" (click)="refresh()">
+        <svg lucideRefreshCw [size]="iconSize" [class.enotif-spin]="refreshing" />
+        {{ 'employee.notifications.refresh' | t }}
+      </button>
+      <button type="button" class="enotif-btn enotif-btn--primary" [disabled]="markingAll || unreadCount === 0" (click)="markAllRead()">
+        <svg lucideCheck [size]="iconSize" />
+        {{ 'employee.notifications.markAllRead' | t }}
+      </button>
+    </div>
+  </header>
+
+  @if (toast) {
+    <div class="enotif-toast" [class.enotif-toast--error]="toastKind === 'error'" role="status">
+      {{ toast }}
+      <button type="button" (click)="toast = ''"><svg lucideX [size]="14" /></button>
+    </div>
+  }
+
+  <section class="enotif-kpis">
+    @for (kpi of ['all', 'unread', 'support', 'tracking', 'documents']; track kpi) {
+      <button
+        type="button"
+        class="enotif-kpi"
+        [class.enotif-kpi--active]="activeKpi === kpi"
+        (click)="selectKpi($any(kpi))"
+      >
+        <span class="enotif-kpi__icon">
+          @if (kpi === 'all' || kpi === 'unread') { <svg lucideBell [size]="iconSize" /> }
+          @else if (kpi === 'support') { <svg lucideTicket [size]="iconSize" /> }
+          @else if (kpi === 'tracking') { <svg lucidePackage [size]="iconSize" /> }
+          @else { <svg lucideFileText [size]="iconSize" /> }
+        </span>
+        <strong>{{ kpiValue($any(kpi)) }}</strong>
+        <span>{{ ('employee.notifications.kpi.' + kpi) | t }}</span>
+        @if (kpi === 'unread' && stats.unread > 0) {
+          <em class="enotif-kpi__dot">{{ stats.unread }}</em>
+        }
+      </button>
+    }
+  </section>
+
+  <section class="enotif-filters">
+    <div class="enotif-filters__search">
+      <svg lucideSearch [size]="16" />
+      <input
+        type="search"
+        [(ngModel)]="search"
+        (keyup.enter)="applyFilters()"
+        [placeholder]="'employee.notifications.searchPlaceholder' | t"
+      />
+    </div>
+    <select [(ngModel)]="typeFilter">
+      <option value="">{{ 'employee.notifications.filterAllTypes' | t }}</option>
+      <option value="support">{{ 'employee.notifications.type.support_reply' | t }}</option>
+      <option value="tracking">{{ 'employee.notifications.type.tracking_update' | t }}</option>
+      <option value="documents">{{ 'employee.notifications.type.document_uploaded' | t }}</option>
+      <option value="security">{{ 'employee.notifications.type.security_alert' | t }}</option>
+      <option value="admin">{{ 'employee.notifications.type.admin_message' | t }}</option>
+    </select>
+    <select [(ngModel)]="statusFilter">
+      <option value="">{{ 'employee.notifications.filterAllStatus' | t }}</option>
+      <option value="unread">{{ 'employee.notifications.unread' | t }}</option>
+      <option value="read">{{ 'employee.notifications.read' | t }}</option>
+    </select>
+    <button type="button" class="enotif-btn enotif-btn--primary enotif-btn--sm" (click)="applyFilters()">
+      {{ 'employee.notifications.apply' | t }}
+    </button>
+    <button type="button" class="enotif-btn enotif-btn--ghost enotif-btn--sm" (click)="clearFilters()">
+      {{ 'employee.notifications.clear' | t }}
+    </button>
+  </section>
+
+  <section class="enotif-list">
+    @if (loading) {
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="enotif-skel"></div>
+      }
+    } @else if (error) {
+      <div class="enotif-empty enotif-empty--error">
+        <p>{{ 'employee.notifications.error' | t }}</p>
+        <button type="button" class="enotif-btn enotif-btn--primary" (click)="loadAll()">{{ 'employee.notifications.refresh' | t }}</button>
+      </div>
+    } @else if (!items.length) {
+      <div class="enotif-empty">
+        <div class="enotif-empty__bell">
+          <svg lucideBell [size]="40" />
+        </div>
+        <h2>{{ 'employee.notifications.emptyTitle' | t }}</h2>
+        <p>{{ 'employee.notifications.emptyDesc' | t }}</p>
+        <a routerLink="/employee" class="enotif-btn enotif-btn--primary">{{ 'employee.notifications.backDashboard' | t }}</a>
+      </div>
+    } @else {
+      @for (n of items; track n.id) {
+        <article class="enotif-card" [class.enotif-card--unread]="!n.is_read">
+          @if (!n.is_read) { <span class="enotif-card__bar" aria-hidden="true"></span> }
+          <span class="enotif-card__icon" [attr.data-type]="iconFor(notifType(n))">
+            @if (iconFor(notifType(n)) === 'ticket') { <svg lucideTicket [size]="iconSize" /> }
+            @else if (iconFor(notifType(n)) === 'package') { <svg lucidePackage [size]="iconSize" /> }
+            @else if (iconFor(notifType(n)) === 'file') { <svg lucideFileText [size]="iconSize" /> }
+            @else if (iconFor(notifType(n)) === 'shield') { <svg lucideShield [size]="iconSize" /> }
+            @else { <svg lucideBell [size]="iconSize" /> }
+          </span>
+          <div class="enotif-card__body">
+            <div class="enotif-card__head">
+              <strong>{{ n.title }}</strong>
+              <span class="enotif-card__type">{{ typeLabel(notifType(n)) }}</span>
+              <time>{{ relativeTime(n.created_at) }}</time>
+            </div>
+            <p>{{ n.message }}</p>
+          </div>
+          <div class="enotif-card__actions">
+            <button type="button" class="enotif-btn enotif-btn--primary enotif-btn--sm" (click)="openNotification(n, $event)">
+              <svg lucideExternalLink [size]="14" />
+              {{ 'employee.notifications.open' | t }}
+            </button>
+            @if (!n.is_read) {
+              <button type="button" class="enotif-btn enotif-btn--ghost enotif-btn--sm" (click)="markReadOnly(n, $event)">
+                {{ 'employee.notifications.markRead' | t }}
+              </button>
+            }
+            <div class="enotif-menu" (click)="$event.stopPropagation()">
+              <button type="button" class="enotif-menu__trigger" (click)="toggleMenu(n.id, $event)">
+                <svg lucideMoreHorizontal [size]="16" />
+              </button>
+              @if (menuOpenId === n.id) {
+                <div class="enotif-menu__dropdown">
+                  <button type="button" (click)="openNotification(n, $event)">{{ 'employee.notifications.open' | t }}</button>
+                  @if (!n.is_read) {
+                    <button type="button" (click)="markReadOnly(n, $event)">{{ 'employee.notifications.markRead' | t }}</button>
+                  }
+                  <button type="button" class="enotif-menu__danger" (click)="deleteNotification(n, $event)">
+                    <svg lucideTrash2 [size]="14" />
+                    {{ 'employee.notifications.delete' | t }}
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        </article>
+      }
+
+      @if (totalPages > 1) {
+        <footer class="enotif-pagination">
+          <button type="button" class="enotif-btn enotif-btn--ghost enotif-btn--sm" [disabled]="page <= 1" (click)="goPage(-1)">
+            <svg lucideChevronLeft [size]="16" />
+          </button>
+          <span>{{ page }} / {{ totalPages }}</span>
+          <button type="button" class="enotif-btn enotif-btn--ghost enotif-btn--sm" [disabled]="page >= totalPages" (click)="goPage(1)">
+            <svg lucideChevronRight [size]="16" />
+          </button>
+        </footer>
+      }
+    }
+  </section>
+</div>

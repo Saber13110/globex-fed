@@ -1,0 +1,366 @@
+<div class="admin cc-shell">
+  <aside class="cc-sidebar" aria-label="Navigation Super Admin">
+    <div class="cc-sidebar__brand">
+      <span><span class="cc-sidebar__logo-fed">Fed</span><span class="cc-sidebar__logo-ex">Ex</span></span>
+      <span class="cc-sidebar__globex">GLOBEX</span>
+    </div>
+    <nav class="cc-sidebar__nav">
+      @for (group of navGroups(); track group.title || group.items[0]?.id) {
+        @if (group.title) {
+          <p class="cc-sidebar__section">{{ group.title }}</p>
+        }
+        @for (item of group.items; track item.id) {
+          <button
+            type="button"
+            class="cc-sidebar__item"
+            [class.cc-sidebar__item--active]="activeSection() === item.id"
+            (click)="setSection(item.id)"
+          >
+            <span class="cc-sidebar__icon" [attr.data-icon]="item.icon"></span>
+            <span>{{ item.label }}</span>
+            @if (item.id === 'notifications' && notificationCount() > 0) {
+              <span class="cc-sidebar__badge">{{ notificationCount() > 9 ? '9+' : notificationCount() }}</span>
+            }
+          </button>
+        }
+      }
+    </nav>
+    <div class="cc-sidebar__profile-wrap" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        class="cc-sidebar__profile cc-sidebar__profile--simple cc-sidebar__profile--btn"
+        (click)="toggleAccountMenu($event, 'sidebar')"
+        [attr.aria-expanded]="accountMenuOpen() && accountMenuAnchor() === 'sidebar'"
+        [attr.aria-label]="'sidebar.accountMenu' | t"
+      >
+        <div class="cc-sidebar__avatar" aria-hidden="true">{{ adminInitial() }}</div>
+        <div class="cc-sidebar__profile-info">
+          <strong>{{ adminDisplayName() }}</strong>
+          <small>{{ adminEmail() }}</small>
+          <span class="cc-sidebar__online"><span class="cc-sidebar__online-dot"></span>{{ 'admin.online' | t }}</span>
+        </div>
+      </button>
+      @if (accountMenuOpen() && accountMenuAnchor() === 'sidebar') {
+        <div class="cc-account-menu cc-account-menu--sidebar" role="menu" (click)="$event.stopPropagation()">
+          <ng-container *ngTemplateOutlet="adminAccountMenu" />
+        </div>
+      }
+    </div>
+  </aside>
+
+  <div class="cc-main">
+    <header class="cc-header" [class.cc-header--conversations]="activeSection() === 'conversations'">
+      <div class="cc-header__search">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5Zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z"/></svg>
+        <input
+          id="cc-global-search"
+          type="search"
+          [attr.placeholder]="globalSearchPlaceholder()"
+          [ngModel]="globalSearch()"
+          (ngModelChange)="globalSearch.set($event)"
+          (keydown.enter)="applyGlobalSearch()"
+        />
+        <kbd>⌘K</kbd>
+      </div>
+      <div class="cc-header__actions">
+        <button
+          type="button"
+          class="cc-header__jarvis-btn"
+          (click)="openJarvisUi()"
+          [attr.title]="'admin.nav.agentWindowExternal' | t"
+          [attr.aria-label]="'admin.nav.agentWindowExternal' | t"
+        >
+          <span class="cc-header__jarvis-dot" aria-hidden="true"></span>
+          {{ 'admin.header.openJarvis' | t }}
+          <span class="cc-header__jarvis-ext" aria-hidden="true">↗</span>
+        </button>
+      <div class="admin__notif-wrap" (click)="$event.stopPropagation()">
+        <button
+          type="button"
+            class="cc-header__icon-btn"
+            [class.cc-header__icon-btn--alert]="notificationCount() > 0"
+            [class.cc-header__icon-btn--fresh]="hasFreshNotif()"
+          (click)="toggleNotifications($event)"
+          [attr.aria-expanded]="notificationsOpen()"
+        >
+            <span class="cc-header__icon" data-icon="bell"></span>
+          @if (notificationCount() > 0) {
+              <span class="cc-header__dot" [class.cc-header__dot--pulse]="hasFreshNotif()">
+                <span class="cc-header__dot-count">{{ notificationCount() > 9 ? '9+' : notificationCount() }}</span>
+              </span>
+          }
+        </button>
+        @if (notificationsOpen()) {
+            <div class="admin__notif-panel" role="dialog">
+            <div class="admin__notif-panel-head">
+              <h2>{{ 'admin.notifPanelTitle' | t }}</h2>
+                @if (notificationCount() > 0) {
+                  <button type="button" class="admin__notif-refresh" (click)="markAllPlatformRead($event)">{{ 'notif.markAll' | t }}</button>
+                }
+            </div>
+            @if (notificationsLoading()) {
+              <p class="admin__notif-empty">{{ 'common.loading' | t }}</p>
+              } @else if (platformNotifItems().length === 0) {
+              <p class="admin__notif-empty">{{ 'admin.notifEmpty' | t }}</p>
+            } @else {
+              <ul class="admin__notif-list">
+                  @for (n of platformNotifItems(); track n.id) {
+                    <li>
+                      <button
+                        type="button"
+                        class="admin__notif-item"
+                        [class.admin__notif-item--unread]="!n.is_read"
+                        (click)="openPlatformNotification(n, $event)"
+                      >
+                        <span class="admin__notif-item-title">{{ n.title }}</span>
+                        <span class="admin__notif-item-msg">{{ n.message }}</span>
+                        <span class="admin__notif-item-time">{{ n.time_label || (n.created_at | date: 'dd/MM/yy HH:mm') }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+                <div class="admin__notif-foot">
+                  <button type="button" class="admin__notif-link" (click)="viewAllPlatformNotifications($event)">{{ 'notif.viewAll' | t }}</button>
+                </div>
+            }
+          </div>
+        }
+      </div>
+        <button type="button" class="cc-header__icon-btn" (click)="setSection('settings')" [attr.title]="'admin.settingsTitle' | t"><span class="cc-header__icon" data-icon="settings"></span></button>
+        <div class="cc-header__user-wrap" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="cc-header__user cc-header__user--btn"
+            (click)="toggleAccountMenu($event, 'header')"
+            [attr.aria-expanded]="accountMenuOpen() && accountMenuAnchor() === 'header'"
+            [attr.aria-label]="'sidebar.accountMenu' | t"
+          >
+            <div class="cc-header__user-avatar" aria-hidden="true">{{ adminInitial() }}</div>
+            <div>
+              <strong>{{ adminDisplayName() }}</strong>
+              <small>{{ 'admin.roleBadge' | t }}</small>
+            </div>
+          </button>
+          @if (accountMenuOpen() && accountMenuAnchor() === 'header') {
+            <div class="cc-account-menu cc-account-menu--header" role="menu" (click)="$event.stopPropagation()">
+              <ng-container *ngTemplateOutlet="adminAccountMenu" />
+            </div>
+          }
+        </div>
+        <button
+          type="button"
+          class="cc-header__icon-btn cc-header__icon-btn--logout"
+          (click)="logout()"
+          [attr.title]="'sidebar.logout' | t"
+          [attr.aria-label]="'sidebar.logout' | t"
+        >
+          <span class="cc-header__icon" data-icon="logout"></span>
+        </button>
+    </div>
+  </header>
+
+    <main class="cc-content" [class.cc-content--dash]="activeSection() === 'dashboard' || activeSection() === 'analytics' || activeSection() === 'monitoring'" [class.cc-content--ai]="activeSection() === 'ai-assistant'" [class.cc-content--notifications]="activeSection() === 'notifications'" [class.cc-content--conversations]="activeSection() === 'conversations'" [class.cc-content--tracking]="activeSection() === 'tracking'" [class.cc-content--users]="activeSection() === 'users' || activeSection() === 'roles'" [class.cc-content--audit]="activeSection() === 'audit-logs' || activeSection() === 'incidents'" [class.cc-content--settings]="activeSection() === 'settings'" [class.cc-content--reports]="activeSection() === 'reports'" [class.cc-content--missions]="agentMissionsActive()">
+    @if (agentMissionsActive()) {
+      <router-outlet />
+    } @else {
+    @if (activeSection() === 'dashboard' || activeSection() === 'analytics' || activeSection() === 'monitoring') {
+      <app-admin-dashboard
+        [adminName]="adminDisplayName()"
+        (navigate)="onDashboardNavigate($event)"
+        (manageUsers)="setSection('users')"
+      />
+    }
+
+    @if (activeSection() === 'ai-assistant') {
+      <app-admin-ai-assistant />
+    }
+    @if (activeSection() === 'ai-health') {
+      <app-admin-ai-health />
+    }
+
+    @if (activeSection() === 'gpt-knowledge') {
+      <app-admin-gpt-knowledge />
+    }
+
+    @if (activeSection() === 'notifications') {
+      <app-admin-notifications
+        (navigate)="onNotificationsNavigate($event)"
+        (unreadChange)="onNotificationsUnread($event)"
+      />
+    }
+
+    @if (activeSection() === 'reports') {
+      <app-admin-reports />
+    }
+
+    @if (activeTab() === 'conversations' && activeSection() === 'conversations') {
+      <app-admin-conversations
+        [initialConversationId]="dashboardConversationId()"
+        (openUserTicket)="openUserTicketFromMessaging($event)"
+        (navigate)="onConversationNavigate($event)"
+      />
+    }
+
+    @if (activeTab() === 'tracking' && activeSection() === 'tracking') {
+      <app-admin-tracking
+        [initialSearch]="trackingSearch()"
+        [initialShipmentId]="trackingShipmentId()"
+      />
+    }
+
+    @if (activeTab() === 'preferences') {
+      <section class="admin__card">
+        <h2 class="admin__card-title">{{ 'admin.prefsQueueTitle' | t }}</h2>
+        <p class="admin__hint">{{ 'admin.prefsQueueHint' | t }}</p>
+        <p class="admin__hint admin__hint--muted">{{ 'admin.prefsInAppOnly' | t }}</p>
+        @if (preferencesError()) {
+          <p class="admin__msg admin__msg--error">{{ preferencesError() }}</p>
+        }
+        @if (preferencesLoading()) {
+          <p class="admin__msg">{{ 'common.loading' | t }}</p>
+        } @else if (preferenceSubmissions().length === 0) {
+          <p class="admin__msg">{{ 'admin.prefsQueueEmpty' | t }}</p>
+        } @else {
+          <div class="admin__table admin__table--prefs">
+            <div class="admin__row admin__row--head">
+              <span>{{ 'admin.name' | t }}</span>
+              <span>{{ 'admin.logColTime' | t }}</span>
+              <span>{{ 'admin.prefsRisk' | t }}</span>
+              <span>{{ 'admin.userPromptLabel' | t }}</span>
+              <span></span>
+            </div>
+            @for (sub of preferenceSubmissions(); track sub.id) {
+              <div class="admin__row admin__row--prefs">
+                <span>{{ sub.user_name }}<br /><small>{{ sub.user_email }}</small></span>
+                <span>{{ sub.created_at | date: 'dd/MM/yy HH:mm' }}</span>
+                <span>
+                  <span class="badge" [attr.data-risk]="sub.risk_score >= 70 ? 'high' : (sub.risk_score >= 40 ? 'medium' : 'low')">{{ sub.risk_score }}</span>
+                  @if (sub.risk_reasons.length) {
+                    <small>{{ sub.risk_reasons.join(', ') }}</small>
+                  }
+                </span>
+                <span class="admin__pref-text">
+                  @if (sub.structured) {
+                    <strong>{{ formatStructured(sub.structured) }}</strong>
+                    <br />
+                  }
+                  {{ sub.proposed_text }}
+                </span>
+                <span class="admin__actions">
+                  <button
+                    type="button"
+                    class="admin__validate"
+                    [disabled]="busyId() === sub.id || sub.risk_score >= 55"
+                    [title]="sub.risk_score >= 55 ? ('admin.prefsApproveBlocked' | t) : ''"
+                    (click)="approvePreference(sub)"
+                  >
+                    {{ 'admin.prefsApprove' | t }}
+                  </button>
+                  <button type="button" class="admin__revoke" (click)="rejectPreference(sub)">{{ 'admin.prefsReject' | t }}</button>
+                </span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    @if (activeSection() === 'settings') {
+      <app-admin-settings
+        [defaultTestEmail]="adminEmail()"
+        (navigateAudit)="setSection('audit-logs')"
+      />
+    }
+
+    @if (activeSection() === 'incidents') {
+      <app-admin-security [highlightIncidentId]="securityIncidentId()" />
+    }
+
+    @if (activeSection() === 'audit-logs') {
+      <app-admin-audit-logs
+        [initialSearch]="auditLogSearch()"
+        [initialCategory]="'all'"
+        (navigate)="onAuditNavigate($event)"
+      />
+    }
+
+    @if (activeTab() === 'users' && (activeSection() === 'users' || activeSection() === 'roles')) {
+      <app-admin-users
+        [initialRoleFilter]="activeSection() === 'roles' ? 'employe' : usersInitialRole()"
+        [initialUserId]="usersInitialUserId()"
+        (initialUserHandled)="usersInitialUserId.set(null)"
+      />
+    }
+    }
+  </main>
+          </div>
+
+  <app-admin-support-drawer
+    [open]="supportDrawerOpen()"
+    [ticketId]="supportTicketId()"
+    (closed)="closeSupportDrawer()"
+    (updated)="onSupportUpdated()"
+  />
+
+  <app-admin-employee-chat-drawer
+    [open]="employeeChatDrawerOpen()"
+    [employeeId]="employeeChatId()"
+    (closed)="closeEmployeeChatDrawer()"
+    (updated)="onEmployeeChatUpdated()"
+  />
+          </div>
+
+<ng-template #adminAccountMenu>
+  <div class="cc-account-menu__head">
+    <strong>{{ adminDisplayName() }}</strong>
+    <span>{{ adminEmail() }}</span>
+          </div>
+
+  <div class="cc-account-menu__body">
+    <button
+      type="button"
+      class="cc-account-menu__item cc-account-menu__item--lang"
+      role="menuitem"
+      [attr.aria-expanded]="langMenuOpen()"
+      (click)="toggleLangMenu($event)"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+      <span>{{ 'sidebar.language' | t }}</span>
+      <svg class="cc-account-menu__chevron" [class.cc-account-menu__chevron--open]="langMenuOpen()" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </button>
+
+    @if (langMenuOpen()) {
+      <div class="cc-account-menu__lang-list" role="group" [attr.aria-label]="'lang.choose' | t">
+        @for (opt of languageOptions; track opt.code) {
+          <button
+            type="button"
+            class="cc-account-menu__lang-opt"
+            role="menuitemradio"
+            [attr.aria-checked]="isActiveLang(opt.code)"
+            (click)="selectLanguage(opt.code, $event)"
+          >
+            <span>{{ opt.menuLabelKey | t }}</span>
+            @if (isActiveLang(opt.code)) {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            }
+          </button>
+        }
+      </div>
+    }
+</div>
+
+  <div class="cc-account-menu__footer">
+    <button type="button" class="cc-account-menu__item cc-account-menu__item--danger" role="menuitem" (click)="logoutFromMenu($event)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+      </svg>
+      <span>{{ 'sidebar.logout' | t }}</span>
+    </button>
+  </div>
+</ng-template>

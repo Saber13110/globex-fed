@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="orbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6D4AFF"/>
+      <stop offset="55%" stop-color="#8A63FF"/>
+      <stop offset="100%" stop-color="#9C7DFF"/>
+    </linearGradient>
+    <linearGradient id="orbInner" x1="30%" y1="20%" x2="70%" y2="80%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#C4B5FD" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#6D4AFF" stop-opacity="0.85"/>
+    </linearGradient>
+    <radialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8A63FF" stop-opacity="0.55"/>
+      <stop offset="55%" stop-color="#6D4AFF" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#6D4AFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="#F5F0FF" stop-opacity="0.75"/>
+    </linearGradient>
+    <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="panelShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#6D4AFF" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient glow -->
+  <ellipse cx="240" cy="175" rx="160" ry="130" fill="url(#orbGlow)"/>
+
+  <!-- Orbit rings -->
+  <ellipse cx="240" cy="178" rx="118" ry="38" stroke="#8A63FF" stroke-width="1" opacity="0.2" transform="rotate(-12 240 178)"/>
+  <ellipse cx="240" cy="178" rx="118" ry="38" stroke="#6D4AFF" stroke-width="0.8" opacity="0.14" transform="rotate(18 240 178)"/>
+
+  <!-- Glass panel: Tracking -->
+  <g filter="url(#panelShadow)" transform="translate(28 42)">
+    <rect width="108" height="72" rx="14" fill="url(#glassGrad)" stroke="#E8E4FF" stroke-width="1.2"/>
+    <rect x="14" y="14" width="80" height="8" rx="4" fill="#EDE9FE"/>
+    <path d="M22 52 L38 36 L54 44 L78 28" stroke="#6D4AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+    <circle cx="78" cy="28" r="4" fill="#FF7A1A"/>
+    <rect x="14" y="58" width="36" height="5" rx="2.5" fill="#DDD6FE" opacity="0.8"/>
+  </g>
+
+  <!-- Glass panel: Support tickets -->
+  <g filter="url(#panelShadow)" transform="translate(338 36)">
+    <rect width="112" height="76" rx="14" fill="url(#glassGrad)" stroke="#E8E4FF" stroke-width="1.2"/>
+    <rect x="14" y="14" width="52" height="8" rx="4" fill="#EDE9FE"/>
+    <rect x="14" y="30" width="84" height="10" rx="5" fill="#F5F3FF" stroke="#E8E4FF"/>
+    <rect x="14" y="46" width="68" height="10" rx="5" fill="#F5F3FF" stroke="#E8E4FF"/>
+    <circle cx="88" cy="35" r="5" fill="#FF7A1A" opacity="0.85"/>
+    <circle cx="72" cy="51" r="5" fill="#6D4AFF" opacity="0.55"/>
+  </g>
+
+  <!-- Glass panel: Analytics -->
+  <g filter="url(#panelShadow)" transform="translate(18 248)">
+    <rect width="118" height="78" rx="14" fill="url(#glassGrad)" stroke="#E8E4FF" stroke-width="1.2"/>
+    <rect x="14" y="14" width="48" height="8" rx="4" fill="#EDE9FE"/>
+    <rect x="18" y="38" width="12" height="28" rx="4" fill="#6D4AFF" opacity="0.45"/>
+    <rect x="38" y="48" width="12" height="18" rx="4" fill="#8A63FF" opacity="0.5"/>
+    <rect x="58" y="32" width="12" height="34" rx="4" fill="#FF7A1A" opacity="0.42"/>
+    <rect x="78" y="42" width="12" height="24" rx="4" fill="#6D4AFF" opacity="0.35"/>
+    <path d="M18 32 H94" stroke="#DDD6FE" stroke-width="1"/>
+  </g>
+
+  <!-- Glass panel: Documents -->
+  <g filter="url(#panelShadow)" transform="translate(332 242)">
+    <rect width="120" height="80" rx="14" fill="url(#glassGrad)" stroke="#E8E4FF" stroke-width="1.2"/>
+    <rect x="14" y="14" width="56" height="8" rx="4" fill="#EDE9FE"/>
+    <path d="M24 34 H44 V58 H24 Z" fill="#EDE9FE" stroke="#C4B5FD" stroke-width="1"/>
+    <path d="M52 34 H72 V58 H52 Z" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="1"/>
+    <path d="M80 34 H96 V50 H80 Z" fill="#EDE9FE" stroke="#C4B5FD" stroke-width="1"/>
+    <rect x="28" y="40" width="10" height="2" rx="1" fill="#6D4AFF" opacity="0.4"/>
+    <rect x="28" y="46" width="8" height="2" rx="1" fill="#8A63FF" opacity="0.35"/>
+  </g>
+
+  <!-- Connection lines -->
+  <g stroke="#8A63FF" stroke-width="1" opacity="0.22">
+    <line x1="240" y1="178" x2="82" y2="78"/>
+    <line x1="240" y1="178" x2="394" y2="74"/>
+    <line x1="240" y1="178" x2="77" y2="287"/>
+    <line x1="240" y1="178" x2="392" y2="282"/>
+  </g>
+
+  <!-- Central AI orb -->
+  <g filter="url(#softGlow)">
+    <circle cx="240" cy="178" r="62" fill="url(#orbGlow)"/>
+    <circle cx="240" cy="178" r="48" fill="url(#orbGrad)"/>
+    <circle cx="240" cy="178" r="48" fill="url(#orbInner)" opacity="0.75"/>
+    <ellipse cx="224" cy="158" rx="18" ry="12" fill="#FFFFFF" opacity="0.35" transform="rotate(-25 224 158)"/>
+    <circle cx="240" cy="178" r="48" stroke="#FFFFFF" stroke-width="1.5" opacity="0.25"/>
+    <circle cx="240" cy="178" r="58" stroke="#8A63FF" stroke-width="1" opacity="0.35" stroke-dasharray="3 6"/>
+  </g>
+
+  <!-- Floating particles -->
+  <circle cx="196" cy="132" r="3" fill="#FF7A1A" opacity="0.65"/>
+  <circle cx="288" cy="128" r="2.5" fill="#6D4AFF" opacity="0.5"/>
+  <circle cx="302" cy="210" r="2" fill="#8A63FF" opacity="0.55"/>
+  <circle cx="178" cy="218" r="2.5" fill="#FF7A1A" opacity="0.45"/>
+</svg>

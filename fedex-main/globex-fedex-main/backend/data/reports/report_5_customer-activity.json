@@ -1,0 +1,10 @@
+[
+  {
+    "id": 8,
+    "tracking_number": "123456789012",
+    "status": "Ready for pickup",
+    "current_location": "GREENWOOD, United States",
+    "estimated_delivery": "N/A",
+    "created_at": "2026-05-31T20:28:21.445304+02:00"
+  }
+]

@@ -1,0 +1,255 @@
+<div class="workspace" [class.workspace--collapsed]="sidebarCollapsed">
+  <div class="ambient" aria-hidden="true">
+    <span class="ambient__orb ambient__orb--purple"></span>
+    <span class="ambient__orb ambient__orb--violet"></span>
+    <span class="ambient__orb ambient__orb--orange"></span>
+    <span class="ambient__mesh"></span>
+  </div>
+
+  <aside class="sidebar" [class.sidebar--collapsed]="sidebarCollapsed" aria-label="Navigation">
+    <app-sidebar
+      [collapsed]="sidebarCollapsed"
+      [showAdminLink]="false"
+      [activeNav]="'history'"
+      [language]="accountLanguage"
+      [accountName]="accountName"
+      [accountEmail]="accountEmail"
+      [avatarInitial]="accountAvatarInitial"
+      [avatarClass]="accountAvatarClass"
+      [colorMode]="colorMode"
+      [unreadCount]="unreadNotifications"
+      [searchQuery]="search"
+      [pinnedConversations]="pinnedConversations"
+      [recentConversations]="recentConversations"
+      [projects]="sidebarProjects"
+      [totalChatsCount]="sessions.length"
+      [loading]="loadingSessions"
+      (collapseToggle)="toggleSidebar()"
+      (createChat)="goToChat()"
+      (goHome)="goToChat()"
+      (openTrackingHistory)="goToHistory()"
+      (openHistory)="goToHistory()"
+      (openDocuments)="goToDocuments()"
+      (openSupport)="openSupport()"
+      (openHelp)="openHelp()"
+      (openProfile)="openProfile()"
+      (openSettings)="openSettings()"
+      (selectConversation)="goToChat($event)"
+      (renameConversationRequest)="onSidebarRenameConversation($event)"
+      (togglePinConversation)="onSidebarTogglePinConversation($event)"
+      (moveConversation)="onSidebarMoveConversation($event)"
+      (deleteConversation)="onSidebarDeleteConversation($event)"
+      (toggleTheme)="toggleTheme()"
+      (logout)="logout()"
+    />
+  </aside>
+
+  <main class="canvas canvas--scrollable">
+    <div class="history">
+      <header class="history__head">
+        <div class="history__head-text">
+          <h1 class="history__title">{{ 'history.pageTitle' | t }}</h1>
+          <p class="history__sub">{{ 'history.pageSubNew' | t }}</p>
+        </div>
+        <div class="history__head-actions">
+          <button type="button" class="history-btn history-btn--ghost" (click)="refresh()" [disabled]="loading">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            {{ (loading ? 'common.loading' : 'history.refresh') | t }}
+          </button>
+          <button type="button" class="history-btn history-btn--primary" (click)="export()" [disabled]="loading || items.length === 0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            {{ 'history.exportExcel' | t }}
+          </button>
+        </div>
+      </header>
+
+      <section class="history__toolbar">
+        <label class="history-search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input
+            type="search"
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchChange()"
+            [placeholder]="'history.searchPlaceholder' | t"
+          />
+        </label>
+
+        <div class="history__filter-wrap" (click)="$event.stopPropagation()">
+          <button type="button" class="history-sort" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            {{ 'history.filter' | t }}
+          </button>
+          @if (filtersOpen) {
+            <div class="history__filter-menu" role="menu">
+              <button type="button" role="menuitem" [class.history__filter-menu-item--active]="sortNewest" (click)="setSort(true)">
+                {{ 'history.sortNewest' | t }}
+              </button>
+              <button type="button" role="menuitem" [class.history__filter-menu-item--active]="!sortNewest" (click)="setSort(false)">
+                {{ 'history.sortOldest' | t }}
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="history__chips" role="tablist" [attr.aria-label]="'history.filters' | t">
+          @for (f of statusFilters; track f) {
+            <button
+              type="button"
+              class="history-chip"
+              role="tab"
+              [class.history-chip--active]="statusFilter === f"
+              [attr.aria-selected]="statusFilter === f"
+              (click)="setStatusFilter(f)"
+            >
+              {{ filterLabel(f) }}
+            </button>
+          }
+        </div>
+      </section>
+
+      @if (!loading) {
+        <p class="history__count">{{ requestCountLabel }}</p>
+      }
+
+      @if (error) {
+        <p class="history__error" role="alert">{{ error }}</p>
+      }
+
+      @if (loading) {
+        <p class="history__loading">{{ 'common.loading' | t }}</p>
+      } @else if (items.length === 0) {
+        <section class="history-empty">
+          <div class="history-empty__illus" aria-hidden="true">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <h2>{{ 'history.emptyTitle' | t }}</h2>
+          <p>{{ 'history.emptySub' | t }}</p>
+          <button type="button" class="history-btn history-btn--primary" (click)="startTracking()">{{ 'history.emptyCta' | t }}</button>
+        </section>
+      } @else if (filteredItems.length === 0) {
+        <p class="history__no-results">{{ 'history.noResults' | t }}</p>
+      } @else {
+        <ul class="history__list">
+          @for (it of paginatedItems; track it.id) {
+            <li
+              class="history-card"
+              [class.history-card--highlight]="highlightItemId === it.id"
+              [id]="'history-item-' + it.id"
+            >
+              <div class="history-card__icon" [class.history-card__icon--export]="isExportItem(it)" aria-hidden="true">
+                @if (isExportItem(it)) {
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                } @else {
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/>
+                  </svg>
+                }
+              </div>
+
+              <div class="history-card__body">
+                <div class="history-card__top">
+                  <h2 class="history-card__tn">{{ it.tracking_number }}</h2>
+                  <span class="history-card__badge history-card__badge--{{ statusBadge(it) }}">
+                    <span class="history-card__badge-dot" aria-hidden="true"></span>
+                    {{ statusBadgeLabel(it) }}
+                  </span>
+                </div>
+
+                <p class="history-card__location">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  {{ it.current_location ?? '—' }}
+                </p>
+
+                <p class="history-card__question">
+                  <span>{{ 'history.questionLabel' | t }}</span>
+                  {{ it.user_question }}
+                </p>
+
+                <p class="history-card__activity">
+                  <span>{{ 'history.lastActivity' | t }}</span>
+                  {{ formatActivityShort(it.created_at) }}
+                </p>
+              </div>
+
+              <div class="history-card__actions">
+                <button type="button" class="history-card__details" (click)="openDetails(it)">
+                  {{ 'history.viewDetails' | t }}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+                <div class="history-card__more-wrap">
+                  <button type="button" class="history-card__more" [attr.aria-label]="'history.cardMenu' | t" (click)="toggleCardMenu($event, it.id)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                    </svg>
+                  </button>
+                  @if (openCardMenuId === it.id) {
+                    <div class="history-card__menu" role="menu" (click)="$event.stopPropagation()">
+                      @if (it.session_id) {
+                        <button type="button" role="menuitem" (click)="openCardDiscussion($event, it)">{{ 'history.openDiscussion' | t }}</button>
+                      }
+                      <button type="button" role="menuitem" (click)="copyTrackingNumber($event, it.tracking_number)">{{ 'history.copyTracking' | t }}</button>
+                      <button type="button" role="menuitem" (click)="openDetailsFromMenu($event, it)">{{ 'history.viewDetails' | t }}</button>
+                    </div>
+                  }
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+
+        <footer class="history__pagination">
+          <p class="history__results">
+            {{ 'history.resultsRange' | t : { from: '' + resultsFrom, to: '' + resultsTo, total: '' + filteredItems.length } }}
+          </p>
+          <nav class="history__pager" [attr.aria-label]="'history.pagination' | t">
+            <button type="button" class="history__pager-btn" [disabled]="page <= 1" (click)="goToPage(page - 1)">
+              {{ 'history.previous' | t }}
+            </button>
+            @for (p of pageNumbers; track p) {
+              <button
+                type="button"
+                class="history__pager-num"
+                [class.history__pager-num--active]="p === page"
+                (click)="goToPage(p)"
+              >
+                {{ p }}
+              </button>
+            }
+            <button type="button" class="history__pager-btn" [disabled]="page >= totalPages" (click)="goToPage(page + 1)">
+              {{ 'history.next' | t }}
+            </button>
+          </nav>
+        </footer>
+      }
+    </div>
+  </main>
+</div>
+
+@if (drawerOpen && selectedItem) {
+  <app-history-detail-drawer
+    [item]="selectedItem"
+    [shipment]="drawerShipment"
+    [loading]="drawerLoading"
+    [error]="drawerError"
+    (close)="closeDrawer()"
+    (openConversation)="openDiscussionFromDrawer()"
+  />
+}

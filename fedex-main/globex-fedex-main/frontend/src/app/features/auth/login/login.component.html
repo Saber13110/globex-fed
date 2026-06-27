@@ -1,0 +1,319 @@
+<div class="glx-login">
+  <div class="glx-login__shell">
+    <div class="glx-login__grid">
+      <aside class="glx-brand" aria-label="Globex AI Tracking">
+        <header class="glx-brand__head">
+          <div class="glx-logo" aria-label="FedEx Globex">
+            <span class="glx-logo__fedex">
+              <span class="glx-logo__fed">Fed</span><span class="glx-logo__ex">Ex</span>
+            </span>
+            <span class="glx-logo__sep" aria-hidden="true"></span>
+            <span class="glx-logo__globex">Globex</span>
+          </div>
+          <h1 class="glx-brand__title">
+            Globex <span class="glx-brand__ai">AI</span> Tracking
+          </h1>
+          <p class="glx-brand__subtitle">{{ 'auth.login.brandSubtitle' | t }}</p>
+        </header>
+
+        <div class="glx-brand__art" role="presentation" aria-hidden="true">
+          <img
+            class="glx-brand__art-img"
+            src="assets/auth/login-hero-bg.png"
+            alt=""
+            width="1400"
+            height="900"
+            loading="eager"
+            decoding="async"
+          />
+          <span class="glx-brand__art-blend" aria-hidden="true"></span>
+        </div>
+
+        <ul class="glx-features">
+          <li>
+            <span class="glx-features__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z" />
+                <circle cx="12" cy="11" r="2.25" />
+              </svg>
+            </span>
+            <span class="glx-features__label">{{ 'auth.login.featureTracking' | t }}</span>
+          </li>
+          <li>
+            <span class="glx-features__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l1.35 4.15h4.4l-3.55 2.58 1.35 4.27L12 11.35 8.45 13l1.35-4.27L6.25 6.15h4.4L12 2z" />
+                <path d="M5 14.5l.65 2h1.9l-1.55 1.12.58 1.83L5 17.9l-1.58 1.55.58-1.83L2.45 16.5h1.9L5 14.5z" />
+                <path d="M19 14.5l.65 2h1.9l-1.55 1.12.58 1.83L19 17.9l-1.58 1.55.58-1.83-1.58-1.55h1.9L19 14.5z" />
+              </svg>
+            </span>
+            <span class="glx-features__label">{{ 'auth.login.featureAi' | t }}</span>
+          </li>
+          <li>
+            <span class="glx-features__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round">
+                <line x1="5" y1="20" x2="5" y2="11" />
+                <line x1="12" y1="20" x2="12" y2="5" />
+                <line x1="19" y1="20" x2="19" y2="14" />
+              </svg>
+            </span>
+            <span class="glx-features__label">{{ 'auth.login.featureExcel' | t }}</span>
+          </li>
+          <li>
+            <span class="glx-features__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2l8 3.5v6.2c0 4.9-3.4 9.1-8 10.3-4.6-1.2-8-5.4-8-10.3V5.5L12 2z" />
+                <path d="M9.2 12.2l2 2 3.8-4" />
+              </svg>
+            </span>
+            <span class="glx-features__label">{{ 'auth.login.featureSecurity' | t }}</span>
+          </li>
+        </ul>
+      </aside>
+
+      <main class="glx-main">
+        <div class="glx-main__logo-mobile glx-logo" aria-label="FedEx Globex">
+          <span class="glx-logo__fedex">
+            <span class="glx-logo__fed">Fed</span><span class="glx-logo__ex">Ex</span>
+          </span>
+          <span class="glx-logo__sep"></span>
+          <span class="glx-logo__globex">Globex</span>
+        </div>
+
+        <div class="glx-card">
+          @if (loading) {
+            <div class="glx-card__loader" aria-live="polite" aria-busy="true">
+              <span class="glx-card__spinner" role="status"></span>
+            </div>
+          }
+
+          @if (step === 'credentials') {
+            <div class="glx-card__body">
+              <header class="glx-card__head">
+                @if (isEmployee) {
+                  <span class="glx-card__badge">{{ 'auth.employeeSpace' | t }}</span>
+                }
+                <h2>{{ (isEmployee ? 'auth.login.employeeTitle' : 'auth.login.title') | t }}</h2>
+                <p>{{ (isEmployee ? 'auth.login.employeeHint' : 'auth.login.hint') | t }}</p>
+              </header>
+
+              <form class="glx-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+                <div class="glx-field">
+                  <label for="login-email">{{ 'common.email' | t }}</label>
+                  <div class="glx-field__wrap">
+                    <span class="glx-field__icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 6h16v12H4V6zm0 0 8 6 8-6" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </span>
+                    <input
+                      id="login-email"
+                      type="email"
+                      class="glx-input glx-input--icon-left"
+                      [class.glx-input--error]="fieldInvalid('email')"
+                      formControlName="email"
+                      autocomplete="username"
+                      [placeholder]="'auth.login.emailPlaceholder' | t"
+                    />
+                  </div>
+                  @if (fieldInvalid('email')) {
+                    <p class="glx-field__error" role="alert">{{ fieldError('email') | t }}</p>
+                  }
+                </div>
+
+                <div class="glx-field">
+                  <div class="glx-field__row">
+                    <label for="login-password">{{ 'common.password' | t }}</label>
+                    <button type="button" class="glx-link" (click)="onForgotPassword()">
+                      {{ 'auth.login.forgotPassword' | t }}
+                    </button>
+                  </div>
+                  <div class="glx-field__wrap">
+                    <span class="glx-field__icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="5" y="11" width="14" height="10" rx="2" />
+                        <path d="M8 11V8a4 4 0 1 1 8 0v3" stroke-linecap="round" />
+                      </svg>
+                    </span>
+                    <input
+                      id="login-password"
+                      class="glx-input glx-input--icon-left glx-input--icon-right"
+                      [class.glx-input--error]="fieldInvalid('password')"
+                      [type]="showPassword ? 'text' : 'password'"
+                      formControlName="password"
+                      autocomplete="current-password"
+                      [placeholder]="'auth.login.passwordPlaceholder' | t"
+                    />
+                    <button
+                      type="button"
+                      class="glx-field__toggle"
+                      (click)="togglePassword()"
+                      [attr.aria-label]="(showPassword ? 'auth.login.hidePassword' : 'auth.login.showPassword') | t"
+                    >
+                      @if (showPassword) {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
+                          <circle cx="12" cy="12" r="3" />
+                          <path d="m3 3 18 18" stroke-linecap="round" />
+                        </svg>
+                      } @else {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      }
+                    </button>
+                  </div>
+                  @if (fieldInvalid('password')) {
+                    <p class="glx-field__error" role="alert">{{ fieldError('password') | t }}</p>
+                  }
+                </div>
+
+                @if (error) {
+                  <p class="glx-alert glx-alert--error" role="alert">{{ error }}</p>
+                }
+                @if (info) {
+                  <p class="glx-alert glx-alert--info" role="status">{{ info }}</p>
+                }
+
+                <button type="submit" class="glx-btn glx-btn--primary" [disabled]="form.invalid || loading">
+                  @if (loading) {
+                    <span class="glx-btn__spin"></span>
+                  }
+                  {{ (loading ? 'auth.login.submitting' : 'auth.login.submit') | t }}
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </form>
+
+              @if (!isEmployee && googleEnabled) {
+                <div class="glx-divider" role="separator"><span>{{ 'auth.login.or' | t }}</span></div>
+                <button type="button" class="glx-btn glx-btn--google" [disabled]="loading" (click)="startGoogleLogin()">
+                  <svg viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24 24 0 0 0 0 21.56l7.98-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                  </svg>
+                  {{ 'auth.login.google' | t }}
+                </button>
+              }
+
+              <div class="glx-divider" role="separator"><span>{{ 'auth.login.or' | t }}</span></div>
+
+              <section class="glx-qr" aria-labelledby="login-qr-heading">
+                <div class="glx-qr__head" id="login-qr-heading">
+                  <span class="glx-qr__title-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13-2h3v2h-3v-2zm-5 0h2v2h-2v-2zm7 4h2v2h-2v-2zm-5 0h3v2h-3v-2zm5 4h2v2h-2v-2zm-5 0h3v2h-3v-2z"/>
+                    </svg>
+                  </span>
+                  <span class="glx-qr__title">{{ 'auth.login.qrTitle' | t }}</span>
+                </div>
+                <button type="button" class="glx-btn glx-btn--scan" [disabled]="loading" (click)="openQrScanner()">
+                  {{ 'auth.login.scanQr' | t }}
+                </button>
+                <p class="glx-qr__hint">{{ 'auth.login.qrOrPaste' | t }}</p>
+                <div class="glx-qr__combo">
+                  <input
+                    id="login-qr-paste"
+                    type="text"
+                    class="glx-input"
+                    [(ngModel)]="manualQrPayload"
+                    [ngModelOptions]="{ standalone: true }"
+                    [placeholder]="'auth.login.qrPastePlaceholder' | t"
+                  />
+                  <button
+                    type="button"
+                    class="glx-btn glx-btn--validate"
+                    [disabled]="!manualQrPayload.trim() || loading"
+                    (click)="submitManualQr()"
+                  >
+                    {{ 'common.validate' | t }}
+                  </button>
+                </div>
+              </section>
+
+              <footer class="glx-footer">
+                <p>
+                  {{ 'auth.login.noAccount' | t }}
+                  <a [routerLink]="isEmployee ? '/employee/register' : '/register'">{{ 'auth.login.createAccount' | t }}</a>
+                </p>
+                @if (isEmployee) {
+                  <p>
+                    {{ 'auth.login.clientQuestion' | t }}
+                    <a routerLink="/login">{{ 'auth.login.clientLink' | t }}</a>
+                  </p>
+                } @else {
+                  <p>
+                    {{ 'auth.login.employeeQuestion' | t }}
+                    <a routerLink="/employee/login">{{ 'auth.login.employeeAccess' | t }}</a>
+                  </p>
+                }
+              </footer>
+            </div>
+          } @else {
+            <div class="glx-card__body">
+              <header class="glx-card__head">
+                @if (isEmployee) {
+                  <span class="glx-card__badge">{{ 'auth.employeeSpace' | t }}</span>
+                }
+                <h2>{{ 'auth.login.twoFactor' | t }}</h2>
+                @if (maskedEmail) {
+                  <p>{{ 'auth.login.codeSentTo' | t }} <strong>{{ maskedEmail }}</strong></p>
+                } @else if (info) {
+                  <p>{{ info }}</p>
+                }
+              </header>
+
+              <form class="glx-form" [formGroup]="otpForm" (ngSubmit)="submitOtp()" novalidate>
+                <div class="glx-field">
+                  <label for="login-otp">{{ 'auth.login.otpLabel' | t }}</label>
+                  <input
+                    id="login-otp"
+                    type="text"
+                    class="glx-input glx-input--otp"
+                    [class.glx-input--error]="otpFieldInvalid()"
+                    formControlName="code"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    maxlength="6"
+                    placeholder="000000"
+                  />
+                  @if (otpFieldInvalid()) {
+                    <p class="glx-field__error" role="alert">{{ 'auth.login.otpInvalid' | t }}</p>
+                  }
+                </div>
+
+                @if (error) {
+                  <p class="glx-alert glx-alert--error" role="alert">{{ error }}</p>
+                }
+
+                <button type="submit" class="glx-btn glx-btn--primary" [disabled]="otpForm.invalid || loading">
+                  @if (loading) {
+                    <span class="glx-btn__spin"></span>
+                  }
+                  {{ (loading ? 'auth.login.verifying' : 'auth.login.verifyCode') | t }}
+                </button>
+              </form>
+
+              <footer class="glx-footer glx-footer--compact">
+                <button type="button" class="glx-link" [disabled]="resendCooldown" (click)="resendCode()">
+                  {{ (resendCooldown ? 'auth.login.resendCooldown' : 'auth.login.resendCode') | t }}
+                </button>
+                <button type="button" class="glx-link" (click)="backToCredentials()">
+                  {{ 'auth.login.backToLogin' | t }}
+                </button>
+              </footer>
+            </div>
+          }
+        </div>
+      </main>
+    </div>
+  </div>
+
+  @if (showQrScanner) {
+    <app-qr-scanner (scanned)="onQrScanned($event)" (closed)="closeQrScanner()" />
+  }
+</div>

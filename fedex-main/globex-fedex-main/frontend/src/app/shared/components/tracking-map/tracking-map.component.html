@@ -1,0 +1,34 @@
+<section class="tracking-map" [attr.aria-label]="'tracking.routeMap' | t">
+  @if (showMap) {
+    <div #mapHost class="tracking-map__canvas" role="img" [attr.aria-label]="'tracking.routeMap' | t"></div>
+  } @else if (mapPoints.length) {
+    <p class="tracking-map__fallback">{{ 'tracking.mapCoordsUnavailable' | t }}</p>
+  }
+
+  @if (timelineEvents.length && showTimeline) {
+    <div class="tracking-map__timeline">
+      <h4 class="tracking-map__timeline-title">{{ 'tracking.timeline' | t }}</h4>
+      <ol class="tracking-map__list">
+        @for (ev of timelineEvents; track ev.at + ev.description; let i = $index; let first = $first) {
+          <li class="tracking-map__item" [class.tracking-map__item--latest]="first">
+            <span
+              class="tracking-map__dot"
+              [class.tracking-map__dot--delivered]="isDeliveredStep(i, ev)"
+              aria-hidden="true"
+            ></span>
+            <div class="tracking-map__body">
+              @if (isDeliveredStep(i, ev)) {
+                <span class="tracking-map__badge">{{ 'tracking.deliveredStep' | t }}</span>
+              }
+              <time class="tracking-map__time">{{ formatEventDate(ev.at) }}</time>
+              <p class="tracking-map__desc">{{ ev.description }}</p>
+              @if (ev.location) {
+                <p class="tracking-map__loc">{{ ev.location }}</p>
+              }
+            </div>
+          </li>
+        }
+      </ol>
+    </div>
+  }
+</section>

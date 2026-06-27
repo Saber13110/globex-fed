@@ -1,0 +1,450 @@
+<div class="hc">
+  <div class="hc__shell">
+    <a routerLink="/chat" class="hc__back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      {{ 'help.backToChat' | t }}
+    </a>
+
+    <!-- Hero -->
+    <section class="hc-hero">
+      <div class="hc-hero__ambient hc-hero__ambient--1"></div>
+      <div class="hc-hero__ambient hc-hero__ambient--2"></div>
+      <div class="hc-hero__inner">
+        <div class="hc-hero__content">
+          <span class="hc-hero__badge">{{ 'help.heroBadge' | t }}</span>
+          <h1>{{ 'help.supportHeroTitle' | t }}</h1>
+          <p class="hc-hero__sub">{{ 'help.supportHeroSub' | t }}</p>
+          <div class="hc-hero__actions">
+            <button type="button" class="hc-btn hc-btn--primary hc-btn--hero" (click)="startAiChat()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              {{ 'help.startAiChat' | t }}
+            </button>
+            <button type="button" class="hc-btn hc-btn--outline hc-btn--hero" (click)="openContactModal()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              {{ 'help.contactSupport' | t }}
+            </button>
+          </div>
+        </div>
+
+        <div class="hc-hero__stage" aria-hidden="true">
+          <div class="hc-hero__rings">
+            <span class="hc-hero__ring hc-hero__ring--primary"></span>
+            <span class="hc-hero__ring hc-hero__ring--secondary"></span>
+            <span class="hc-hero__ring hc-hero__ring--tertiary"></span>
+          </div>
+
+          <div class="hc-hero__orbit-icon hc-hero__orbit-icon--chat">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="hc-hero__orbit-icon hc-hero__orbit-icon--shield">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <div class="hc-hero__orbit-icon hc-hero__orbit-icon--sparkles">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3"/></svg>
+          </div>
+          <div class="hc-hero__orbit-icon hc-hero__orbit-icon--headphones">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
+          </div>
+
+          <figure class="hc-hero__robot-figure">
+            <div class="hc-hero__robot-portal">
+              <div class="hc-hero__robot-shine"></div>
+              <picture class="hc-hero__robot-picture">
+                <img
+                  class="hc-hero__robot-img"
+                  src="assets/help/ai-support-robot.png"
+                  alt=""
+                  width="260"
+                  height="260"
+                  decoding="async"
+                  fetchpriority="high"
+                />
+              </picture>
+              <div class="hc-hero__robot-fade"></div>
+            </div>
+          </figure>
+
+          <div class="hc-hero__agent-card">
+            <span class="hc-hero__agent-dot"></span>
+            <div>
+              <strong>{{ 'help.heroAgent' | t }}</strong>
+              <span>{{ 'help.heroAgentOnline' | t }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search -->
+    <section class="hc-search" [class.hc-search--focused]="searchFocused">
+      <div class="hc-search__wrap">
+        <svg class="hc-search__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          #searchInput
+          type="search"
+          class="hc-search__input"
+          [(ngModel)]="searchQuery"
+          [placeholder]="'help.searchPlaceholderPremium' | t"
+          (focus)="searchFocused = true"
+          (blur)="onSearchBlur()"
+          autocomplete="off"
+        />
+        <kbd class="hc-search__kbd" aria-hidden="true">⌘ K</kbd>
+        @if (searchQuery) {
+          <button type="button" class="hc-search__clear" (mousedown)="$event.preventDefault(); searchQuery = ''" aria-label="Clear">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        }
+      </div>
+      @if (showSearchDropdown) {
+        <div class="hc-search__dropdown">
+          <p class="hc-search__dropdown-label">{{ 'help.searchSuggestions' | t }}</p>
+          @for (item of searchSuggestions; track isArticleSuggestion(item) ? item.slug : item.id) {
+            <button type="button" class="hc-search__suggestion" (mousedown)="$event.preventDefault(); openSearchSuggestion(item)">
+              <span class="hc-search__suggestion-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </span>
+              <span class="hc-search__suggestion-body">
+                <strong>{{ suggestionLabel(item) }}</strong>
+                <span>{{ suggestionMeta(item) }}</span>
+              </span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Resource Categories -->
+    <section class="hc-resources">
+      @if (loadingResources) {
+        <div class="hc-resources__grid hc-resources__grid--4">
+          @for (i of [1, 2, 3, 4]; track i) { <div class="hc-skeleton hc-skeleton--resource"></div> }
+        </div>
+    } @else {
+        <div class="hc-resources__grid hc-resources__grid--4">
+          @for (resource of displayResources; track resource.id) {
+            <button type="button" class="hc-resource-card" (click)="openResource(resource)">
+              <span class="hc-resource-card__icon hc-resource-card__icon--{{ resourceIconId(resource.id) }}">
+                @switch (resourceIconId(resource.id)) {
+                  @case ('tracking') {
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                  }
+                  @case ('documents') {
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  }
+                  @case ('ai') {
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/><path d="M19 14l.75 2.25L22 17l-2.25.75L19 20l-.75-2.25L16 17l2.25-.75L19 14z"/></svg>
+                  }
+                  @default {
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  }
+                }
+              </span>
+              <strong class="hc-resource-card__title">{{ resource.title }}</strong>
+              <p class="hc-resource-card__desc">{{ resource.description }}</p>
+              <span class="hc-resource-card__meta">{{ resource.articlesCount }} {{ 'help.articles' | t }} · {{ resource.readTime }}</span>
+              <svg class="hc-resource-card__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Performance + Contact -->
+    <div class="hc-split">
+      <section class="hc-performance">
+        <header class="hc-section-head"><h2>{{ 'help.performanceTitle' | t }}</h2></header>
+        @if (loadingMetrics) {
+          <div class="hc-performance__grid">
+            @for (i of [1, 2, 3, 4]; track i) { <div class="hc-skeleton hc-skeleton--metric"></div> }
+          </div>
+        } @else {
+          <div class="hc-performance__grid">
+            <article class="hc-stat-card">
+              <span class="hc-stat-card__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+              <span class="hc-stat-card__value">{{ displayMetrics.averageResponse }}</span>
+              <span class="hc-stat-card__label">{{ 'help.metricResponse' | t }}</span>
+              <span class="hc-stat-card__tag hc-stat-card__tag--green">{{ 'help.statExcellent' | t }}</span>
+            </article>
+            <article class="hc-stat-card">
+              <span class="hc-stat-card__icon hc-stat-card__icon--orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+              <span class="hc-stat-card__value">{{ displayMetrics.resolutionRate }}</span>
+              <span class="hc-stat-card__label">{{ 'help.metricResolution' | t }}</span>
+              <span class="hc-stat-card__tag hc-stat-card__tag--green">{{ 'help.statExcellent' | t }}</span>
+            </article>
+            <article class="hc-stat-card">
+              <span class="hc-stat-card__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+              <span class="hc-stat-card__value">{{ formatTicketsSolved(displayMetrics.ticketsSolved) }}</span>
+              <span class="hc-stat-card__label">{{ 'help.metricTickets' | t }}</span>
+              <span class="hc-stat-card__tag">{{ 'help.statThisMonth' | t }}</span>
+            </article>
+            <article class="hc-stat-card">
+              <span class="hc-stat-card__icon hc-stat-card__icon--orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+              <span class="hc-stat-card__value">{{ displayMetrics.satisfaction }}</span>
+              <span class="hc-stat-card__label">{{ 'help.metricSatisfaction' | t }}</span>
+              <span class="hc-stat-card__tag hc-stat-card__tag--green">{{ 'help.statExcellent' | t }}</span>
+            </article>
+          </div>
+        }
+      </section>
+
+      <section class="hc-contact-panel">
+        <header class="hc-section-head"><h2>{{ 'help.contactOptionsTitle' | t }}</h2></header>
+        @if (loadingContactOptions) {
+          <div class="hc-contact-panel__list">
+            @for (i of [1, 2, 3, 4]; track i) { <div class="hc-skeleton hc-skeleton--contact-row"></div> }
+          </div>
+        } @else {
+          <div class="hc-contact-panel__list">
+            @for (option of displayContactOptions; track option.id) {
+              <article class="hc-contact-row">
+                <span class="hc-contact-row__icon hc-contact-row__icon--{{ contactIconId(option.id) }}">
+                  @switch (contactIconId(option.id)) {
+                    @case ('ai') { <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> }
+                    @case ('email') { <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> }
+                    @case ('faq') { <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> }
+                    @default { <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> }
+                  }
+                </span>
+                <div class="hc-contact-row__body">
+                  <strong>{{ option.title }}</strong>
+                  <p>{{ option.description }}</p>
+                  <span class="hc-contact-row__status"><span class="hc-dot"></span>{{ contactOptionStatusLabel(option.status) }}</span>
+                </div>
+                <button type="button" class="hc-btn hc-btn--sm hc-btn--outline" (click)="handleContactOption(option)">{{ option.cta }}</button>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    </div>
+
+    <!-- Popular Articles -->
+    <section #articlesSection class="hc-articles">
+      <header class="hc-section-head hc-section-head--row">
+        <div>
+          <h2>{{ 'help.popularArticlesTitle' | t }}</h2>
+          <p>{{ 'help.popularArticlesSub' | t }}</p>
+        </div>
+        <button type="button" class="hc-link-btn" (click)="viewAllArticles()">{{ 'help.viewAllArticles' | t }}</button>
+      </header>
+
+      @if (loadingArticles) {
+        <div class="hc-articles__grid">
+          @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) { <div class="hc-skeleton hc-skeleton--article-row"></div> }
+        </div>
+      } @else if (articlesError || filteredArticles.length === 0) {
+        <div class="hc-empty">
+          <p>{{ 'help.articlesEmpty' | t }}</p>
+        </div>
+      } @else {
+        <div class="hc-articles__grid">
+          @for (article of filteredArticles; track article.slug) {
+            <button type="button" class="hc-article-row" (click)="openArticle(article.slug)">
+              <span class="hc-article-row__icon hc-article-row__icon--{{ articleIconId(article.slug) }}">
+                @switch (articleIconId(article.slug)) {
+                  @case ('track') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> }
+                  @case ('clock') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> }
+                  @case ('alert') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> }
+                  @case ('truck') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg> }
+                  @case ('doc') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> }
+                  @case ('export') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> }
+                  @case ('download') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> }
+                  @default { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"/></svg> }
+                }
+              </span>
+              <span class="hc-article-row__body">
+                <strong>{{ article.title }}</strong>
+                <span>{{ article.summary }}</span>
+              </span>
+              <svg class="hc-article-row__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+        }
+      </div>
+    }
+  </section>
+
+    <!-- Final CTA -->
+    <section class="hc-cta-banner">
+      <span class="hc-cta-banner__icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      </span>
+      <div class="hc-cta-banner__text">
+        <h2>{{ 'help.finalCtaTitle' | t }}</h2>
+        <p>{{ 'help.finalCtaSub' | t }}</p>
+      </div>
+      <button type="button" class="hc-btn hc-btn--white" (click)="openContactModal()">{{ 'help.contactSupport' | t }}</button>
+    </section>
+  </div>
+
+  <!-- Article Drawer -->
+  @if (articleDrawerOpen) {
+    <div class="hc-drawer-overlay" (click)="closeArticleDrawer()">
+      <aside class="hc-drawer" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <header class="hc-drawer__head">
+          <button type="button" class="hc-drawer__close" (click)="closeArticleDrawer()" aria-label="Close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </header>
+
+        @if (loadingArticle) {
+          <div class="hc-drawer__loading">
+            <div class="hc-skeleton hc-skeleton--drawer-title"></div>
+            <div class="hc-skeleton hc-skeleton--drawer-line"></div>
+            <div class="hc-skeleton hc-skeleton--drawer-line"></div>
+            <div class="hc-skeleton hc-skeleton--drawer-block"></div>
+          </div>
+        } @else if (articleError) {
+          <div class="hc-drawer__error">
+            <p>{{ articleError }}</p>
+            <button type="button" class="hc-btn hc-btn--primary" (click)="closeArticleDrawer()">{{ 'common.close' | t }}</button>
+          </div>
+        } @else if (activeArticle) {
+          <div class="hc-drawer__body">
+            <div class="hc-drawer__meta">
+              <span class="hc-drawer__badge">{{ categoryLabel(activeArticle.category) }}</span>
+              <span>{{ activeArticle.readTime }}</span>
+              <span>{{ 'help.updatedAt' | t }} {{ formatUpdatedAt(activeArticle.updatedAt) }}</span>
+            </div>
+            <h2 class="hc-drawer__title">{{ activeArticle.title }}</h2>
+            <p class="hc-drawer__summary">{{ activeArticle.summary }}</p>
+
+            @for (section of activeArticle.sections; track $index) {
+              @if (section.type === 'paragraph' && section.body) {
+                <p class="hc-drawer__paragraph">{{ section.body }}</p>
+              }
+              @if (section.type === 'steps' && section.steps) {
+                <div class="hc-drawer__block">
+                  @if (section.heading) { <h3>{{ section.heading }}</h3> }
+                  <ol class="hc-drawer__steps">
+                    @for (step of section.steps; track step.title) {
+                      <li>
+                        <strong>{{ step.title }}</strong>
+                        <p>{{ step.body }}</p>
+                      </li>
+                    }
+                  </ol>
+                </div>
+              }
+              @if (section.type === 'tips' && section.items) {
+                <div class="hc-drawer__block hc-drawer__block--tips">
+                  @if (section.heading) { <h3>{{ section.heading }}</h3> }
+                  <ul>
+                    @for (tip of section.items; track tip) { <li>{{ tip }}</li> }
+                  </ul>
+                </div>
+              }
+              @if (section.type === 'faq' && section.faq) {
+                <div class="hc-drawer__block hc-drawer__block--faq">
+                  @if (section.heading) { <h3>{{ section.heading }}</h3> }
+                  @for (faq of section.faq; track faq.question) {
+                    <details class="hc-drawer__faq-item">
+                      <summary>{{ faq.question }}</summary>
+                      <p>{{ faq.answer }}</p>
+                    </details>
+                  }
+                </div>
+              }
+            }
+
+            @if (relatedArticles.length > 0) {
+              <div class="hc-drawer__related">
+                <h3>{{ 'help.relatedArticles' | t }}</h3>
+                <div class="hc-drawer__related-list">
+                  @for (rel of relatedArticles; track rel.slug) {
+                    <button type="button" class="hc-drawer__related-link" (click)="openArticle(rel.slug)">
+                      {{ rel.title }}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
+            <footer class="hc-drawer__foot">
+              <button type="button" class="hc-btn hc-btn--outline" (click)="startAiChat()">{{ 'help.startAiChat' | t }}</button>
+              <button type="button" class="hc-btn hc-btn--primary" (click)="openContactModal()">{{ 'help.contactSupport' | t }}</button>
+            </footer>
+          </div>
+        }
+      </aside>
+    </div>
+  }
+
+  <!-- Contact Modal -->
+  @if (contactModalOpen) {
+    <div class="hc-modal-overlay" (click)="closeContactModal()">
+      <div class="hc-modal" role="dialog" aria-modal="true" [attr.aria-label]="'help.contactSupport' | t" (click)="$event.stopPropagation()">
+        <header class="hc-modal__head">
+          <div>
+            <h2>{{ 'help.contactSupport' | t }}</h2>
+            <p>{{ 'help.contactLead' | t }}</p>
+          </div>
+          <button type="button" class="hc-modal__close" (click)="closeContactModal()" aria-label="Close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </header>
+    @if (submitError) {
+          <p class="hc-modal__error" role="alert">{{ submitError }}</p>
+        }
+        <div class="hc-modal__grid">
+          <label class="hc-field hc-field--full">
+            <span>{{ 'help.subject' | t }}</span>
+            <input type="text" [(ngModel)]="modalSubject" maxlength="200" [placeholder]="'help.subjectPlaceholder' | t" />
+          </label>
+          <label class="hc-field">
+            <span>{{ 'help.category' | t }}</span>
+            <select [(ngModel)]="modalCategory">
+              @for (opt of ticketCategories; track opt.value) {
+                <option [value]="opt.value">{{ opt.labelKey | t }}</option>
+              }
+            </select>
+          </label>
+          <label class="hc-field">
+            <span>{{ 'help.priority' | t }}</span>
+            <select [(ngModel)]="modalPriority">
+              @for (opt of priorityOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.labelKey | t }}</option>
+              }
+            </select>
+          </label>
+          <label class="hc-field hc-field--full">
+            <span>{{ 'help.message' | t }}</span>
+            <textarea rows="5" [(ngModel)]="modalMessage" maxlength="4000" [placeholder]="'help.messagePlaceholder' | t"></textarea>
+    </label>
+          <label class="hc-field hc-field--full">
+            <span>{{ 'help.attachment' | t }}</span>
+            <input type="file" (change)="onModalAttachmentSelected($event)" />
+            @if (modalAttachmentName) {
+              <small>{{ modalAttachmentName }}</small>
+            } @else if (uploadingAttachment) {
+              <small>{{ 'support.attachmentUploading' | t }}</small>
+            } @else {
+              <small>{{ 'help.attachmentHint' | t }}</small>
+            }
+    </label>
+        </div>
+        <footer class="hc-modal__foot">
+          <button type="button" class="hc-btn hc-btn--ghost" (click)="closeContactModal()">{{ 'common.cancel' | t }}</button>
+          <button type="button" class="hc-btn hc-btn--primary" [disabled]="submitting || uploadingAttachment" (click)="submitContact()">
+            {{ (submitting ? 'help.submitting' : 'help.submitRequest') | t }}
+    </button>
+        </footer>
+      </div>
+    </div>
+  }
+
+  @if (toastMessage) {
+    <div class="hc-toast" [class.hc-toast--error]="toastType === 'error'" role="status">
+      @if (toastType === 'success') {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      } @else {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      }
+      {{ toastMessage }}
+    </div>
+  }
+</div>

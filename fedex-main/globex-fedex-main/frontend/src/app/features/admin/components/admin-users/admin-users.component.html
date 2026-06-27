@@ -1,0 +1,472 @@
+<div class="um-page">
+  <!-- Header -->
+  <header class="um-header">
+    <div class="um-header__main">
+      <div class="um-header__title-block">
+        <span class="um-header__eyebrow">Team & Access Control</span>
+        <h1>Users Management</h1>
+      </div>
+    </div>
+    <button type="button" class="um-invite-btn" (click)="openInvite()">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      Invite User
+    </button>
+  </header>
+
+  <!-- KPIs -->
+  <div class="um-kpis">
+    @for (kpi of kpis(); track kpi.label) {
+      <article class="um-kpi" [attr.data-tone]="kpi.tone">
+        <div class="um-kpi__icon" [attr.data-icon]="kpi.icon"></div>
+        <div class="um-kpi__body">
+          <span class="um-kpi__label">{{ kpi.label }}</span>
+          <strong class="um-kpi__value">{{ kpi.value }}</strong>
+        </div>
+        <svg class="um-kpi__spark" viewBox="0 0 72 28" aria-hidden="true">
+          <path [attr.d]="sparklinePath(kpi.sparkline)" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </article>
+    }
+  </div>
+
+  <!-- Filtres (repliables) -->
+  <div class="ap-filter-toggle-row">
+    <button
+      type="button"
+      class="ap-filter-toggle-btn"
+      [class.ap-filter-toggle-btn--open]="filtersOpen()"
+      (click)="filtersOpen.set(!filtersOpen())"
+      [attr.aria-expanded]="filtersOpen()"
+    >
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" d="M3 4h18M7 8h10M10 12h4"/>
+      </svg>
+      Filtres
+    </button>
+  </div>
+
+  @if (filtersOpen()) {
+    <section class="ap-filter-panel um-toolbar ap-filter-bar">
+      <div class="ap-filter-search um-search">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z"/></svg>
+        <input type="search" placeholder="Rechercher par nom, email, lieu…" [ngModel]="search()" (ngModelChange)="search.set($event); page.set(1)" />
+      </div>
+
+      <span class="ap-filter-divider" aria-hidden="true"></span>
+
+      <div class="ap-filter-chip-group" role="group" aria-label="Filtrer par rôle">
+        @for (opt of roleFilterOptions; track opt.value) {
+          <button
+            type="button"
+            class="ap-filter-chip"
+            [class.ap-filter-chip--active]="roleFilter() === opt.value"
+            (click)="roleFilter.set(opt.value); page.set(1)"
+          >
+            {{ opt.label }}
+          </button>
+        }
+      </div>
+
+      <div class="ap-filter-chip-group" role="group" aria-label="Filtrer par statut">
+        @for (opt of statusFilterOptions; track opt.value) {
+          <button
+            type="button"
+            class="ap-filter-chip"
+            [class.ap-filter-chip--active]="statusFilter() === opt.value"
+            (click)="statusFilter.set(opt.value); page.set(1)"
+          >
+            {{ opt.label }}
+          </button>
+        }
+      </div>
+
+      <div class="ap-filter-field">
+        <span class="ap-filter-label">Tri</span>
+        <div class="ap-filter-select-wrap">
+          <select class="ap-filter-select" [ngModel]="sortKey()" (ngModelChange)="toggleSort($event)">
+            @for (opt of sortOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="um-toolbar__meta">
+        <span class="um-found">{{ filteredUsers().length }} utilisateurs</span>
+        <button type="button" class="um-refresh-btn" (click)="loadUsers()" title="Actualiser">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h5M20 20v-5h-5"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L4 4m16 16l-1.64-1.64A9 9 0 0 1 3.51 15"/></svg>
+        </button>
+      </div>
+    </section>
+  }
+
+  <!-- User Grid -->
+  @if (loading()) {
+    <div class="um-skeleton-grid">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="um-skeleton-card"></div>
+      }
+    </div>
+  } @else if (pagedUsers().length === 0) {
+    <div class="um-empty-state">
+      <p>Aucun utilisateur ne correspond à vos filtres.</p>
+      <button type="button" class="um-invite-btn um-invite-btn--sm" (click)="openInvite()">Inviter un utilisateur</button>
+    </div>
+  } @else {
+    <div class="um-grid">
+      @for (u of pagedUsers(); track u.id) {
+        <article class="um-card" [class.um-card--selected]="selectedId() === u.id" (click)="selectUser(u)">
+          <div class="um-card__head">
+            <div class="um-card__avatar-wrap">
+              <span class="um-avatar-letter">{{ userInitial(u.full_name) }}</span>
+              @if (u.is_online) {
+                <span class="um-card__online" title="En ligne"></span>
+              }
+            </div>
+            <div class="um-card__identity">
+              <h3>{{ u.full_name }}</h3>
+              <p class="um-card__title">{{ roleTitle(u.role) }}</p>
+            </div>
+            <button type="button" class="um-card__menu" (click)="$event.stopPropagation()" aria-label="Menu">⋯</button>
+          </div>
+
+          <p class="um-card__email">{{ u.email }}</p>
+
+          <div class="um-card__meta-row">
+            <span class="um-badge" [ngClass]="roleBadgeClass(u.role)">{{ roleLabel(u.role) }}</span>
+            <span class="um-status" [ngClass]="statusBadgeClass(u.status)">
+              <span class="um-status__dot"></span>{{ u.is_online ? 'En ligne' : statusLabel(u.status) }}
+            </span>
+          </div>
+
+          <ul class="um-card__facts">
+            @if (cityFromLocation(u.last_location); as city) {
+              <li>
+                <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+                {{ city }}
+              </li>
+            }
+            <li>
+              <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+              {{ relativeTime(u.last_activity_at) }}
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+              {{ formatDate(u.created_at) }}
+            </li>
+          </ul>
+
+          <div class="um-card__permissions">
+            <span class="um-card__perm-label">Permissions</span>
+            <div class="um-perm-tags">
+              @for (perm of permissionsForRole(u.role).slice(0, 3); track perm) {
+                <span class="um-perm-tag">{{ perm }}</span>
+              }
+              @if (permissionsForRole(u.role).length > 3) {
+                <span class="um-perm-tag um-perm-tag--more">+{{ permissionsForRole(u.role).length - 3 }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="um-card__actions" (click)="$event.stopPropagation()">
+            <button type="button" class="um-action-chip" (click)="messageUser(u)" title="Message">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Message
+            </button>
+            <button type="button" class="um-action-chip" (click)="selectUser(u); openEditUser()" title="Edit">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit
+            </button>
+            <button type="button" class="um-action-chip" (click)="viewPermissions(u)" title="Permissions">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Permissions
+            </button>
+            <button type="button" class="um-action-chip" (click)="viewLogs(u)" title="Logs">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+              Logs
+            </button>
+            <button type="button" class="um-action-chip um-action-chip--warn" (click)="selectUser(u); toggleUserStatus()" [title]="statusActionLabel(u.status)">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>
+              {{ statusActionLabel(u.status) }}
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <nav class="ap-pager um-pager" aria-label="Pagination utilisateurs">
+        <button type="button" class="ap-pager__btn" (click)="prevPage()" [disabled]="page() <= 1" aria-label="Page précédente">←</button>
+        <button type="button" class="ap-pager__btn" (click)="nextPage()" [disabled]="page() >= totalPages()" aria-label="Page suivante">→</button>
+      </nav>
+    }
+  }
+
+  <!-- Bottom sections -->
+  <div class="um-bottom">
+    <section class="um-panel um-panel--activity">
+      <header class="um-panel__head">
+        <h2>Recent User Activity</h2>
+        <span class="um-panel__badge">Live feed</span>
+      </header>
+      @if (globalActivityLoading()) {
+        <p class="um-panel__loading">Chargement…</p>
+      } @else if (globalActivity().length === 0) {
+        <p class="um-panel__empty">Aucune activité récente.</p>
+      } @else {
+        <ul class="um-timeline ap-scroll-area">
+          @for (log of globalActivity(); track log.id) {
+            <li class="um-timeline__item">
+              <div class="um-timeline__icon" [attr.data-type]="activityIcon(log.action)"></div>
+              <div class="um-timeline__body">
+                <p>{{ activityLabel(log) }}</p>
+                <time>{{ log.created_at | date: 'dd MMM yyyy, HH:mm' }}</time>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="um-panel um-panel--analytics">
+      <header class="um-panel__head">
+        <h2>User Analytics</h2>
+        <span class="um-panel__badge">Insights</span>
+      </header>
+      <div class="um-analytics">
+        <article class="um-analytics-card um-analytics-card--roles">
+          <header class="um-analytics-card__head">
+            <h3>Users by Role</h3>
+            <span>{{ users().length }} utilisateurs</span>
+          </header>
+          @if (roleLegend().length) {
+            <div class="um-role-chart">
+              <div class="um-role-chart__donut" [style.background]="roleDonutGradient()">
+                <div class="um-role-chart__hole">
+                  <strong>{{ users().length }}</strong>
+                  <small>Total</small>
+                </div>
+              </div>
+              <ul class="um-role-chart__legend">
+                @for (item of roleLegend(); track item.key) {
+                  <li>
+                    <span class="um-role-chart__swatch" [style.background]="item.color"></span>
+                    <span class="um-role-chart__label">{{ item.label }}</span>
+                    <span class="um-role-chart__value">{{ item.value }}</span>
+                    <span class="um-role-chart__pct">{{ item.percent }}%</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          } @else {
+            <p class="um-panel__empty">Pas de données rôle</p>
+          }
+        </article>
+
+        <article class="um-analytics-card um-analytics-card--top">
+          <header class="um-analytics-card__head">
+            <h3>Top Active Users</h3>
+            <span>Activité</span>
+          </header>
+          <ul class="um-top-users">
+            @for (u of topActiveUsers(); track u.id) {
+              <li (click)="selectUser(u)">
+                <span class="um-avatar-letter um-avatar-letter--xs">{{ userInitial(u.full_name) }}</span>
+                <span class="um-top-users__name">{{ u.full_name }}</span>
+                <b>{{ activityScore(u) }}</b>
+              </li>
+            }
+          </ul>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <!-- Profile Drawer Overlay -->
+  @if (selectedUser(); as user) {
+    <div class="um-overlay" (click)="closeDrawer()"></div>
+    <aside class="um-drawer" role="dialog" aria-label="Profil utilisateur">
+      <button type="button" class="um-drawer__close" (click)="closeDrawer()" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+
+      <div class="um-drawer__hero">
+        <span class="um-avatar-letter um-avatar-letter--lg">{{ userInitial(user.full_name) }}</span>
+        <div>
+          <h2>{{ user.full_name }}</h2>
+          <p>{{ roleTitle(user.role) }}</p>
+          <div class="um-drawer__badges">
+            <span class="um-badge" [ngClass]="roleBadgeClass(user.role)">{{ roleLabel(user.role) }}</span>
+            <span class="um-status" [ngClass]="statusBadgeClass(user.status)">
+              <span class="um-status__dot"></span>{{ user.is_online ? 'En ligne' : statusLabel(user.status) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="um-drawer__tabs">
+        @for (tab of drawerTabs; track tab.id) {
+          <button type="button" [class.um-drawer__tab--active]="drawerTab() === tab.id" (click)="setDrawerTab(tab.id)">
+            {{ tab.label }}
+          </button>
+        }
+      </nav>
+
+      <div class="um-drawer__body ap-scroll-area">
+        @if (detailLoading()) {
+          <p class="um-panel__loading">Chargement…</p>
+        } @else if (drawerTab() === 'overview') {
+          @if (detailSuccess()) { <p class="um-msg um-msg--ok">{{ detailSuccess() }}</p> }
+          @if (detailError()) { <p class="um-msg um-msg--err">{{ detailError() }}</p> }
+
+          @if (editing()) {
+            <section class="um-edit-form">
+              <label><span>Nom</span><input type="text" [(ngModel)]="userEditFullName" /></label>
+              <label><span>Rôle</span>
+                <select [(ngModel)]="userEditRole">
+                  <option value="client">Client</option>
+                  <option value="employe">Employé</option>
+                  <option value="admin">Administrateur</option>
+                </select>
+              </label>
+              <label><span>Statut</span>
+                <select [(ngModel)]="userEditStatus">
+                  <option value="active">Actif</option>
+                  <option value="pending">En attente</option>
+                  <option value="invited">Invité</option>
+                </select>
+              </label>
+              <div class="um-edit-form__actions">
+                <button type="button" class="um-btn um-btn--ghost" (click)="cancelEdit()">Annuler</button>
+                <button type="button" class="um-btn um-btn--primary" [disabled]="detailSaving()" (click)="confirmEdit()">Enregistrer</button>
+              </div>
+            </section>
+          } @else {
+            <dl class="um-profile-grid">
+              <div><dt>Email</dt><dd>{{ user.email }}</dd></div>
+              <div><dt>Organisation</dt><dd>{{ user.organization_id }}</dd></div>
+              <div><dt>Langue</dt><dd>{{ user.preferred_language.toUpperCase() }}</dd></div>
+              @if (cityFromLocation(user.last_location); as city) {
+                <div><dt>Localisation</dt><dd>{{ city }}</dd></div>
+              }
+              <div><dt>Dernière activité</dt><dd>{{ relativeTime(user.last_activity_at) }}</dd></div>
+              <div><dt>Membre depuis</dt><dd>{{ formatDate(user.created_at) }}</dd></div>
+            </dl>
+
+            <section class="um-drawer-section">
+              <h3>Statistiques</h3>
+              <div class="um-user-stats">
+                <div><strong>{{ detail()?.sessions_count ?? 0 }}</strong><span>Sessions</span></div>
+                <div><strong>{{ detail()?.messages_count ?? user.messages_count ?? 0 }}</strong><span>Messages</span></div>
+                <div><strong>{{ detail()?.trackings_count ?? user.trackings_count ?? 0 }}</strong><span>Suivis</span></div>
+                <div><strong>{{ activityScore(user) }}</strong><span>Score</span></div>
+              </div>
+            </section>
+
+            <section class="um-drawer-section">
+              <h3>Permissions</h3>
+              <div class="um-perm-tags">
+                @for (perm of permissionsForRole(user.role); track perm) {
+                  <span class="um-perm-tag">{{ perm }}</span>
+                }
+              </div>
+            </section>
+          }
+        } @else if (drawerTab() === 'permissions') {
+          <section class="um-drawer-section">
+            <h3>Accès accordés</h3>
+            <div class="um-perm-list">
+              @for (perm of permissionsForRole(user.role); track perm) {
+                <div class="um-perm-row">
+                  <span class="um-perm-row__check">✓</span>
+                  <div>
+                    <strong>{{ perm }}</strong>
+                    <small>Accès {{ user.role === 'admin' ? 'complet' : 'standard' }}</small>
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+          @if (detail()?.quotas) {
+            <section class="um-drawer-section">
+              <h3>Quotas journaliers</h3>
+              <dl class="um-profile-grid">
+                <div><dt>Messages</dt><dd>{{ detail()!.quotas!.usage.messages_today }} / {{ detail()!.quotas!.limits.messages_per_day ?? '∞' }}</dd></div>
+                <div><dt>Suivis</dt><dd>{{ detail()!.quotas!.usage.trackings_today }} / {{ detail()!.quotas!.limits.trackings_per_day ?? '∞' }}</dd></div>
+                <div><dt>Exports</dt><dd>{{ detail()!.quotas!.usage.exports_today }} / {{ detail()!.quotas!.limits.exports_per_day ?? '∞' }}</dd></div>
+              </dl>
+            </section>
+          }
+        } @else if (drawerTab() === 'activity') {
+          @if (activityLoading()) {
+            <p class="um-panel__loading">Chargement…</p>
+          } @else if (activityLogs().length === 0) {
+            <p class="um-panel__empty">Aucune activité pour cet utilisateur.</p>
+          } @else {
+            <ul class="um-timeline um-timeline--compact">
+              @for (log of activityLogs(); track log.id) {
+                <li class="um-timeline__item">
+                  <div class="um-timeline__icon" [attr.data-type]="activityIcon(log.action)"></div>
+                  <div class="um-timeline__body">
+                    <p>{{ log.message }}</p>
+                    <time>{{ log.created_at | date: 'dd/MM/yy HH:mm' }}</time>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        } @else {
+          @if ((detail()?.recent_sessions ?? []).length === 0) {
+            <p class="um-panel__empty">Aucune session enregistrée.</p>
+          } @else {
+            <ul class="um-sessions">
+              @for (s of detail()!.recent_sessions!; track s.id) {
+                <li [class.um-sessions__active]="s.is_active">
+                  <div class="um-sessions__top">
+                    <strong>{{ s.browser }} · {{ s.machine }}</strong>
+                    @if (s.is_active) { <span class="um-sessions__live">Active</span> }
+                  </div>
+                  <p>{{ s.location !== 'Unknown' ? s.location : 'Localisation inconnue' }}</p>
+                  <time>Dernière activité : {{ relativeTime(s.updated_at) }}</time>
+                </li>
+              }
+            </ul>
+          }
+        }
+      </div>
+
+      <footer class="um-drawer__footer">
+        <button type="button" class="um-footer-btn" [disabled]="detailSaving()" (click)="openEditUser()">Edit User</button>
+        <button type="button" class="um-footer-btn um-footer-btn--warn" [disabled]="detailSaving()" (click)="toggleUserStatus()">
+          {{ statusActionLabel(user.status) }}
+        </button>
+        <button type="button" class="um-footer-btn um-footer-btn--danger" [disabled]="detailSaving()" (click)="deleteUser()">Delete</button>
+      </footer>
+    </aside>
+  }
+
+  @if (inviteOpen()) {
+    <div class="um-modal-backdrop" role="dialog" aria-modal="true" (click)="closeInvite()">
+      <div class="um-modal" (click)="$event.stopPropagation()">
+        <h2>Invite User</h2>
+        <p>Envoyer une invitation à rejoindre la plateforme Globex.</p>
+        @if (inviteError()) { <p class="um-msg um-msg--err">{{ inviteError() }}</p> }
+        <label>Nom complet<input type="text" [(ngModel)]="inviteFullName" placeholder="Noor El Hajbi" /></label>
+        <label>Email<input type="email" [(ngModel)]="inviteEmail" placeholder="noor@globex.ma" /></label>
+        <label>Rôle
+          <select [(ngModel)]="inviteRole">
+            <option value="employe">Employé</option>
+            <option value="client">Client</option>
+            <option value="admin">Administrateur</option>
+          </select>
+        </label>
+        <div class="um-modal__actions">
+          <button type="button" class="um-btn um-btn--ghost" (click)="closeInvite()">Annuler</button>
+          <button type="button" class="um-invite-btn um-invite-btn--sm" [disabled]="inviteLoading()" (click)="submitInvite()">
+            {{ inviteLoading() ? 'Envoi…' : 'Send Invitation' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

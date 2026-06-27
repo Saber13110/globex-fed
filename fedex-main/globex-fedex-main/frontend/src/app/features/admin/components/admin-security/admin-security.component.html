@@ -1,0 +1,151 @@
+<section class="sec-ids">
+  <header class="sec-ids__hero">
+    <div>
+      <h1>{{ 'admin.security.title' | t }}</h1>
+      <p>{{ 'admin.security.subtitle' | t }}</p>
+    </div>
+    <div class="sec-ids__hero-actions">
+      <button type="button" class="sec-ids__btn sec-ids__btn--ghost" (click)="runScan()">
+        {{ 'admin.security.scan' | t }}
+      </button>
+      <button type="button" class="sec-ids__btn" (click)="refresh()">
+        {{ 'admin.security.refresh' | t }}
+      </button>
+    </div>
+  </header>
+
+  <div class="sec-ids__kpis">
+    <article class="sec-ids__kpi">
+      <span class="sec-ids__kpi-label">{{ 'admin.security.openIncidents' | t }}</span>
+      <strong>{{ openCount() }}</strong>
+    </article>
+    <article class="sec-ids__kpi">
+      <span class="sec-ids__kpi-label">{{ 'admin.security.totalIncidents' | t }}</span>
+      <strong>{{ total() }}</strong>
+    </article>
+    <article class="sec-ids__kpi sec-ids__kpi--policy">
+      <span class="sec-ids__kpi-label">{{ 'admin.security.autoMode' | t }}</span>
+      <label class="sec-ids__switch">
+        <input type="checkbox" [checked]="policy()?.auto_mode_enabled" (change)="toggleAutoMode()" />
+        <span></span>
+      </label>
+      <small>{{ policy()?.auto_mode_enabled ? ('admin.security.autoOn' | t) : ('admin.security.autoOff' | t) }}</small>
+    </article>
+    <article class="sec-ids__kpi sec-ids__kpi--policy">
+      <span class="sec-ids__kpi-label">{{ 'admin.security.aiIds' | t }}</span>
+      <label class="sec-ids__switch">
+        <input type="checkbox" [checked]="policy()?.ai_ids_enabled" (change)="toggleAiIds()" />
+        <span></span>
+      </label>
+    </article>
+  </div>
+
+  <div class="sec-ids__layout">
+    <div class="sec-ids__main">
+      <div class="sec-ids__filters">
+        <button type="button" [class.active]="statusFilter() === 'open'" (click)="setStatusFilter('open')">
+          {{ 'admin.security.filterOpen' | t }}
+        </button>
+        <button type="button" [class.active]="statusFilter() === 'resolved'" (click)="setStatusFilter('resolved')">
+          {{ 'admin.security.filterResolved' | t }}
+        </button>
+        <button type="button" [class.active]="statusFilter() === 'false_positive'" (click)="setStatusFilter('false_positive')">
+          {{ 'admin.security.filterFalsePositive' | t }}
+        </button>
+        <button type="button" [class.active]="statusFilter() === 'all'" (click)="setStatusFilter('all')">
+          {{ 'admin.security.filterAll' | t }}
+        </button>
+      </div>
+
+      @if (error()) {
+        <p class="sec-ids__error">{{ error() }}</p>
+      } @else if (loading()) {
+        <p class="sec-ids__loading">{{ 'admin.security.loading' | t }}</p>
+      } @else if (!incidents().length) {
+        <p class="sec-ids__empty">{{ 'admin.security.empty' | t }}</p>
+      } @else {
+        <div class="sec-ids__list">
+          @for (inc of incidents(); track inc.id) {
+            <article
+              class="sec-ids__card"
+              [class.sec-ids__card--highlight]="highlightIncidentId() === inc.id"
+              [id]="'sec-incident-' + inc.id"
+              [attr.data-severity]="severityClass(inc.severity)"
+            >
+              <div class="sec-ids__card-head">
+                <span class="sec-ids__badge" [attr.data-severity]="severityClass(inc.severity)">{{ inc.severity }}</span>
+                <span class="sec-ids__score">{{ inc.score }}/100</span>
+                <time>{{ inc.created_at | date: 'dd/MM/yy HH:mm' }}</time>
+              </div>
+              <h3>{{ inc.title }}</h3>
+              <p>{{ inc.summary }}</p>
+              <div class="sec-ids__meta">
+                @if (inc.user_email) {
+                  <span>{{ inc.user_name }} · {{ inc.user_email }}</span>
+                }
+                @if (inc.ip_address) {
+                  <span>IP {{ inc.ip_address }}</span>
+                }
+                <span>{{ inc.source }} · {{ inc.threat_type }}</span>
+              </div>
+              @if (inc.status === 'open' || inc.status === 'acknowledged') {
+                <div class="sec-ids__actions">
+                  @if (inc.user_id) {
+                    <app-admin-user-suspend-actions
+                      [userId]="inc.user_id"
+                      [userName]="inc.user_name || ''"
+                      [userEmail]="inc.user_email || ''"
+                      [userStatus]="inc.user_status || 'active'"
+                      [reason]="'Suspension depuis incident sécurité #' + inc.id + ' — ' + inc.summary"
+                      [suspendLabel]="'admin.security.suspendUser' | t"
+                      (changed)="refresh()"
+                    />
+                  }
+                  <button
+                    type="button"
+                    class="sec-ids__btn sec-ids__btn--ghost"
+                    [disabled]="busyId() === inc.id"
+                    (click)="resolveIncident(inc, 'false_positive')"
+                  >
+                    {{ 'admin.security.falsePositive' | t }}
+                  </button>
+                  <button
+                    type="button"
+                    class="sec-ids__btn"
+                    [disabled]="busyId() === inc.id"
+                    (click)="resolveIncident(inc, 'resolved')"
+                  >
+                    {{ 'admin.security.resolve' | t }}
+                  </button>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    </div>
+
+    <aside class="sec-ids__agent">
+      <h2>{{ 'admin.security.agentTitle' | t }}</h2>
+      <p>{{ 'admin.security.agentHint' | t }}</p>
+      <textarea
+        [(ngModel)]="agentPrompt"
+        rows="4"
+        [placeholder]="'admin.security.agentPlaceholder' | t"
+      ></textarea>
+      <button type="button" class="sec-ids__btn" [disabled]="agentSending() || !agentPrompt.trim()" (click)="sendAgent()">
+        {{ agentSending() ? ('admin.security.agentSending' | t) : ('admin.security.agentSend' | t) }}
+      </button>
+      @if (agentActions().length) {
+        <ul class="sec-ids__agent-actions">
+          @for (a of agentActions(); track a) {
+            <li>{{ a }}</li>
+          }
+        </ul>
+      }
+      @if (agentReply()) {
+        <div class="sec-ids__agent-reply">{{ agentReply() }}</div>
+      }
+    </aside>
+  </div>
+</section>

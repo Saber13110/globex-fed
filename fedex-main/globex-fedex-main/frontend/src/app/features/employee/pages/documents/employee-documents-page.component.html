@@ -1,0 +1,39 @@
+<div class="emp-page">
+  <header class="emp-hero">
+    <h1>{{ 'employee.documents.title' | t }}</h1>
+    <p>{{ 'employee.documents.subtitle' | t }}</p>
+  </header>
+
+  <div class="emp-filters">
+    <input type="search" [(ngModel)]="q" (keyup.enter)="load()" [placeholder]="'employee.documents.search' | t" />
+    <select [(ngModel)]="type" (change)="load()">
+      <option value="all">{{ 'employee.filters.all' | t }}</option>
+      <option value="proof">POD</option>
+      <option value="export">Export</option>
+      <option value="report">Report</option>
+      <option value="tracking">Tracking</option>
+    </select>
+    <button type="button" class="emp-btn emp-btn--primary" (click)="load()">{{ 'employee.filters.apply' | t }}</button>
+  </div>
+
+  <div class="emp-panel">
+    <table class="emp-table">
+      <thead><tr><th>Title</th><th>Type</th><th>Client</th><th>Tracking</th><th>Date</th><th></th></tr></thead>
+      <tbody>
+        @for (doc of items; track doc.id) {
+          <tr>
+            <td>{{ doc.title }}</td>
+            <td><span class="emp-badge emp-badge--open">{{ doc.doc_type }}</span></td>
+            <td><a [routerLink]="['/employee/client', doc.client_id]">{{ doc.client_name }}</a></td>
+            <td>{{ doc.tracking_number || '—' }}</td>
+            <td>{{ doc.created_at | date:'short' }}</td>
+            <td class="emp-table__actions">
+              <button type="button" class="emp-btn emp-btn--ghost emp-btn--sm" (click)="preview(doc)">{{ 'employee.documents.preview' | t }}</button>
+              <button type="button" class="emp-btn emp-btn--primary emp-btn--sm" (click)="download(doc)">{{ 'employee.documents.download' | t }}</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

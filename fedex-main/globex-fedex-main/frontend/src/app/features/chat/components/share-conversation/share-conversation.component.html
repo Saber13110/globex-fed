@@ -1,0 +1,33 @@
+<div class="share-overlay" (click)="close.emit()">
+  <section
+    class="share-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Partager cette conversation"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="share-modal__head">
+      <h3>Partager cette conversation</h3>
+      <button type="button" (click)="close.emit()" aria-label="Fermer">✕</button>
+    </header>
+
+    <p class="share-modal__desc">Toute personne disposant du lien pourra consulter cette conversation.</p>
+
+    <label class="share-modal__field">
+      <span>Lien de partage</span>
+      <input type="text" [value]="shareUrl" readonly />
+    </label>
+
+    <label class="share-modal__toggle">
+      <input type="checkbox" [ngModel]="includeTrackingDetails" (ngModelChange)="onToggleIncludeTracking($event)" />
+      <span>Inclure les détails du suivi</span>
+    </label>
+
+    <div class="share-modal__actions">
+      <button type="button" class="primary" [disabled]="loading || !shareUrl" (click)="copyLink()">
+        {{ copied ? 'Lien copié' : 'Copier le lien' }}
+      </button>
+      <button type="button" class="light" (click)="close.emit()">Fermer</button>
+    </div>
+  </section>
+</div>

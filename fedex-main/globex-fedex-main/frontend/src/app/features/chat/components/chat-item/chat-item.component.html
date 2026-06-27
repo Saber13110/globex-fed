@@ -1,0 +1,54 @@
+<article
+  class="chat-item"
+  [class.chat-item--active]="conversation.isActive"
+  [class.chat-item--menu-open]="menuOpen"
+  (click)="onSelect()"
+>
+  @if (isRenaming) {
+    <div class="chat-item__rename" (click)="$event.stopPropagation()">
+      <input
+        type="text"
+        [(ngModel)]="renameDraft"
+        class="chat-item__rename-input"
+        (keydown.enter)="saveRename($event)"
+        (keydown.escape)="cancelRename($event)"
+        autofocus
+      />
+      <button type="button" class="chat-item__icon-btn" (click)="saveRename($event)" aria-label="Enregistrer">✓</button>
+      <button type="button" class="chat-item__icon-btn" (click)="cancelRename($event)" aria-label="Annuler">✕</button>
+    </div>
+  } @else {
+    <div class="chat-item__content">
+      <h4 class="chat-item__title">{{ conversation.title }}</h4>
+      <p class="chat-item__meta">{{ conversation.updatedAt | date : 'short' }}</p>
+    </div>
+
+    <button
+      type="button"
+      class="chat-item__menu-trigger"
+      [class.chat-item__menu-trigger--visible]="conversation.isActive || menuOpen"
+      (click)="toggleMenu($event)"
+      aria-label="Actions conversation"
+    >
+      ⋯
+    </button>
+
+    @if (menuOpen) {
+      <div class="chat-item__menu" (click)="$event.stopPropagation()">
+        <button type="button" (click)="startRename($event)">
+          <span aria-hidden="true">✎</span><span>Renommer</span>
+        </button>
+        <button type="button" (click)="onTogglePin($event)">
+          <span aria-hidden="true">{{ conversation.isPinned ? '⤓' : '⤒' }}</span>
+          <span>{{ conversation.isPinned ? 'Désépingler' : 'Épingler' }}</span>
+        </button>
+        <button type="button" (click)="onMove($event)">
+          <span aria-hidden="true">▤</span><span>Déplacer vers un dossier</span>
+        </button>
+        <button type="button" class="danger" (click)="onDelete($event)">
+          <span aria-hidden="true">⌫</span><span>Supprimer</span>
+        </button>
+      </div>
+    }
+  }
+</article>

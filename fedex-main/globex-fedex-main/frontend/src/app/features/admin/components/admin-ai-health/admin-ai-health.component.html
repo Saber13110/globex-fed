@@ -1,0 +1,57 @@
+<section class="ai-health">
+  <header class="ai-health__header">
+    <h1>AI Health</h1>
+    <p>État du moteur IA admin — providers, latence, outils et taux de succès.</p>
+    <button type="button" class="ai-health__refresh" (click)="load()" [disabled]="loading()">Actualiser</button>
+  </header>
+
+  @if (loading()) {
+    <p class="ai-health__loading">Chargement…</p>
+  } @else if (error()) {
+    <p class="ai-health__error">{{ error() }}</p>
+  } @else {
+    @if (health(); as h) {
+      <div class="ai-health__grid">
+        <article class="ai-health__card" [ngClass]="statusClass(h.status)">
+          <h2>Provider actif</h2>
+          <p class="ai-health__big">{{ providerLabel(h.active_provider) }}</p>
+          <span class="ai-health__badge">{{ statusLabel(h.status) }}</span>
+        </article>
+
+        <article class="ai-health__card">
+          <h2>Latence moyenne</h2>
+          <p class="ai-health__big">{{ h.avg_latency_ms }} ms</p>
+        </article>
+
+        <article class="ai-health__card">
+          <h2>Requêtes</h2>
+          <p class="ai-health__big">{{ h.total_requests }}</p>
+          <p class="ai-health__sub">Succès {{ (h.success_rate * 100) | number:'1.0-1' }} % · Erreurs {{ h.error_requests }}</p>
+        </article>
+
+        <article class="ai-health__card">
+          <h2>Uptime</h2>
+          <p class="ai-health__big">{{ h.uptime_seconds | number }} s</p>
+        </article>
+      </div>
+
+      @if (h.top_tools.length) {
+        <section class="ai-health__section">
+          <h3>Usage outils (top)</h3>
+          <ul>
+            @for (t of h.top_tools; track t.name) {
+              <li><strong>{{ t.name }}</strong> — {{ t.count }} appel(s)</li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (h.last_error) {
+        <section class="ai-health__section ai-health__section--warn">
+          <h3>Dernière erreur</h3>
+          <p>{{ h.last_error }}</p>
+        </section>
+      }
+    }
+  }
+</section>

@@ -1,0 +1,66 @@
+@if (open) {
+  <div class="aec-backdrop" (click)="close()" aria-hidden="true"></div>
+  <aside class="aec" role="dialog" aria-label="Chat employé">
+    @if (loading()) {
+      <p class="aec__loading">Chargement…</p>
+    } @else {
+      <header class="aec__head">
+        <div>
+          <span class="aec__eyebrow">Message employé</span>
+          <h2>{{ employeeName() || 'Employé' }}</h2>
+          <p class="aec__email">{{ employeeEmail() }}</p>
+          @if (employeeId) {
+            <app-admin-user-suspend-actions
+              [userId]="employeeId"
+              [userName]="employeeName()"
+              [userEmail]="employeeEmail()"
+              [userStatus]="employeeStatus()"
+              [reason]="'Suspension depuis chat employé admin'"
+              (changed)="onEmployeeSuspended()"
+            />
+          }
+        </div>
+        <button type="button" class="aec__close" (click)="close()" aria-label="Fermer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
+
+      <div class="aec__thread">
+        @for (msg of messages(); track msg.id) {
+          <article class="aec-bubble" [class.aec-bubble--admin]="isAdmin(msg)" [class.aec-bubble--employee]="!isAdmin(msg)">
+            <header>
+              <strong>{{ isAdmin(msg) ? (msg.sender_name || 'Admin') : (employeeName() || 'Employé') }}</strong>
+              <time>{{ msg.created_at | date : 'short' }}</time>
+            </header>
+            <p>{{ msg.body }}</p>
+            @if (msg.attachment_url) {
+              <button type="button" class="aec-bubble__attach" (click)="openAttachment(msg.attachment_url!, $event)">
+                {{ displayAttachmentName(msg.attachment_url!) }}
+              </button>
+            }
+          </article>
+        }
+      </div>
+
+      <footer class="aec__footer">
+        <textarea rows="4" [(ngModel)]="draft" placeholder="Votre message à l'employé…"></textarea>
+        <div class="aec__footer-actions">
+          <label class="aec__attach">
+            <input type="file" (change)="onFileSelected($event)" hidden />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            Joindre
+          </label>
+          @if (attachmentName) {
+            <span class="aec__attach-name">{{ attachmentName }}</span>
+            <button type="button" class="aec__attach-clear" (click)="clearAttachment()">Retirer</button>
+          } @else if (uploadingAttachment) {
+            <span class="aec__attach-name">Téléversement…</span>
+          }
+          <button type="button" class="aec-btn aec-btn--primary" [disabled]="submitting() || uploadingAttachment || (!draft.trim() && !attachmentUrl)" (click)="send()">
+            {{ submitting() ? 'Envoi…' : 'Envoyer' }}
+          </button>
+        </div>
+      </footer>
+    }
+  </aside>
+}

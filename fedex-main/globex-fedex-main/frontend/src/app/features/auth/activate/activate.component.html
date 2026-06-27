@@ -1,0 +1,24 @@
+<div class="auth">
+  <div class="card">
+    <span class="audience-badge">Espace employé</span>
+    <h1>Activation du compte</h1>
+
+    @if (state === 'loading') {
+      <p class="hint">Vérification en cours…</p>
+    } @else if (state === 'success') {
+      <p class="hint">{{ message }}</p>
+      <p class="footer footer--alt">
+        <a routerLink="/employee/login">Se connecter à l'espace employé</a>
+      </p>
+    } @else {
+      <p class="error">{{ message }}</p>
+      <p class="hint">
+        Si votre administrateur a déjà validé votre demande, connectez-vous directement avec l'email
+        et le mot de passe choisis à l'inscription.
+      </p>
+      <p class="footer footer--alt">
+        <a routerLink="/employee/login">Se connecter à l'espace employé</a>
+      </p>
+    }
+  </div>
+</div>

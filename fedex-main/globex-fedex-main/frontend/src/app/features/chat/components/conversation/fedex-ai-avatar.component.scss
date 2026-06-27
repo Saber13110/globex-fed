@@ -1,0 +1,21 @@
+:host {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: 'Inter', var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--fedex-purple, #4d148c) 0%, #6a24b8 100%);
+  box-shadow: 0 3px 12px rgba(77, 20, 140, 0.22);
+}
+
+.ai-avatar__label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  user-select: none;
+}

@@ -1,0 +1,316 @@
+<div class="set-page set-page--premium" @fadeIn>
+  <header class="ap-hero set-hero">
+    <div class="ap-hero__mesh"></div>
+    <div class="ap-hero__inner">
+      <div>
+        <span class="ap-hero__eyebrow">Configuration</span>
+        <h1>Paramètres du système</h1>
+        <p>Gérez votre environnement, vos préférences et la configuration du système.</p>
+      </div>
+      <button type="button" class="ap-invite-btn set-save-btn" [disabled]="saving()" (click)="save()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" d="M17 3H7a2 2 0 00-2 2v14l3-2 3 2 3-2 3 2V5a2 2 0 00-2-2zM9 9h1m4 0h1"/>
+        </svg>
+        {{ saving() ? 'Enregistrement…' : 'Enregistrer les modifications' }}
+      </button>
+    </div>
+  </header>
+
+  <nav class="ap-tabs-bar set-tabs">
+    @for (t of tabs; track t.id) {
+      <button type="button" class="ap-tab set-tabs__btn" [class.ap-tab--active]="activeTab() === t.id" [class.set-tabs__btn--active]="activeTab() === t.id" (click)="setTab(t.id)">
+        <span class="set-tabs__icon" [attr.data-icon]="t.icon"></span>
+        {{ t.label }}
+      </button>
+    }
+  </nav>
+
+  <div class="ap-kpi-grid ap-kpi-grid--5 set-kpis">
+    @if (statsLoading()) {
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="set-kpi set-kpi--skel"></div>
+      }
+    }
+    @if (!statsLoading() && stats(); as s) {
+      <article class="ap-kpi set-kpi">
+        <span class="ap-kpi__label set-kpi__label">Utilisateurs</span>
+        <strong class="ap-kpi__value">{{ s.total_users }}</strong>
+        <small>↗ {{ s.new_users_last_7_days }} nouveaux (7j)</small>
+      </article>
+      <article class="ap-kpi set-kpi">
+        <span class="ap-kpi__label set-kpi__label">Conversations</span>
+        <strong class="ap-kpi__value">{{ s.total_sessions }}</strong>
+        <small>↗ {{ s.sessions_last_7_days }} depuis le mois dernier</small>
+      </article>
+      <article class="ap-kpi set-kpi">
+        <span class="ap-kpi__label set-kpi__label">Messages</span>
+        <strong class="ap-kpi__value">{{ s.total_messages }}</strong>
+        <small>↗ {{ s.messages_last_7_days }} (7 derniers jours)</small>
+      </article>
+      <article class="ap-kpi set-kpi">
+        <span class="ap-kpi__label set-kpi__label">Événements</span>
+        <strong class="ap-kpi__value">{{ s.total_events ?? s.logs_last_7_days }}</strong>
+        <small>↗ {{ s.events_today ?? 0 }} aujourd'hui</small>
+      </article>
+      <article class="ap-kpi set-kpi" [class.set-kpi--muted]="s.pending_employees === 0">
+        <span class="ap-kpi__label set-kpi__label">Employés en attente</span>
+        <strong class="ap-kpi__value">{{ s.pending_employees }}</strong>
+        <small>{{ s.pending_employees === 0 ? 'Aucune action requise' : 'Validation requise' }}</small>
+      </article>
+    }
+  </div>
+
+  @if (activeTab() === 'general' && pending().length > 0) {
+    <section class="set-card set-card--wide set-pending" @fadeIn>
+      <h2>Employés en attente de validation</h2>
+      <ul class="set-pending__list">
+        @for (emp of pending(); track emp.id) {
+          <li>
+            <div>
+              <strong>{{ emp.full_name }}</strong>
+              <small>{{ emp.email }}</small>
+            </div>
+            <div class="set-pending__actions">
+              <button type="button" class="set-btn set-btn--primary" [disabled]="pendingBusyId() === emp.id" (click)="validateEmployee(emp)">Valider</button>
+              <button type="button" class="set-btn set-btn--ghost" [disabled]="pendingBusyId() === emp.id" (click)="rejectEmployee(emp)">Rejeter</button>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (activeTab() === 'general') {
+    <div class="set-grid" @fadeIn>
+      <section class="set-card">
+        <h2>État des services</h2>
+        @if (healthLoading()) {
+          <div class="set-skel-list">
+            @for (i of [1,2,3,4,5]; track i) { <div class="set-skel-row"></div> }
+          </div>
+        }
+        @if (!healthLoading() && health(); as h) {
+          <ul class="set-services">
+            @for (svc of h.services; track svc.key) {
+              <li>
+                <div>
+                  <strong>{{ svc.label }}</strong>
+                  <p>{{ svc.detail }}</p>
+                </div>
+                <div class="set-services__meta">
+                  <span class="set-pill" [attr.data-status]="svc.status">{{ serviceStatusLabel(svc) }}</span>
+                  @if (svc.availability_percent > 0) {
+                    <span>{{ svc.availability_percent }}% disponibilité</span>
+                  }
+                  @if (svc.latency_ms != null) {
+                    <span>{{ svc.latency_ms }} ms</span>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+          <button type="button" class="set-btn set-btn--ghost set-card__foot" (click)="refreshHealth()">Voir tous les services</button>
+        }
+      </section>
+
+      <section class="set-card">
+        <h2>Outils système</h2>
+        <ul class="set-tools">
+          <li>
+            <button type="button" (click)="runOp('cache')" [disabled]="opLoading() === 'cache'">
+              <span data-icon="cache"></span>
+              <div><strong>Nettoyer le cache</strong><small>Optimiser les performances</small></div>
+              <span class="set-chev">›</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" (click)="runOp('reindex')" [disabled]="opLoading() === 'reindex'">
+              <span data-icon="reindex"></span>
+              <div><strong>Réindexer les données</strong><small>Actualiser les index PostgreSQL</small></div>
+              <span class="set-chev">›</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" (click)="runOp('backup')" [disabled]="opLoading() === 'backup'">
+              <span data-icon="backup"></span>
+              <div><strong>Sauvegarde manuelle</strong><small>Exporter un instantané système</small></div>
+              <span class="set-chev">›</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" (click)="navigateAudit.emit()">
+              <span data-icon="logs"></span>
+              <div><strong>Voir les journaux système</strong><small>Observateur d'événements</small></div>
+              <span class="set-chev">›</span>
+            </button>
+          </li>
+        </ul>
+      </section>
+
+      <section class="set-card">
+        <h2>Destinataire du test</h2>
+        <p class="set-card__desc">Vérifiez que la configuration SMTP envoie correctement les emails.</p>
+        <label class="set-field">
+          <span>Adresse email</span>
+          <input type="email" [(ngModel)]="testEmailTo" placeholder="admin@globex.ma" />
+        </label>
+        <button type="button" class="set-btn set-btn--primary" [disabled]="opLoading() === 'email'" (click)="sendTestEmail()">
+          Envoyer un email test
+        </button>
+      </section>
+
+      <section class="set-card">
+        <h2>Informations système</h2>
+        @if (systemInfo(); as info) {
+          <dl class="set-info">
+            <div><dt>Version</dt><dd>v{{ info.version }}</dd></div>
+            <div><dt>Environnement</dt><dd>{{ info.environment }}</dd></div>
+            <div><dt>Dernière mise à jour</dt><dd>{{ info.last_updated | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+            <div><dt>Base de données</dt><dd><span class="set-dot set-dot--ok"></span>{{ info.database_status }}</dd></div>
+            <div><dt>Serveur</dt><dd>{{ info.server }}</dd></div>
+          </dl>
+        } @else {
+          <div class="set-skel-list"><div class="set-skel-row"></div><div class="set-skel-row"></div></div>
+        }
+      </section>
+    </div>
+  }
+
+  @if (activeTab() === 'security') {
+    <div class="set-panel" @fadeIn>
+      <section class="set-card set-card--wide">
+        <h2>Sécurité</h2>
+        <div class="set-switch-row">
+          <div>
+            <strong>Double authentification (MFA)</strong>
+            <p>Exiger un code OTP par email pour les employés.</p>
+          </div>
+          <label class="set-switch">
+            <input type="checkbox" [(ngModel)]="security.mfa_enabled" />
+            <span></span>
+          </label>
+        </div>
+        <hr />
+        <h3>Changement de mot de passe</h3>
+        <div class="set-form-grid">
+          <label class="set-field"><span>Ancien mot de passe</span><input type="password" [(ngModel)]="pwdCurrent" autocomplete="current-password" /></label>
+          <label class="set-field"><span>Nouveau mot de passe</span><input type="password" [(ngModel)]="pwdNew" autocomplete="new-password" /></label>
+          <label class="set-field"><span>Confirmation</span><input type="password" [(ngModel)]="pwdConfirm" autocomplete="new-password" /></label>
+        </div>
+        <button type="button" class="set-btn set-btn--primary" [disabled]="opLoading() === 'password'" (click)="changePassword()">Mettre à jour le mot de passe</button>
+      </section>
+    </div>
+  }
+
+  @if (activeTab() === 'notifications') {
+    <div class="set-panel" @fadeIn>
+      <section class="set-card set-card--wide">
+        <h2>Notifications</h2>
+        <div class="set-switch-row">
+          <div><strong>Email</strong><p>Alertes et rapports par email</p></div>
+          <label class="set-switch"><input type="checkbox" [(ngModel)]="notifications.email" /><span></span></label>
+        </div>
+        <div class="set-switch-row">
+          <div><strong>SMS</strong><p>Notifications mobiles (si gateway configurée)</p></div>
+          <label class="set-switch"><input type="checkbox" [(ngModel)]="notifications.sms" /><span></span></label>
+        </div>
+        <div class="set-switch-row">
+          <div><strong>Notifications in-app</strong><p>Cloche dans le centre admin</p></div>
+          <label class="set-switch"><input type="checkbox" [(ngModel)]="notifications.in_app" /><span></span></label>
+        </div>
+        <div class="set-switch-row">
+          <div><strong>Alertes critiques</strong><p>Incidents et erreurs système</p></div>
+          <label class="set-switch"><input type="checkbox" [(ngModel)]="notifications.critical_alerts" /><span></span></label>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (activeTab() === 'integrations') {
+    <div class="set-panel" @fadeIn>
+      <section class="set-card set-card--wide">
+        <h2>Intégrations</h2>
+        <div class="set-integ">
+          <div class="set-integ__head">
+            <strong>FedEx API</strong>
+            <span class="set-pill" [attr.data-status]="fedexConnected() ? 'online' : 'offline'">{{ fedexConnected() ? 'Connecté' : 'Déconnecté' }}</span>
+            <button type="button" class="set-btn set-btn--ghost" [disabled]="opLoading() === 'fedex'" (click)="testIntegration('fedex')">Tester connexion</button>
+          </div>
+        </div>
+        <div class="set-integ">
+          <div class="set-integ__head">
+            <strong>OpenAI</strong>
+            <span class="set-pill" data-status="disabled">Via passerelle</span>
+            <button type="button" class="set-btn set-btn--ghost" [disabled]="opLoading() === 'openai'" (click)="testIntegration('openai')">Tester connexion</button>
+          </div>
+        </div>
+        <div class="set-integ">
+          <div class="set-integ__head">
+            <strong>Gemini</strong>
+            <span class="set-pill" data-status="online">{{ aiModelLabel() }}</span>
+            <button type="button" class="set-btn set-btn--ghost" [disabled]="opLoading() === 'gemini'" (click)="testIntegration('gemini')">Tester connexion</button>
+          </div>
+        </div>
+        <h3>SMTP</h3>
+        <div class="set-form-grid set-form-grid--3">
+          <label class="set-field"><span>Host</span><input type="text" [(ngModel)]="integrations.smtp.host" /></label>
+          <label class="set-field"><span>Port</span><input type="number" [(ngModel)]="integrations.smtp.port" /></label>
+          <label class="set-field"><span>Utilisateur</span><input type="text" [(ngModel)]="integrations.smtp.user" /></label>
+        </div>
+        <label class="set-switch set-switch--inline">
+          <input type="checkbox" [(ngModel)]="integrations.smtp.use_tls" />
+          <span></span> TLS activé
+        </label>
+        @if (integrations.smtp.password_set) {
+          <p class="set-hint">Mot de passe SMTP défini dans les variables d'environnement.</p>
+        }
+      </section>
+    </div>
+  }
+
+  @if (activeTab() === 'ai') {
+    <div class="set-panel" @fadeIn>
+      <section class="set-card set-card--wide">
+        <h2>IA &amp; Automatisation</h2>
+        <label class="set-field">
+          <span>Modèle IA actif</span>
+          <select [(ngModel)]="ai.provider">
+            <option value="gemini">Gemini</option>
+            <option value="openai">OpenAI</option>
+            <option value="claude">Claude</option>
+            <option value="ollama">Local LLM (Ollama)</option>
+          </select>
+        </label>
+        <label class="set-field">
+          <span>Température — {{ ai.temperature }}</span>
+          <input type="range" min="0" max="2" step="0.1" [(ngModel)]="ai.temperature" />
+        </label>
+        <label class="set-field">
+          <span>Max tokens</span>
+          <input type="number" min="256" max="32768" [(ngModel)]="ai.max_tokens" />
+        </label>
+        <label class="set-field">
+          <span>Prompt système</span>
+          <textarea rows="5" [(ngModel)]="ai.system_prompt" placeholder="Instructions globales pour l'assistant…"></textarea>
+        </label>
+      </section>
+    </div>
+  }
+
+  @if (activeTab() === 'about') {
+    <div class="set-panel" @fadeIn>
+      <section class="set-card set-card--wide">
+        <h2>À propos</h2>
+        @if (systemInfo(); as info) {
+          <dl class="set-info set-info--large">
+            <div><dt>Produit</dt><dd>Globex FedEx Enterprise</dd></div>
+            <div><dt>Version</dt><dd>v{{ info.version }}</dd></div>
+            <div><dt>Environnement</dt><dd>{{ info.environment }}</dd></div>
+            <div><dt>Serveur</dt><dd>{{ info.server }}</dd></div>
+            <div><dt>Base de données</dt><dd>{{ info.database_status }}</dd></div>
+          </dl>
+        }
+      </section>
+    </div>
+  }
+</div>

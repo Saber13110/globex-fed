@@ -1,0 +1,148 @@
+@use '../../../../shared/styles/chat-md-table' as *;
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  padding: 0.6rem 0.5rem 1rem;
+}
+
+.row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.row--user {
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: min(720px, 100%);
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 0.9rem 1.04rem;
+  border: 1px solid var(--ui-border);
+  box-shadow: none;
+}
+
+.bubble--user {
+  background: #efeaf7;
+  color: #1f1633;
+  border-color: #ddd1ef;
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.bubble__image {
+  display: block;
+  max-width: min(280px, 100%);
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+
+.text {
+  margin: 0 0 0.65rem;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 0.94rem;
+
+  @include chat-md-table-styles;
+}
+
+.text:last-child {
+  margin-bottom: 0;
+}
+
+.bubble--user .text {
+  color: #2a1f40;
+}
+
+.bubble--thinking {
+  padding: 0.85rem 1.1rem;
+  min-width: 64px;
+}
+
+.thinking-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+}
+
+.thinking-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7c6e96;
+  animation: thinking-dot-bounce 1.25s ease-in-out infinite;
+}
+
+.thinking-dots span:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.thinking-dots span:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes thinking-dot-bounce {
+  0%,
+  55%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  28% {
+    transform: translateY(-7px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thinking-dots span {
+    animation: thinking-dot-pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes thinking-dot-pulse {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}
+
+.source-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #7a3a05;
+  background: #fff3e8;
+  border: 1px solid #ffd8bd;
+}
+
+@media (max-width: 900px) {
+  .list {
+    gap: 0.9rem;
+    padding: 0.3rem 0.15rem 0.9rem;
+  }
+
+  .bubble {
+    max-width: 100%;
+    padding: 0.72rem 0.82rem;
+  }
+
+  .text {
+    font-size: 0.9rem;
+  }
+}

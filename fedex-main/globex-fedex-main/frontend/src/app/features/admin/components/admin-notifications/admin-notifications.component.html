@@ -1,0 +1,220 @@
+<div class="ntf-page ntf-page--premium" @fadeIn (click)="openMenuId.set(null)">
+  <header class="ap-hero ntf-hero">
+    <div class="ap-hero__mesh"></div>
+    <div class="ap-hero__inner">
+      <div>
+        <span class="ap-hero__eyebrow">Real-time Alerts</span>
+        <h1>Notification Center</h1>
+        <p>Real-time alerts, shipment updates and system notifications across all channels.</p>
+      </div>
+      <div class="ntf-hero__actions">
+        <button type="button" class="ap-invite-btn" (click)="markAllRead()">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          Mark all as read
+        </button>
+        <button type="button" class="ap-btn-ghost" (click)="openSettingsPanel()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path stroke-linecap="round" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </button>
+        <button type="button" class="ap-btn-ghost" (click)="exportHistory('xlsx')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/></svg>
+          Export
+        </button>
+      </div>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="ntf-error" role="alert">{{ error() }} <button type="button" (click)="reload()">Réessayer</button></div>
+  }
+
+  <div class="ap-kpi-grid ntf-kpis">
+    @if (loading()) {
+      @for (i of [1,2,3,4]; track i) { <div class="ntf-kpi ntf-kpi--skel"></div> }
+    } @else {
+      @for (k of kpis(); track k.key) {
+        <article class="ap-kpi ntf-kpi" [attr.data-key]="k.key">
+          <div class="ap-icon ap-kpi__icon" [attr.data-icon]="k.icon"></div>
+          <div>
+            <span class="ap-kpi__label">{{ k.label }}</span>
+            <strong class="ap-kpi__value">{{ k.value }}</strong>
+            <span class="ap-kpi__trend" [class.ap-kpi__trend--down]="!k.trend_up">{{ k.trend_label }}</span>
+          </div>
+          <svg class="ap-kpi__spark" viewBox="0 0 72 28" aria-hidden="true">
+            <path [attr.d]="sparkPath(k.sparkline)" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </article>
+      }
+    }
+  </div>
+
+  <div class="ntf-body">
+    <div class="ntf-main">
+      <div class="ntf-toolbar ap-glass-panel">
+        <nav class="ap-tabs-bar ntf-tabs" aria-label="Catégories">
+          @for (t of tabs; track t.id) {
+            <button type="button" class="ap-tab" [class.ap-tab--active]="activeTab() === t.id" (click)="setTab(t.id)">{{ t.label }}</button>
+          }
+        </nav>
+        <div class="ntf-toolbar__right ap-toolbar-actions">
+          <div class="ap-filter-search">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z"/></svg>
+            <input type="search" placeholder="Search notifications..." [ngModel]="search()" (ngModelChange)="search.set($event)" (keydown.enter)="applySearch()" />
+          </div>
+          <button
+            type="button"
+            class="ap-filter-toggle-btn"
+            [class.ap-filter-toggle-btn--open]="showFilters()"
+            (click)="showFilters.set(!showFilters())"
+            [attr.aria-expanded]="showFilters()"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" d="M3 4h18M7 8h10M10 12h4"/>
+            </svg>
+            Filtres
+          </button>
+          <div class="ap-filter-field ap-filter-field--inline">
+            <span class="ap-filter-label">Tri</span>
+            <div class="ap-filter-select-wrap">
+              <select class="ap-filter-select" [ngModel]="sort()" (ngModelChange)="sort.set($event); applySearch()">
+                <option value="newest">Plus récentes</option>
+                <option value="oldest">Plus anciennes</option>
+                <option value="priority">Priorité</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (showFilters()) {
+        <div class="ap-filter-panel ntf-filters ap-filter-bar">
+          <div class="ap-filter-chip-group" role="group" aria-label="Statut">
+            <button type="button" class="ap-filter-chip" [class.ap-filter-chip--active]="filterStatus() === 'all'" (click)="filterStatus.set('all'); applySearch()">Tous</button>
+            <button type="button" class="ap-filter-chip" [class.ap-filter-chip--active]="filterStatus() === 'unread'" (click)="filterStatus.set('unread'); applySearch()">Non lues</button>
+            <button type="button" class="ap-filter-chip" [class.ap-filter-chip--active]="filterStatus() === 'read'" (click)="filterStatus.set('read'); applySearch()">Lues</button>
+          </div>
+          <div class="ap-filter-field">
+            <span class="ap-filter-label">Priorité</span>
+            <div class="ap-filter-select-wrap">
+              <select class="ap-filter-select" [ngModel]="filterPriority()" (ngModelChange)="filterPriority.set($event); applySearch()">
+                <option value="all">Toutes</option>
+                <option value="high">Haute</option>
+                <option value="normal">Normale</option>
+              </select>
+            </div>
+          </div>
+          <div class="ap-filter-field">
+            <span class="ap-filter-label">Canal</span>
+            <div class="ap-filter-select-wrap">
+              <select class="ap-filter-select" [ngModel]="filterChannel()" (ngModelChange)="filterChannel.set($event); applySearch()">
+                <option value="all">Tous</option>
+                <option value="web">Web</option>
+                <option value="email">Email</option>
+                <option value="sms">SMS</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      }
+
+      <section class="ntf-list-card ap-glass-panel">
+        @if (listLoading() && !items().length) {
+          @for (i of [1,2,3,4,5,6]; track i) { <div class="ntf-row ntf-row--skel"></div> }
+        } @else if (!items().length) {
+          <p class="ntf-empty">Aucune notification pour ces filtres.</p>
+        } @else {
+          @for (n of items(); track n.id) {
+            <article class="ntf-row" [class.ntf-row--unread]="!n.is_read" @slideIn>
+              <div class="ap-icon ap-icon--sm ntf-row__icon" [attr.data-icon]="rowIcon(n.icon)"></div>
+              <div class="ntf-row__body">
+                <div class="ntf-row__top">
+                  @if (!n.is_read) { <span class="ntf-row__dot" aria-label="Unread"></span> }
+                  <strong>{{ n.title }}</strong>
+                  <span class="ntf-cat" [ngClass]="categoryClass(n.category)">{{ categoryLabel(n.category) }}</span>
+                </div>
+                <p class="ntf-row__msg">{{ n.message }}</p>
+                @if (n.route) { <small class="ntf-row__route">{{ n.route }}</small> }
+                @if (n.tracking_number) { <small class="ntf-row__track">#{{ n.tracking_number }}</small> }
+              </div>
+              <span class="ntf-row__time">{{ n.time_label }}</span>
+              <button type="button" class="ntf-row__action" (click)="runAction(n)">{{ n.action_label }}</button>
+              <div class="ntf-row__menu-wrap">
+                <button type="button" class="ntf-row__menu" (click)="toggleMenu(n.id, $event)" aria-label="Menu">
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                </button>
+                @if (openMenuId() === n.id) {
+                  <div class="ntf-menu" (click)="$event.stopPropagation()">
+                    <button type="button" (click)="markRead(n, !n.is_read)">{{ n.is_read ? 'Mark unread' : 'Mark read' }}</button>
+                    @if (canSuspendNotification(n)) {
+                      <button type="button" class="ntf-menu__danger" (click)="suspendFromNotification(n)">Suspendre le compte</button>
+                    }
+                    @if (n.tracking_number) { <button type="button" (click)="copyTracking(n)">Copy tracking</button> }
+                    <button type="button" (click)="archiveItem(n)">Archive</button>
+                    <button type="button" class="ntf-menu__danger" (click)="deleteItem(n)">Delete</button>
+                  </div>
+                }
+              </div>
+            </article>
+          }
+        }
+
+        <footer class="ntf-pagination">
+          <span>{{ rangeLabel() }}</span>
+          <div class="ntf-pagination__pages">
+            @for (p of pageNumbers(); track $index) {
+              @if (p === -1) { <span>…</span> }
+              @else {
+                <button type="button" [class.ntf-pagination__active]="page() === p" (click)="goPage(p)">{{ p }}</button>
+              }
+            }
+          </div>
+        </footer>
+      </section>
+    </div>
+
+    <aside class="ntf-side">
+      <section class="ntf-card ap-glass-panel">
+        <h3>Préférences de notifications</h3>
+        <ul class="ntf-prefs">
+          <li><span>Notifications Web</span><label class="ntf-switch"><input type="checkbox" [checked]="prefs().web_enabled" (change)="togglePref('web_enabled')" /><span></span></label></li>
+          <li><span>Notifications Email</span><label class="ntf-switch"><input type="checkbox" [checked]="prefs().email_enabled" (change)="togglePref('email_enabled')" /><span></span></label></li>
+          <li><span>Notifications SMS</span><label class="ntf-switch"><input type="checkbox" [checked]="prefs().sms_enabled" (change)="togglePref('sms_enabled')" /><span></span></label></li>
+          <li><span>Rapports IA</span><label class="ntf-switch"><input type="checkbox" [checked]="prefs().ai_reports" (change)="togglePref('ai_reports')" /><span></span></label></li>
+          <li><span>Incidents &amp; Exceptions</span><label class="ntf-switch"><input type="checkbox" [checked]="prefs().incidents" (change)="togglePref('incidents')" /><span></span></label></li>
+        </ul>
+        <button type="button" class="ntf-link" (click)="openSettingsPanel()">Gérer tous les canaux</button>
+      </section>
+
+      <section class="ntf-card ap-glass-panel">
+        <h3>Activité récente</h3>
+        @if (!timeline().length) {
+          <p class="ntf-empty ntf-empty--sm">Aucune activité récente.</p>
+        } @else {
+          <ul class="ntf-timeline">
+            @for (ev of timeline(); track ev.id) {
+              <li [attr.data-tone]="ev.tone">
+                <div class="ap-icon ap-icon--sm" [attr.data-icon]="ev.icon"></div>
+                <div>
+                  <strong>{{ ev.title }}</strong>
+                  <small>{{ ev.subtitle }}</small>
+                  <time>{{ ev.time_label }}</time>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+        <div class="ntf-quick">
+          <button type="button" class="ap-btn-ghost ap-btn-ghost--sm" (click)="filterStatus.set('unread'); applySearch()">Voir non lues</button>
+          <button type="button" class="ap-btn-ghost ap-btn-ghost--sm" (click)="navigate.emit('tracking')">Suivi colis</button>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <app-admin-support-drawer
+    [open]="supportDrawerOpen()"
+    [ticketId]="supportTicketId()"
+    (closed)="closeSupportDrawer()"
+    (updated)="onSupportUpdated()"
+  />
+</div>

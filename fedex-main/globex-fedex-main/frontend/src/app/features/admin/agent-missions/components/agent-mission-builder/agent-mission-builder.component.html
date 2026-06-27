@@ -1,0 +1,247 @@
+<section class="wf-page">
+  <header class="wf-page__header">
+    <div>
+      <a routerLink="/admin/agent-missions" class="wf-page__back">← Missions</a>
+      <h1>Orchestrateur de mission</h1>
+      <p>Glissez les blocs, reliez-les : Déclencheur → Agent → Tâche(s) → Résultat</p>
+    </div>
+    <div class="wf-page__actions">
+      @if (linkSourceId()) {
+        <button type="button" class="wf-btn wf-btn--ghost" (click)="cancelLinkMode()">Annuler liaison</button>
+        <span class="wf-page__hint">Cliquez sur le bloc cible pour relier</span>
+      }
+      @if (!readOnly()) {
+        <button type="button" class="wf-btn" [disabled]="saving()" (click)="save()">Enregistrer</button>
+        <button type="button" class="wf-btn wf-btn--primary" [disabled]="saving()" (click)="save(true)">
+          {{ saving() ? 'En cours…' : 'Enregistrer et lancer' }}
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="wf-page__error">{{ error() }}</p>
+  }
+  @if (validationErrors().length) {
+    <ul class="wf-page__validation">
+      @for (msg of validationErrors(); track msg) {
+        <li>{{ msg }}</li>
+      }
+    </ul>
+  }
+
+  <div class="wf-layout">
+    <div
+      #canvasEl
+      class="wf-canvas"
+      (click)="onCanvasClick()"
+      [class.wf-canvas--linking]="linkSourceId()"
+    >
+      <svg class="wf-canvas__edges" aria-hidden="true">
+        @for (edge of workflow().edges; track edge.id) {
+          <g class="wf-edge" (click)="removeEdge(edge.id, $event)">
+            <path [attr.d]="pathForEdge(edge)" class="wf-edge__hit" />
+            <path [attr.d]="pathForEdge(edge)" class="wf-edge__line" />
+          </g>
+        }
+      </svg>
+
+      @for (node of workflow().nodes; track node.id) {
+        <article
+          class="wf-node"
+          [class.wf-node--selected]="selectedNodeId() === node.id"
+          [class.wf-node--link-source]="linkSourceId() === node.id"
+          [attr.data-type]="node.type"
+          [style.left.px]="node.x"
+          [style.top.px]="node.y"
+          (mousedown)="onNodeMouseDown(node, $event)"
+          (click)="selectNode(node.id, $event)"
+        >
+          <header class="wf-node__head">
+            <span class="wf-node__icon">{{ nodeIcon(node.type) }}</span>
+            <div>
+              <small>{{ nodeTypeLabel(node.type) }}</small>
+              <strong>{{ node.data.label }}</strong>
+            </div>
+          </header>
+          <p class="wf-node__preview">
+            @switch (node.type) {
+              @case ('timing') {
+                {{ node.data.scheduleType === 'now' ? 'Immédiat' : node.data.scheduleType }}
+              }
+              @case ('agent') {
+                {{ agentLabelFor(node.data.agentType) }}
+              }
+              @case ('task') {
+                {{ (node.data.description || 'Décrivez la tâche…').slice(0, 48) }}{{ (node.data.description || '').length > 48 ? '…' : '' }}
+              }
+              @case ('output') {
+                {{ outputLabelFor(node.data.destination) }}
+              }
+            }
+          </p>
+          <button
+            type="button"
+            class="wf-node__port wf-node__port--in"
+            title="Entrée"
+            (click)="selectNode(node.id, $event)"
+          ></button>
+          <button
+            type="button"
+            class="wf-node__port wf-node__port--out"
+            title="Relier vers…"
+            (click)="startLink(node.id, $event)"
+          ></button>
+        </article>
+      }
+
+      @if (!workflow().nodes.length) {
+        <p class="wf-canvas__empty">Ajoutez des blocs depuis la barre à droite, puis reliez-les.</p>
+      }
+    </div>
+
+    <aside class="wf-sidebar">
+      <section class="wf-sidebar__section">
+        <h2>Blocs</h2>
+        <p class="wf-sidebar__hint">Cliquez pour ajouter au canvas, puis reliez avec le point →</p>
+        @for (item of palette; track item.type) {
+          <button type="button" class="wf-palette" [disabled]="readOnly()" (click)="addFromPalette(item)">
+            <span class="wf-palette__icon">{{ item.icon }}</span>
+            <div>
+              <strong>{{ item.label }}</strong>
+              <small>{{ item.description }}</small>
+            </div>
+          </button>
+        }
+      </section>
+
+      <section class="wf-sidebar__section">
+        <h2>Agents rapides</h2>
+        <div class="wf-agent-chips">
+          @for (a of agentPalette; track a.agentType) {
+            <button type="button" class="wf-chip" [disabled]="readOnly()" (click)="addAgentBox(a.agentType)">
+              {{ a.label }}
+            </button>
+          }
+        </div>
+      </section>
+
+      @if (selectedNode(); as node) {
+        <section class="wf-sidebar__section wf-sidebar__props">
+          <div class="wf-sidebar__props-head">
+            <h2>Propriétés</h2>
+            @if (!readOnly()) {
+              <button type="button" class="wf-link-danger" (click)="deleteSelected()">Supprimer</button>
+            }
+          </div>
+
+          <label class="wf-field">
+            <span>Titre du bloc</span>
+            <input
+              type="text"
+              [ngModel]="node.data.label"
+              (ngModelChange)="updateSelectedData({ label: $event })"
+              [disabled]="readOnly()"
+            />
+          </label>
+
+          @switch (node.type) {
+            @case ('timing') {
+              <label class="wf-field">
+                <span>Quand</span>
+                <select
+                  [ngModel]="node.data.scheduleType"
+                  (ngModelChange)="updateSelectedData({ scheduleType: $event })"
+                  [disabled]="readOnly()"
+                >
+                  @for (opt of scheduleOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </label>
+              @if (node.data.scheduleType === 'datetime') {
+                <label class="wf-field">
+                  <span>Date/heure</span>
+                  <input
+                    type="datetime-local"
+                    [ngModel]="node.data.scheduledAt"
+                    (ngModelChange)="updateSelectedData({ scheduledAt: $event })"
+                    [disabled]="readOnly()"
+                  />
+                </label>
+              }
+              @if (node.data.scheduleType === 'daily' || node.data.scheduleType === 'weekly') {
+                <label class="wf-field">
+                  <span>Heure</span>
+                  <input
+                    type="time"
+                    [ngModel]="node.data.scheduleTime"
+                    (ngModelChange)="updateSelectedData({ scheduleTime: $event })"
+                    [disabled]="readOnly()"
+                  />
+                </label>
+              }
+            }
+            @case ('agent') {
+              <label class="wf-field">
+                <span>Agent</span>
+                <select
+                  [ngModel]="node.data.agentType"
+                  (ngModelChange)="updateSelectedData({ agentType: $event })"
+                  [disabled]="readOnly()"
+                >
+                  @for (opt of agentOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </label>
+            }
+            @case ('task') {
+              <label class="wf-field">
+                <span>Description de la tâche</span>
+                <textarea
+                  rows="5"
+                  [ngModel]="node.data.description"
+                  (ngModelChange)="updateSelectedData({ description: $event })"
+                  [disabled]="readOnly()"
+                  placeholder="Ex. : Détecter les tentatives d'attaque IDS et lister les alertes critiques"
+                ></textarea>
+              </label>
+            }
+            @case ('output') {
+              <label class="wf-field">
+                <span>Destination</span>
+                <select
+                  [ngModel]="node.data.destination"
+                  (ngModelChange)="updateSelectedData({ destination: $event })"
+                  [disabled]="readOnly()"
+                >
+                  @for (opt of outputOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </label>
+            }
+          }
+
+          <p class="wf-sidebar__link-tip">
+            Pour relier : cliquez sur le point <strong>→</strong> du bloc source, puis sur le bloc cible.
+            Vous pouvez relier un agent à plusieurs tâches.
+          </p>
+        </section>
+      }
+
+      <section class="wf-sidebar__section">
+        <h3>Notifications</h3>
+        <label class="wf-sidebar__check">
+          <input type="checkbox" [(ngModel)]="notifyOnStart" name="notifyOnStart" />
+          <span>Notifier au démarrage</span>
+        </label>
+        <label class="wf-sidebar__check">
+          <input type="checkbox" [(ngModel)]="notifyOnComplete" name="notifyOnComplete" />
+          <span>Notifier à la fin</span>
+        </label>
+      </section>
+    </aside>
+  </div>
+</section>

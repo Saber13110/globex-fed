@@ -1,0 +1,67 @@
+.emp-settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(17, 24, 39, 0.48);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.emp-settings-dialog {
+  position: relative;
+  width: min(1100px, 100%);
+  height: min(92vh, 860px);
+  max-height: 92vh;
+}
+
+.emp-settings-close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #ece8f4;
+  border-radius: 50%;
+  background: #fff;
+  color: #64748b;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(94, 23, 235, 0.12);
+
+  &:hover {
+    color: #5e17eb;
+    border-color: rgba(94, 23, 235, 0.25);
+  }
+}
+
+.emp-settings-dialog .sp {
+  min-height: 0;
+  height: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(94, 23, 235, 0.18);
+}
+
+.emp-settings-dialog .sp-main {
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .emp-settings-dialog .sp {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'sidebar'
+      'main';
+  }
+
+  .emp-settings-dialog .sp-sidebar {
+    width: 100%;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+}

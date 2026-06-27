@@ -1,0 +1,242 @@
+<div class="sws">
+  @if (loading) {
+    <div class="sws__loading">
+      <div class="sws__skeleton sws__skeleton--hero"></div>
+      <div class="sws__skeleton-row">
+        @for (i of [1,2,3,4]; track i) { <div class="sws__skeleton sws__skeleton--kpi"></div> }
+      </div>
+    </div>
+  } @else if (error || !detail) {
+    <div class="sws-empty">
+      <p>{{ 'employee.shipOps.notFound' | t }}</p>
+      <a routerLink="/employee/tracking" class="sws-btn sws-btn--primary">{{ 'employee.shipOps.backToTracking' | t }}</a>
+    </div>
+  } @else {
+    <a routerLink="/employee/tracking" class="sws-back">← {{ 'employee.shipOps.backToTracking' | t }}</a>
+
+    @if (toast) {
+      <div class="sws-toast">{{ toast | t }}</div>
+    }
+
+    <section class="sws-hero">
+      <div class="sws-hero__main">
+        <span class="sws-hero__badge">{{ 'employee.shipOps.workspaceBadge' | t }}</span>
+        <h1>{{ detail.tracking_number }}</h1>
+        <span class="sws-hero__status" [class]="statusClass(detail.status_category)">{{ detail.status }}</span>
+        <div class="sws-hero__chips">
+          <span>{{ 'employee.shipOps.client' | t }}: <strong>{{ detail.client_name || '—' }}</strong></span>
+          <span>{{ 'employee.shipOps.serviceType' | t }}: <strong>{{ detail.service_type }}</strong></span>
+          <span>{{ 'employee.shipOps.reference' | t }}: <strong>{{ detail.reference_number }}</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="sws-kpis">
+      <article class="sws-kpi">
+        <span class="sws-kpi__label">{{ 'employee.shipOps.location' | t }}</span>
+        <strong>{{ detail.current_location || '—' }}</strong>
+      </article>
+      <article class="sws-kpi">
+        <span class="sws-kpi__label">{{ 'employee.shipOps.recipient' | t }}</span>
+        <strong>{{ detail.recipient || '—' }}</strong>
+      </article>
+      <article class="sws-kpi">
+        <span class="sws-kpi__label">{{ 'employee.shipOps.lastUpdate' | t }}</span>
+        <strong>{{ detail.last_update || '—' }}</strong>
+      </article>
+      <article class="sws-kpi">
+        <span class="sws-kpi__label">ETA</span>
+        <strong>{{ detail.estimated_delivery || '—' }}</strong>
+      </article>
+    </section>
+
+    @if (detail.exception) {
+      <section class="sws-alert">
+        <strong>{{ detail.exception.exception_type }}</strong>
+        <p>{{ detail.exception.reason }}</p>
+      </section>
+    }
+
+    <div class="sws-layout">
+      <div class="sws-main">
+        <section class="sws-panel">
+          <header class="sws-panel__head">
+            <h2>{{ 'employee.shipOps.timeline' | t }}</h2>
+            @if (detail.timeline.length > 0) {
+              <span class="sws-latest-badge">{{ 'employee.shipOps.latestEvent' | t }}</span>
+            }
+          </header>
+          <ul class="sws-timeline">
+            @for (ev of visibleTimeline; track ev.id; let first = $first) {
+              <li [class.sws-timeline__item--latest]="first">
+                <span class="sws-timeline__icon" [attr.data-icon]="timelineIcon(ev.kind)"></span>
+                <div class="sws-timeline__body">
+                  <div class="sws-timeline__when">
+                    <strong>{{ ev.date }}</strong>
+                    <span>{{ ev.time }}</span>
+                  </div>
+                  <p>{{ ev.description }}</p>
+                  <small>{{ ev.location }}</small>
+                </div>
+              </li>
+            }
+          </ul>
+          @if (detail.timeline.length > 6) {
+            <button type="button" class="sws-btn sws-btn--ghost" (click)="showAllEvents = !showAllEvents">
+              {{ showAllEvents ? ('employee.shipOps.showLess' | t) : ('employee.shipOps.showAllEvents' | t) }}
+            </button>
+          }
+        </section>
+
+        <section class="sws-panel">
+          <h2>{{ 'employee.shipOps.eventHistory' | t }}</h2>
+          <div class="sws-table-wrap">
+            <table class="sws-table">
+              <thead>
+                <tr>
+                  <th>{{ 'employee.shipOps.colDate' | t }}</th>
+                  <th>{{ 'employee.shipOps.colTime' | t }}</th>
+                  <th>{{ 'employee.shipOps.colEvent' | t }}</th>
+                  <th>{{ 'employee.shipOps.colLocation' | t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (ev of detail.timeline; track ev.id) {
+                  <tr>
+                    <td>{{ ev.date }}</td>
+                    <td>{{ ev.time }}</td>
+                    <td>{{ ev.description }}</td>
+                    <td>{{ ev.location }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="sws-panel">
+          <h2>{{ 'employee.shipOps.shipmentInfo' | t }}</h2>
+          <div class="sws-info-grid">
+            <article class="sws-info-card">
+              <h3>{{ 'employee.shipOps.sectionTracking' | t }}</h3>
+              <dl>
+                <div><dt>{{ 'employee.shipOps.trackingNumber' | t }}</dt><dd>{{ detail.tracking_number }}</dd></div>
+                <div><dt>{{ 'employee.shipOps.reference' | t }}</dt><dd>{{ detail.reference_number }}</dd></div>
+                <div><dt>{{ 'employee.shipOps.serviceType' | t }}</dt><dd>{{ detail.service_type }}</dd></div>
+              </dl>
+            </article>
+            <article class="sws-info-card">
+              <h3>{{ 'employee.shipOps.sectionPackage' | t }}</h3>
+              <dl>
+                <div><dt>{{ 'employee.shipOps.weight' | t }}</dt><dd>{{ detail.weight }}</dd></div>
+                <div><dt>{{ 'employee.shipOps.dimensions' | t }}</dt><dd>{{ detail.dimensions }}</dd></div>
+              </dl>
+            </article>
+            <article class="sws-info-card">
+              <h3>{{ 'employee.shipOps.sectionPeople' | t }}</h3>
+              <dl>
+                <div><dt>{{ 'employee.shipOps.sender' | t }}</dt><dd>{{ detail.sender }}</dd></div>
+                <div><dt>{{ 'employee.shipOps.recipient' | t }}</dt><dd>{{ detail.recipient }}</dd></div>
+                <div><dt>{{ 'employee.shipOps.destination' | t }}</dt><dd>{{ detail.destination }}</dd></div>
+                <div><dt>{{ 'employee.shipOps.location' | t }}</dt><dd>{{ detail.current_location }}</dd></div>
+              </dl>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <aside class="sws-aside">
+        <section class="sws-panel">
+          <h2>{{ 'employee.shipOps.actions' | t }}</h2>
+          <div class="sws-actions">
+            @if (detail.client_id) {
+              <a [routerLink]="['/employee/client', detail.client_id]" class="sws-btn sws-btn--primary">
+                {{ 'employee.shipOps.openClient' | t }}
+              </a>
+            }
+            <button type="button" class="sws-btn sws-btn--ghost" (click)="contactClient()" [disabled]="!detail.client_email">
+              {{ 'employee.shipOps.contactClient' | t }}
+            </button>
+            <button type="button" class="sws-btn sws-btn--ghost" (click)="createTicket()">
+              {{ 'employee.shipOps.createTicket' | t }}
+            </button>
+            <button type="button" class="sws-btn sws-btn--ghost" (click)="exportTracking()">
+              {{ 'employee.shipOps.exportTracking' | t }}
+            </button>
+            <button type="button" class="sws-btn sws-btn--ghost" (click)="downloadPod()" [disabled]="!detail.pod_available">
+              {{ 'employee.shipOps.downloadPod' | t }}
+            </button>
+            <button type="button" class="sws-btn sws-btn--ghost" (click)="copyTracking()">
+              {{ copied ? ('employee.shipOps.copied' | t) : ('employee.shipOps.copyTracking' | t) }}
+            </button>
+          </div>
+        </section>
+
+        <section class="sws-panel sws-panel--ai">
+          <h2>{{ 'employee.shipOps.aiAssistant' | t }}</h2>
+          <p class="sws-panel__hint">{{ 'employee.shipOps.aiHint' | t }}</p>
+          <div class="sws-ai-prompts">
+            <button type="button" class="sws-btn sws-btn--ghost sws-btn--sm" (click)="openAiAssistant('Summarize shipment ' + detail.tracking_number)">
+              {{ 'employee.shipOps.aiSummarize' | t }}
+            </button>
+            <button type="button" class="sws-btn sws-btn--ghost sws-btn--sm" (click)="openAiAssistant('Explain delay for ' + detail.tracking_number)">
+              {{ 'employee.shipOps.aiDelay' | t }}
+            </button>
+            <button type="button" class="sws-btn sws-btn--ghost sws-btn--sm" (click)="openAiAssistant('Draft client message for ' + detail.tracking_number)">
+              {{ 'employee.shipOps.aiDraft' | t }}
+            </button>
+            <button type="button" class="sws-btn sws-btn--ghost sws-btn--sm" (click)="openAiAssistant('Check POD for ' + detail.tracking_number)">
+              {{ 'employee.shipOps.aiPod' | t }}
+            </button>
+          </div>
+        </section>
+
+        @if (detail.related_client) {
+          <section class="sws-panel">
+            <h2>{{ 'employee.shipOps.relatedClient' | t }}</h2>
+            <div class="sws-client-card">
+              <div class="sws-client-card__avatar">{{ detail.related_client.avatar_initials }}</div>
+              <div>
+                <strong>{{ detail.related_client.full_name }}</strong>
+                <span>{{ detail.related_client.email }}</span>
+              </div>
+            </div>
+            <div class="sws-client-stats">
+              <div><strong>{{ detail.related_client.trackings_count }}</strong><small>{{ 'employee.clientOps.trackings' | t }}</small></div>
+              <div><strong>{{ detail.related_client.tickets_count }}</strong><small>{{ 'employee.clientOps.tickets' | t }}</small></div>
+              <div><strong>{{ detail.related_client.documents_count }}</strong><small>{{ 'employee.clientOps.documents' | t }}</small></div>
+            </div>
+            <a [routerLink]="['/employee/client', detail.related_client.id]" class="sws-btn sws-btn--primary sws-btn--sm">
+              {{ 'employee.shipOps.openClient' | t }}
+            </a>
+          </section>
+        }
+
+        @if (detail.health) {
+          <section class="sws-panel">
+            <h2>{{ 'employee.shipOps.shipmentHealth' | t }}</h2>
+            <dl class="sws-health">
+              <div><dt>{{ 'employee.clientOps.status' | t }}</dt><dd>{{ detail.health.status }}</dd></div>
+              <div><dt>{{ 'employee.shipOps.risk' | t }}</dt><dd [class]="riskClass(detail.health.risk)">{{ detail.health.risk }}</dd></div>
+              <div><dt>{{ 'employee.shipOps.exception' | t }}</dt><dd>{{ detail.health.exception ? ('employee.shipOps.yes' | t) : ('employee.shipOps.no' | t) }}</dd></div>
+              <div><dt>POD</dt><dd>{{ detail.health.pod ? ('employee.shipOps.available' | t) : ('employee.shipOps.unavailable' | t) }}</dd></div>
+            </dl>
+          </section>
+        }
+      </aside>
+    </div>
+
+    @if (showContactModal) {
+      <div class="sws-modal-backdrop" (click)="showContactModal = false">
+        <div class="sws-modal" (click)="$event.stopPropagation()">
+          <h3>{{ 'employee.shipOps.contactClient' | t }}</h3>
+          <p>{{ detail.client_email }}</p>
+          <div class="sws-modal__actions">
+            <button type="button" class="sws-btn sws-btn--primary" (click)="sendEmail()">{{ 'employee.shipOps.sendEmail' | t }}</button>
+            <button type="button" class="sws-btn sws-btn--ghost" (click)="showContactModal = false">{{ 'employee.shipOps.cancel' | t }}</button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

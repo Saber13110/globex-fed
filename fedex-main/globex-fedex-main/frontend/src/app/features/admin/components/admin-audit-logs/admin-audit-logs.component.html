@@ -1,0 +1,212 @@
+<div class="aud-page aud-page--premium">
+  <header class="ap-hero aud-hero">
+    <div class="ap-hero__mesh"></div>
+    <div class="ap-hero__inner">
+      <div>
+        <span class="ap-hero__eyebrow">Security & Compliance</span>
+        <h1>Observateur d'événements</h1>
+        <p>Suivi de l'activité des utilisateurs et des actions administratives.</p>
+      </div>
+      <button type="button" class="ap-invite-btn" (click)="exportLogs()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"/>
+        </svg>
+        Exporter les journaux
+      </button>
+    </div>
+  </header>
+
+  <div class="ap-kpi-grid aud-kpis">
+    @for (kpi of kpis(); track kpi.label) {
+      <article class="ap-kpi aud-kpi" [attr.data-tone]="kpi.tone">
+        <div class="aud-kpi__icon" [attr.data-icon]="kpi.icon"></div>
+        <div class="aud-kpi__body">
+          <span class="aud-kpi__label">{{ kpi.label }}</span>
+          <strong class="aud-kpi__value">{{ kpi.value }}</strong>
+          <span class="aud-kpi__trend" [class.aud-kpi__trend--down]="!kpi.trendUp">{{ kpi.trendUp ? '↗' : '↘' }} {{ kpi.trend }}</span>
+        </div>
+        <svg class="aud-kpi__spark" viewBox="0 0 72 28" aria-hidden="true">
+          <path [attr.d]="sparklinePath(kpi.sparkline)" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </article>
+    }
+  </div>
+
+  <div class="ap-filter-toggle-row">
+    <button
+      type="button"
+      class="ap-filter-toggle-btn"
+      [class.ap-filter-toggle-btn--open]="filtersOpen()"
+      (click)="filtersOpen.set(!filtersOpen())"
+      [attr.aria-expanded]="filtersOpen()"
+    >
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" d="M3 4h18M7 8h10M10 12h4"/>
+      </svg>
+      Filtres
+    </button>
+  </div>
+
+  @if (filtersOpen()) {
+  <div class="ap-filter-panel aud-filters ap-filter-bar">
+    <div class="ap-filter-search aud-search">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z"/></svg>
+      <input
+        type="search"
+        placeholder="Rechercher dans les journaux..."
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+        (keydown.enter)="applyFilters()"
+      />
+    </div>
+    <div class="ap-filter-field">
+      <span class="ap-filter-label">Catégorie</span>
+      <div class="ap-filter-select-wrap">
+        <select class="ap-filter-select" [ngModel]="category()" (ngModelChange)="category.set($event); applyFilters()">
+          <option value="all">Toutes catégories</option>
+          <option value="auth">Authentification</option>
+          <option value="admin">Utilisateurs / Admin</option>
+          <option value="chat">Conversations</option>
+          <option value="system">Audit</option>
+          <option value="security">Sécurité</option>
+          <option value="reports">Rapports</option>
+        </select>
+      </div>
+    </div>
+    <div class="ap-filter-field">
+      <span class="ap-filter-label">Niveau</span>
+      <div class="ap-filter-select-wrap">
+        <select class="ap-filter-select" [ngModel]="level()" (ngModelChange)="level.set($event); applyFilters()">
+          <option value="all">Tous niveaux</option>
+          <option value="INFO">INFO</option>
+          <option value="SUCCESS">SUCCESS</option>
+          <option value="WARNING">WARNING</option>
+          <option value="ERROR">ERROR</option>
+          <option value="CRITICAL">CRITICAL</option>
+        </select>
+      </div>
+    </div>
+    <div class="ap-filter-field aud-dates">
+      <span class="ap-filter-label">Période</span>
+      <div class="aud-dates__row">
+        <input type="date" class="ap-filter-select ap-filter-select--date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)" />
+        <span class="aud-dates__sep">—</span>
+        <input type="date" class="ap-filter-select ap-filter-select--date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)" />
+      </div>
+    </div>
+    <button type="button" class="aud-btn aud-btn--filters ap-btn-ghost ap-btn-ghost--sm" (click)="applyFilters()">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M7 8h10M10 12h4M12 16h0"/>
+      </svg>
+      Appliquer
+    </button>
+  </div>
+  }
+
+  @if (actionMessage()) {
+    <p class="aud-action-msg">{{ actionMessage() }}</p>
+  }
+
+  <section class="aud-table-wrap">
+    @if (loading()) {
+      <p class="aud-empty">Chargement des journaux…</p>
+    } @else {
+      <div class="aud-table" role="table">
+        <div class="aud-table__head" role="row">
+          <span role="columnheader">Date</span>
+          <span role="columnheader">Niveau</span>
+          <span role="columnheader">Catégorie</span>
+          <span role="columnheader">Utilisateur</span>
+          <span role="columnheader">Message</span>
+          <span role="columnheader">Adresse IP</span>
+          <span role="columnheader" class="aud-table__actions-col">Actions</span>
+        </div>
+        @for (entry of displayLogs(); track entry.id; let i = $index) {
+          <div
+            class="aud-table__row"
+            role="row"
+            [class.aud-table__row--alt]="i % 2 === 1"
+            [class.aud-table__row--selected]="selectedRowId() === entry.id"
+            (click)="selectRow(entry.id)"
+          >
+            <span class="aud-table__date" role="cell">{{ entry.created_at | date: 'dd/MM/yy HH:mm:ss' }}</span>
+            <span role="cell">
+              <span class="aud-level" [ngClass]="levelClass(entry.level)">{{ entry.level }}</span>
+            </span>
+            <span class="aud-table__cat" role="cell">
+              <span class="aud-cat-icon" [attr.data-icon]="entry.categoryIcon"></span>
+              {{ entry.displayCategory }}
+            </span>
+            <span class="aud-table__user" role="cell">
+              <span class="aud-avatar">{{ userInitial(entry) }}</span>
+              <span>{{ userDisplay(entry) }}</span>
+            </span>
+            <span class="aud-table__msg" role="cell">
+              <strong>{{ entry.message }}</strong>
+              @if (entry.user_email) {
+                <small>{{ entry.user_email }}</small>
+              }
+            </span>
+            <span class="aud-table__ip" role="cell">{{ entry.ip_address }}</span>
+            <span class="aud-table__actions-col" role="cell">
+              <div class="aud-actions-wrap" (click)="$event.stopPropagation()">
+                <button type="button" class="aud-kebab" (click)="toggleMenu($event, entry.id)" aria-label="Actions">
+                  <span></span><span></span><span></span>
+                </button>
+                @if (openMenuId() === entry.id) {
+                  <div class="aud-actions-menu" role="menu">
+                    @if (entry.user_id) {
+                      <button type="button" role="menuitem" (click)="openUserProfile(entry)">Voir le compte</button>
+                    }
+                    @if (sessionIdFromEntry(entry) != null) {
+                      <button type="button" role="menuitem" (click)="openConversation(entry)">Ouvrir la conversation</button>
+                    }
+                    @if (isSecurityEntry(entry)) {
+                      <button type="button" role="menuitem" (click)="openSecurityIncidents()">Sécurité IDS</button>
+                    }
+                    @if (entry.user_id) {
+                      <button type="button" role="menuitem" class="aud-actions-menu__danger" (click)="suspendUser(entry)">
+                        Suspendre le compte
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            </span>
+          </div>
+        }
+        @if (displayLogs().length === 0) {
+          <p class="aud-empty">Aucun événement trouvé.</p>
+        }
+      </div>
+
+      <footer class="aud-pagination">
+        <span class="aud-pagination__info">{{ rangeLabel() }}</span>
+        <div class="aud-pagination__nav">
+          <button type="button" class="aud-page-btn" [disabled]="page() <= 1" (click)="setPage(page() - 1)">Précédent</button>
+          @for (item of pageItems(); track $index) {
+            @if (item === 'ellipsis') {
+              <span class="aud-page-ellipsis">…</span>
+            } @else {
+              <button
+                type="button"
+                class="aud-page-btn"
+                [class.aud-page-btn--active]="page() === item"
+                (click)="setPage(item)"
+              >{{ item }}</button>
+            }
+          }
+          <button type="button" class="aud-page-btn" [disabled]="page() >= totalPages()" (click)="setPage(page() + 1)">Suivant</button>
+        </div>
+        <label class="aud-page-size">
+          <select [ngModel]="pageSize()" (ngModelChange)="onPageSizeChange(+$event)">
+            @for (n of pageSizeOptions; track n) {
+              <option [ngValue]="n">{{ n }}</option>
+            }
+          </select>
+          par page
+        </label>
+      </footer>
+    }
+  </section>
+</div>

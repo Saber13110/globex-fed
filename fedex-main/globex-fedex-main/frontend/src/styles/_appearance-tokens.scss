@@ -1,0 +1,147 @@
+// Global appearance tokens — driven by UserPreferencesService
+
+body[data-theme='light'],
+body[data-color-mode='light'] {
+  --ui-bg: var(--bg-page, #f8f7fc);
+  --ui-surface: var(--bg-card, #ffffff);
+  --ui-text: var(--text-primary, #111827);
+  --ui-text-muted: var(--text-muted, #64748b);
+  --ui-border: var(--border-color, #ece8f4);
+}
+
+body[data-theme='dark'],
+body[data-color-mode='dark'] {
+  --ui-bg: var(--bg-page, #1e1f23);
+  --ui-surface: var(--bg-card, #2a2c31);
+  --ui-text: var(--text-primary, #ececec);
+  --ui-text-muted: var(--text-muted, #94a3b8);
+  --ui-border: var(--border-color, #3b3e45);
+}
+
+// Chat font — scoped to chat surfaces
+body[data-chat-font='default'] .thread,
+body[data-chat-font='default'] .canvas,
+body[data-chat-font='default'] .conv-messages,
+body[data-chat-font='default'] .bubble,
+body[data-chat-font='default'] .msg-bubble,
+body[data-chat-font='default'] .msg-bubble__text {
+  font-family: var(--chat-font-family, var(--font-sans));
+}
+
+body[data-chat-font='sans'] .thread,
+body[data-chat-font='sans'] .canvas,
+body[data-chat-font='sans'] .conv-messages,
+body[data-chat-font='sans'] .bubble,
+body[data-chat-font='sans'] .msg-bubble,
+body[data-chat-font='sans'] .msg-bubble__text {
+  font-family: var(--chat-font-family, Inter, Arial, sans-serif);
+}
+
+body[data-chat-font='system'] .thread,
+body[data-chat-font='system'] .canvas,
+body[data-chat-font='system'] .conv-messages,
+body[data-chat-font='system'] .bubble,
+body[data-chat-font='system'] .msg-bubble,
+body[data-chat-font='system'] .msg-bubble__text {
+  font-family: var(--chat-font-family, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif);
+}
+
+body[data-chat-font='dyslexic'] .thread,
+body[data-chat-font='dyslexic'] .canvas,
+body[data-chat-font='dyslexic'] .conv-messages,
+body[data-chat-font='dyslexic'] .bubble,
+body[data-chat-font='dyslexic'] .msg-bubble,
+body[data-chat-font='dyslexic'] .msg-bubble__text {
+  font-family: var(--chat-font-family, Arial, sans-serif);
+  letter-spacing: 0.02em;
+  word-spacing: 0.05em;
+  line-height: 1.65;
+}
+
+// Chat density
+.list {
+  gap: var(--chat-list-gap, 1.15rem) !important;
+}
+
+.bubble {
+  padding: var(--chat-bubble-pad-y, 0.9rem) var(--chat-bubble-pad-x, 1.04rem) !important;
+}
+
+.bubble .text,
+.bubble .msg-bubble__text {
+  font-size: var(--chat-bubble-font, 0.94rem);
+}
+
+.conv-messages {
+  gap: var(--chat-list-gap, 1.5rem) !important;
+}
+
+.msg-row {
+  gap: var(--chat-row-gap, 0.75rem) !important;
+}
+
+.msg-bubble {
+  padding: var(--chat-bubble-pad-y, 0.75rem) var(--chat-bubble-pad-x, 1rem) !important;
+}
+
+.msg-bubble__text {
+  font-size: var(--chat-bubble-font, 0.94rem);
+}
+
+// Accent-driven interactive states
+.send,
+.sp-btn--primary,
+.hc-btn--primary,
+.ux-sidebar__new-chat {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-soft, #8b5cf6)) !important;
+}
+
+.bubble--user,
+.msg-bubble--user {
+  background: color-mix(in srgb, var(--color-primary) 14%, white) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 28%, white) !important;
+}
+
+body[data-theme='dark'] .bubble--user,
+body[data-theme='dark'] .msg-bubble--user {
+  background: color-mix(in srgb, var(--color-primary) 35%, #2a2c31) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 45%, #2a2c31) !important;
+}
+
+*:focus-visible {
+  outline-color: var(--color-primary) !important;
+}
+
+// Motion control
+body[data-motion-effective='off'] *,
+body[data-motion-effective='off'] *::before,
+body[data-motion-effective='off'] *::after {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+}
+
+body[data-motion-effective='on'],
+body[data-motion-mode='on'],
+body[data-motion-mode='auto'] {
+  background-image: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--color-primary) 4%, transparent),
+    color-mix(in srgb, var(--color-accent) 3%, transparent),
+    color-mix(in srgb, var(--color-primary) 4%, transparent)
+  );
+  background-size: 200% 200%;
+  animation: subtleBgShift 14s ease infinite;
+}
+
+body[data-motion-effective='off'],
+body[data-motion-mode='off'] {
+  animation: none !important;
+  background-image: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-motion-mode='auto'] {
+    animation: none !important;
+    background-image: none !important;
+  }
+}

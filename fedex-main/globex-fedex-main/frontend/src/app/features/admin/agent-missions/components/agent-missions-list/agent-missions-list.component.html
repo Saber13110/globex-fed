@@ -1,0 +1,97 @@
+<section class="am">
+  <header class="am__hero">
+    <div>
+      <h1>Agent Missions</h1>
+      <p>Choisissez un agent, lancez la mission : exécution directe ou alerte si ce n'est pas son rôle.</p>
+    </div>
+    <a routerLink="/admin/agent-missions/new" class="am__btn am__btn--primary">Orchestrer une mission</a>
+  </header>
+
+  <div class="am__kpis">
+    <article class="am__kpi">
+      <span>Missions totales</span>
+      <strong>{{ stats().total }}</strong>
+    </article>
+    <article class="am__kpi am__kpi--warn">
+      <span>Prêtes à lancer</span>
+      <strong>{{ stats().waiting_plan_approval }}</strong>
+    </article>
+    <article class="am__kpi am__kpi--info">
+      <span>En cours</span>
+      <strong>{{ stats().running }}</strong>
+    </article>
+    <article class="am__kpi am__kpi--ok">
+      <span>Terminées</span>
+      <strong>{{ stats().completed }}</strong>
+    </article>
+  </div>
+
+  @if (error()) {
+    <p class="am__error">{{ error() }}</p>
+  }
+
+  <div class="am__panel">
+    @if (loading()) {
+      <p class="am__loading">Chargement des missions…</p>
+    } @else if (!items().length) {
+      <p class="am__empty">Aucune mission pour le moment. Créez votre première mission agent.</p>
+    } @else {
+      <div class="am__table-wrap">
+        <table class="am__table">
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Tâche</th>
+              <th>Statut</th>
+              <th>Exécution</th>
+              <th>Résultats</th>
+              <th>Créé le</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of items(); track item.id) {
+              <tr>
+                <td>{{ agentLabel(item.agent_type) }}</td>
+                <td class="am__task">{{ item.task_description }}</td>
+                <td>
+                  <span class="am__badge" [attr.data-status]="item.status">{{ statusLabel(item.status) }}</span>
+                </td>
+                <td>{{ scheduleLabel(item) }}</td>
+                <td class="am__results">
+                  @if (item.has_results) {
+                    <a [routerLink]="['/admin/agent-missions', item.id]" [queryParams]="{ tab: 'results' }" class="am__results-link">
+                      Voir résultats
+                    </a>
+                    @if (item.result_preview) {
+                      <small>{{ item.result_preview }}</small>
+                    }
+                  } @else {
+                    <span class="am__results-none">—</span>
+                  }
+                </td>
+                <td>{{ item.created_at | date: 'dd/MM/yy HH:mm' }}</td>
+                <td class="am__actions">
+                  <a [routerLink]="['/admin/agent-missions', item.id]" class="am__link">Voir</a>
+                  @if (canEdit(item)) {
+                    <a [routerLink]="['/admin/agent-missions', item.id, 'edit']" class="am__link">Orchestrer</a>
+                  }
+                  @if (canRun(item)) {
+                    <button type="button" class="am__link" [disabled]="busyId() === item.id" (click)="runMission(item.id, $event)">
+                      {{ item.status === 'failed' ? 'Relancer' : 'Lancer' }}
+                    </button>
+                  }
+                  @if (canCancel(item)) {
+                    <button type="button" class="am__link am__link--danger" [disabled]="busyId() === item.id" (click)="cancelMission(item.id, $event)">
+                      Annuler
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</section>

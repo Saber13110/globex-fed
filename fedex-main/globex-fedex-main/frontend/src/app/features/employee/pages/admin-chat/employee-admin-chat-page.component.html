@@ -1,0 +1,150 @@
+<div class="acomms">
+  <section class="acomms-main">
+    <header class="acomms-main__head">
+      <div>
+        <span class="acomms-main__badge">{{ 'employee.comms.badge' | t }}</span>
+        <h1>{{ 'employee.adminChat.title' | t }}</h1>
+        <p>{{ 'employee.comms.threadSubtitle' | t }}</p>
+      </div>
+      @if (typingLabel) {
+        <span class="acomms-typing">{{ 'employee.comms.typing' | t:{ name: typingLabel } }}</span>
+      }
+    </header>
+
+    <div class="acomms-search-wrap">
+      <div class="acomms-search">
+        <svg lucideSearch [size]="16" />
+        <input
+          type="search"
+          [(ngModel)]="searchQ"
+          (input)="onSearchInput()"
+          [placeholder]="'employee.comms.searchPlaceholder' | t"
+        />
+        @if (searchQ) {
+          <button type="button" class="acomms-search__clear" (click)="clearSearch()">×</button>
+        }
+      </div>
+      @if (showSearch) {
+        <div class="acomms-search-results">
+          @if (searching) {
+            <p>{{ 'employee.comms.searching' | t }}</p>
+          } @else if (!searchHits.length) {
+            <p>{{ 'employee.comms.noResults' | t }}</p>
+          } @else {
+            @for (hit of searchHits; track hit.kind + hit.id) {
+              <button type="button" class="acomms-search-hit" (click)="openSearchHit(hit)">
+                <span>{{ hit.kind }}</span>
+                <strong>{{ hit.title }}</strong>
+                <small>{{ hit.subtitle }}</small>
+              </button>
+            }
+          }
+        </div>
+      }
+    </div>
+
+    <div class="acomms-thread" #threadEl>
+      @if (!messages.length) {
+        <div class="acomms-empty">{{ 'employee.adminChat.empty' | t }}</div>
+      }
+      @for (msg of messages; track msg.id; let i = $index) {
+        @if (groupLabel(i)) {
+          <div class="acomms-date">{{ groupLabel(i) }}</div>
+        }
+        <div [class]="msgWrapperClass(msg)">
+          <span class="acomms-msg__role">{{ msgRoleKey(msg) | t }}</span>
+          <article
+            [id]="'admin-msg-' + msg.id"
+            class="acomms-bubble"
+            [class.acomms-bubble--mine]="isMine(msg)"
+            [class.acomms-bubble--highlight]="highlightMessageId === msg.id"
+          >
+            @if (msg.body) {
+              <p>{{ msg.body }}</p>
+            }
+            @if (msg.attachment_url) {
+              <button type="button" class="acomms-link" (click)="openAttachment(msg.attachment_url!)">
+                <svg lucidePaperclip [size]="14" />
+                {{ 'employee.comms.attachment' | t }}
+              </button>
+            }
+            <footer class="acomms-bubble__foot">
+              <span>{{ msg.sender_name || msg.sender_role }}</span>
+              <time>{{ formatTime(msg.created_at) }}</time>
+            </footer>
+          </article>
+        </div>
+      }
+    </div>
+
+    @if (pendingFile) {
+      <div class="acomms-preview">
+        @if (pendingFilePreview) {
+          <img [src]="pendingFilePreview" alt="" class="acomms-preview__img" />
+        } @else {
+          <span class="acomms-preview__icon"><svg lucideFileText [size]="18" /></span>
+        }
+        <div class="acomms-preview__info">
+          <strong>{{ pendingFile.name }}</strong>
+          <span>{{ formatFileSize(pendingFile.size) }}</span>
+        </div>
+        <button type="button" class="acomms-preview__remove" (click)="clearPendingFile()" aria-label="Remove">
+          <svg lucideX [size]="16" />
+        </button>
+      </div>
+    }
+
+    <div class="acomms-composer">
+      <input type="file" #fileInput hidden (change)="onFileSelected($event)" accept=".pdf,.xlsx,.xls,.csv,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx" />
+      <div class="acomms-composer__bar">
+        <button type="button" class="acomms-composer__attach" (click)="fileInput.click()" [disabled]="uploading" [title]="'employee.comms.attachFile' | t">
+          <svg lucidePaperclip [size]="18" />
+        </button>
+        <textarea
+          #composerEl
+          [(ngModel)]="draft"
+          (input)="onDraftInput()"
+          (paste)="onPaste($event)"
+          (keydown.control.enter)="send(); $event.preventDefault()"
+          (keydown.meta.enter)="send(); $event.preventDefault()"
+          [placeholder]="'employee.adminChat.placeholder' | t"
+          rows="1"
+        ></textarea>
+        <button type="button" class="acomms-composer__send" [disabled]="sending || uploading || (!draft.trim() && !pendingFile)" (click)="send()">
+          <svg lucideSend [size]="18" />
+          {{ 'employee.adminChat.send' | t }}
+        </button>
+      </div>
+      <span class="acomms-composer__hint">{{ 'employee.comms.shortcut' | t }}</span>
+    </div>
+  </section>
+
+  <aside class="acomms-admin">
+    <h3>{{ 'employee.comms.adminContact' | t }}</h3>
+    <article class="acomms-admin__card">
+      <span class="acomms-admin__avatar">{{ adminContact?.avatar_initial || 'A' }}</span>
+      <div class="acomms-admin__info">
+        <strong>{{ adminContact?.name || 'Administrator' }}</strong>
+        <span>{{ adminContact?.role || 'Admin' }}</span>
+      </div>
+      <span class="acomms-admin__status">
+        <span class="acomms-admin__dot"></span>
+        {{ 'employee.comms.online' | t }}
+      </span>
+    </article>
+
+    @if (sharedFiles.length) {
+      <section class="acomms-admin__files">
+        <h4>{{ 'employee.comms.sharedFiles' | t }}</h4>
+        <ul>
+          @for (f of sharedFiles.slice(0, 5); track f.id) {
+            <li>
+              <button type="button" class="acomms-link" (click)="openAttachment(f.url)">{{ f.name }}</button>
+              <small>{{ formatDate(f.uploaded_at) }}</small>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </aside>
+</div>

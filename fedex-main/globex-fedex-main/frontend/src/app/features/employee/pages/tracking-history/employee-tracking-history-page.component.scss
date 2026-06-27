@@ -1,0 +1,249 @@
+$primary: #6d4aff;
+$primary-hover: #5b3df5;
+$bg: #f8f7fc;
+$card: #ffffff;
+$border: #ece8f4;
+$text: #111827;
+$muted: #64748b;
+$success: #22c55e;
+$danger: #ef4444;
+$radius: 20px;
+$shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+
+:host { display: block; background: $bg; }
+
+.th {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-bottom: 1.5rem;
+}
+
+.th-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, rgba(109, 74, 255, 0.06), rgba(255, 122, 26, 0.04));
+  border: 1px solid $border;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  flex-wrap: wrap;
+
+  &__badge {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $primary;
+    margin-bottom: 0.25rem;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: $text;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    font-size: 0.88rem;
+    color: $muted;
+  }
+
+  &__stat {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem 1rem;
+    background: $card;
+    border: 1px solid $border;
+    border-radius: 14px;
+    color: $primary;
+
+    strong {
+      display: block;
+      font-size: 1.35rem;
+      color: $text;
+      line-height: 1;
+    }
+
+    span {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: $muted;
+    }
+  }
+}
+
+.th-back {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  color: $muted;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  &:hover { color: $primary; }
+}
+
+.th-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: $card;
+  border: 1px solid $border;
+  border-radius: $radius;
+  box-shadow: $shadow;
+}
+
+.th-search {
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 12px;
+  color: $primary;
+
+  input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 0.88rem;
+    outline: none;
+    color: $text;
+    &::placeholder { color: $muted; }
+  }
+}
+
+.th-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: $primary;
+
+  select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid $border;
+    border-radius: 10px;
+    background: $bg;
+    font-size: 0.85rem;
+    color: $text;
+  }
+}
+
+.th-table-wrap {
+  background: $card;
+  border: 1px solid $border;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  overflow: hidden;
+}
+
+.th-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $muted;
+    background: $bg;
+    border-bottom: 1px solid $border;
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid $border;
+    color: $text;
+  }
+
+  &__row {
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: rgba(109, 74, 255, 0.04); }
+    &:last-child td { border-bottom: none; }
+  }
+
+  &__tracking {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 700;
+    color: $primary;
+  }
+}
+
+.th-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(109, 74, 255, 0.1);
+  color: $primary;
+
+  &.th-status--delivered { background: rgba(34, 197, 94, 0.12); color: $success; }
+  &.th-status--exception { background: rgba(239, 68, 68, 0.1); color: $danger; }
+}
+
+.th-btn {
+  padding: 0.35rem 0.65rem;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: $card;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $primary;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: rgba(109, 74, 255, 0.08); }
+}
+
+.th-empty {
+  text-align: center;
+  padding: 3rem;
+  color: $muted;
+  background: $card;
+  border: 1px solid $border;
+  border-radius: $radius;
+}
+
+.th__loading {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.th__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid $border;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: thSpin 0.7s linear infinite;
+}
+
+@keyframes thSpin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+  .th-table-wrap { overflow-x: auto; }
+  .th-table { min-width: 720px; }
+}

@@ -1,0 +1,116 @@
+.ai-health {
+  padding: 1.5rem 2rem;
+  max-width: 1100px;
+}
+
+.ai-health__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  p {
+    flex: 1 1 100%;
+    margin: 0;
+    color: var(--text-muted, #64748b);
+  }
+}
+
+.ai-health__refresh {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ai-health__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.ai-health__card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+  }
+}
+
+.ai-health__big {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.ai-health__sub {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.ai-health__badge {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ai-health__status--green .ai-health__badge {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.ai-health__status--orange .ai-health__badge {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.ai-health__status--red .ai-health__badge {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ai-health__section {
+  margin-top: 1.5rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+
+  ul {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+}
+
+.ai-health__section--warn {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.ai-health__loading,
+.ai-health__error {
+  padding: 2rem;
+  text-align: center;
+}
+
+.ai-health__error {
+  color: #b91c1c;
+}

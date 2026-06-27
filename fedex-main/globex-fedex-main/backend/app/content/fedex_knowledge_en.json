@@ -1,0 +1,44 @@
+[
+  {
+    "key": "tracking_formats",
+    "title": "FedEx tracking number formats",
+    "keywords": "tracking number format digits express ground smartpost freight",
+    "source": "FedEx Developer Portal / tracking documentation",
+    "content": "FedEx tracking numbers are numeric only (no prefix like UPS \"1Z\").\n\nFormats by service:\n- FedEx Express: 12 digits\n- FedEx Ground / Home Delivery: 15 digits\n- FedEx Ground Economy (formerly SmartPost): 20 digits\n- FedEx Freight: 22 digits\n\nEnter without spaces or dashes.\n\nTracking history kept ~90 days after delivery (Express/Ground); Freight up to 2 years.\n\nIf tracking fails within 24 hours of receiving the number: label may exist without pickup, or the number may be wrong."
+  },
+  {
+    "key": "tracking_methods",
+    "title": "FedEx tracking methods",
+    "keywords": "track reference door tag delivery manager 30 packages",
+    "source": "FedEx Developer Portal — Basic Integrated Visibility",
+    "content": "FedEx tracking options (fedex.com/tracking or mobile app):\n\n1. By tracking number: up to 30 numbers at once.\n\n2. By reference: PO, customer reference, invoice, BOL, part number, TCN — often requires shipper account number.\n\n3. By Door Tag: left when recipient is absent.\n\n4. FedEx Delivery Manager®: inbound packages tied to verified address.\n\nFeatures: email/SMS notifications, delivery calendar, signature proof of delivery, hold at location (US), delay/early alerts.\n\nWithout a number: contact the shipper, check confirmation emails, or call support with addresses, ship date, and names."
+  },
+  {
+    "key": "international_services",
+    "title": "FedEx international services",
+    "keywords": "international priority economy first connect plus transit",
+    "source": "FedEx logistics guides 2025-2026",
+    "content": "Main international services:\n\n| Service | Typical transit | Use case |\n|---------|-----------------|----------|\n| International First | Next morning (major cities) | Urgent premium |\n| International Priority® | 1–3 business days | Most popular express |\n| International Economy | 2–5 business days | 20–30% cheaper than Priority |\n| International Connect Plus | 4–8 business days | E-commerce, no residential surcharge |\n\nCoverage: 195–220+ countries. Customs clearance and tracking usually included.\n\n2026: ~5.9% average GRI; accurate HS codes required to avoid customs delays."
+  },
+  {
+    "key": "customer_support",
+    "title": "FedEx customer support",
+    "keywords": "phone contact support help 1-800 assistance",
+    "source": "fedex.com / FedEx FAQ",
+    "content": "US FedEx support:\n- Phone: 1-800-GoFedEx / 1-800-463-3339 (24/7)\n- Voice: say \"track my package\"\n- SMS: text \"follow\" + door tag number to 48773\n\nOfficial site: https://www.fedex.com/\n\nGlobex app: live tracking uses integrated FedEx API when FEDEX_ENABLED=true."
+  },
+  {
+    "key": "globex_capabilities_client",
+    "title": "Globex client assistant capabilities",
+    "keywords": "globex chatbot what can you do agent export ticket",
+    "source": "Globex FedEx Chatbot documentation",
+    "content": "The Globex FedEx client assistant can:\n- Track packages by number\n- Show status, location, ETA, scan history, map\n- Provide proof of delivery PDF after delivery\n- Export history to Excel (Agent mode)\n- Watch shipments with email alerts (Agent mode)\n- Open delivery support tickets (Agent mode)\n- Answer general FedEx logistics questions\n\nAgent mode (grid icon): automates export, watch, tickets, PDF summaries.\n\nUsers may request a response language — this is a preference, NOT a security attack."
+  },
+  {
+    "key": "globex_capabilities_admin",
+    "title": "Globex admin copilot capabilities",
+    "keywords": "admin copilot capabilities users logs tickets export pdf",
+    "source": "Globex FedEx Chatbot documentation",
+    "content": "Globex Super Admin copilot (Agent mode ON) can run:\n- Shipment/delay analysis\n- Support tickets\n- User account actions\n- Security notifications\n- Activity logs + PDF export\n- KPI summaries\n\nAnalysis mode: guidance without destructive actions.\n\nSensitive actions require admin approval."
+  }
+]

@@ -1,0 +1,57 @@
+<div class="emp-page">
+  <header class="emp-hero">
+    <h1>{{ 'employee.settings.title' | t }}</h1>
+  </header>
+
+  <div class="emp-tabs">
+    <button type="button" [class.active]="tab === 'profile'" (click)="setTab('profile')">{{ 'settings.profile' | t }}</button>
+    <button type="button" [class.active]="tab === 'security'" (click)="setTab('security')">{{ 'settings.security' | t }}</button>
+    <button type="button" [class.active]="tab === 'appearance'" (click)="setTab('appearance')">{{ 'settings.appearance' | t }}</button>
+    <button type="button" [class.active]="tab === 'language'" (click)="setTab('language')">{{ 'settings.language' | t }}</button>
+    <button type="button" [class.active]="tab === 'notifications'" (click)="setTab('notifications')">{{ 'settings.notifications' | t }}</button>
+    <button type="button" [class.active]="tab === 'ai'" (click)="setTab('ai')">{{ 'employee.settings.ai' | t }}</button>
+  </div>
+
+  @if (saved) {
+    <p style="color:#22c55e;margin-bottom:1rem">{{ 'settings.saved' | t }}</p>
+  }
+
+  @if (tab === 'profile' || tab === 'security') {
+    <div class="emp-panel">
+      <label>{{ 'settings.fullName' | t }}<input [(ngModel)]="fullName" /></label>
+      @if (settings) {
+        <p><strong>Email:</strong> {{ settings.email }}</p>
+      }
+      <button type="button" class="emp-btn emp-btn--primary" (click)="saveProfile()">{{ 'settings.save' | t }}</button>
+    </div>
+  }
+
+  @if (tab === 'language') {
+    <div class="emp-panel">
+      <button type="button" class="emp-btn emp-btn--ghost" (click)="setLanguage('fr')">Français</button>
+      <button type="button" class="emp-btn emp-btn--ghost" (click)="setLanguage('en')">English</button>
+      <button type="button" class="emp-btn emp-btn--ghost" (click)="setLanguage('ar')">العربية</button>
+    </div>
+  }
+
+  @if (tab === 'appearance') {
+    <div class="emp-panel">
+      <label><input type="checkbox" [(ngModel)]="darkMode" /> {{ 'settings.darkMode' | t }}</label>
+    </div>
+  }
+
+  @if (tab === 'notifications') {
+    <div class="emp-panel">
+      <p>{{ 'employee.settings.notificationsHint' | t }}</p>
+      <a routerLink="/employee/notifications" class="emp-btn emp-btn--ghost">{{ 'employee.sidebar.notifications' | t }}</a>
+    </div>
+  }
+
+  @if (tab === 'ai') {
+    <div class="emp-panel">
+      <label>{{ 'employee.settings.aiPrefs' | t }}</label>
+      <textarea [(ngModel)]="responsePreferences" rows="6" style="width:100%"></textarea>
+      <button type="button" class="emp-btn emp-btn--primary" (click)="saveAiPrefs()">{{ 'settings.save' | t }}</button>
+    </div>
+  }
+</div>

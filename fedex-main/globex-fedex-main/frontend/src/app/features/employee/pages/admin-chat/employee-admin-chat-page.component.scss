@@ -1,0 +1,555 @@
+$primary: #6d4aff;
+$primary-hover: #5b3df5;
+$bg: #f8f7fc;
+$card: #ffffff;
+$border: #ece8f4;
+$text: #111827;
+$muted: #64748b;
+$success: #22c55e;
+$radius: 22px;
+$shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+
+:host {
+  display: block;
+  margin: -1.5rem -2rem -2rem;
+  height: calc(100vh - 56px);
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    margin: -1rem;
+  }
+}
+
+.acomms {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 0;
+  height: 100%;
+  background: $bg;
+  font-family: 'Inter', system-ui, sans-serif;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.acomms-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: $card;
+  border: 1px solid $border;
+  border-radius: $radius 0 0 $radius;
+  box-shadow: $shadow;
+
+  @media (max-width: 900px) {
+    border-radius: $radius;
+  }
+}
+
+.acomms-main__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid $border;
+
+  h1 {
+    margin: 0.3rem 0 0.15rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: $text;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.76rem;
+    color: $muted;
+  }
+}
+
+.acomms-main__badge {
+  display: inline-flex;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(109, 74, 255, 0.1);
+  color: $primary;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.acomms-typing {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #ff7a1a;
+  white-space: nowrap;
+}
+
+.acomms-search-wrap {
+  position: relative;
+  padding: 0.65rem 1.25rem;
+  z-index: 5;
+}
+
+.acomms-search {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid $border;
+  border-radius: 14px;
+  background: $bg;
+  color: $muted;
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 0.82rem;
+    background: transparent;
+    color: $text;
+  }
+
+  &__clear {
+    border: none;
+    background: none;
+    color: $muted;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+}
+
+.acomms-search-results {
+  position: absolute;
+  top: calc(100% - 0.25rem);
+  left: 1.25rem;
+  right: 1.25rem;
+  background: $card;
+  border: 1px solid $border;
+  border-radius: 14px;
+  box-shadow: $shadow;
+  padding: 0.45rem;
+  max-height: 240px;
+  overflow: auto;
+
+  p {
+    margin: 0;
+    padding: 0.45rem 0.6rem;
+    color: $muted;
+    font-size: 0.8rem;
+  }
+}
+
+.acomms-search-hit {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover { background: $bg; }
+
+  span {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: $primary;
+    margin-bottom: 0.15rem;
+  }
+
+  strong { display: block; font-size: 0.82rem; color: $text; }
+  small { display: block; color: $muted; font-size: 0.72rem; }
+}
+
+.acomms-thread {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  background: linear-gradient(180deg, #faf9fe 0%, #fff 100%);
+}
+
+.acomms-date {
+  align-self: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.06);
+  color: $muted;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.acomms-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: min(72%, 560px);
+  animation: acommsFade 0.2s ease;
+
+  &__role {
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    padding: 0 0.1rem;
+  }
+
+  &--admin { align-self: flex-start; }
+  &--mine {
+    align-self: flex-end;
+    align-items: flex-end;
+
+    .acomms-msg__role { color: $primary; }
+  }
+}
+
+@keyframes acommsFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.acomms-bubble {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border-radius: 16px;
+  border: 1px solid $border;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease;
+
+  &:hover { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06); }
+
+  p {
+    margin: 0;
+    font-size: 0.86rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    color: $text;
+  }
+
+  &--mine {
+    background: rgba(109, 74, 255, 0.09);
+    border-color: rgba(109, 74, 255, 0.2);
+    border-top-right-radius: 4px;
+  }
+
+  &:not(&--mine) {
+    border-top-left-radius: 4px;
+  }
+
+  &--highlight {
+    border-color: #ff7a1a;
+    box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.15);
+  }
+
+  &__foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.45rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(236, 232, 244, 0.85);
+
+    span, time {
+      font-size: 0.64rem;
+      color: #94a3b8;
+    }
+
+    span { font-weight: 700; }
+  }
+}
+
+.acomms-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 1.25rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid $border;
+  border-radius: 14px;
+  background: $bg;
+
+  &__img {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  &__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(109, 74, 255, 0.1);
+    color: $primary;
+    display: grid;
+    place-items: center;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+
+    strong {
+      display: block;
+      font-size: 0.78rem;
+      color: $text;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    span { font-size: 0.68rem; color: $muted; }
+  }
+
+  &__remove {
+    border: none;
+    background: none;
+    color: $muted;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 8px;
+
+    &:hover {
+      background: rgba(239, 68, 68, 0.08);
+      color: #ef4444;
+    }
+  }
+}
+
+.acomms-composer {
+  padding: 0.75rem 1.25rem 1rem;
+  border-top: 1px solid $border;
+  background: #fff;
+
+  &__bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.45rem;
+    padding: 0.45rem;
+    border: 1px solid $border;
+    border-radius: 16px;
+    background: $bg;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:focus-within {
+      border-color: rgba(109, 74, 255, 0.35);
+      box-shadow: 0 0 0 3px rgba(109, 74, 255, 0.1);
+      background: #fff;
+    }
+  }
+
+  &__attach {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: $muted;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba(109, 74, 255, 0.1);
+      color: $primary;
+    }
+
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  textarea {
+    flex: 1;
+    min-height: 36px;
+    max-height: 120px;
+    padding: 0.45rem 0;
+    border: none;
+    outline: none;
+    resize: none;
+    font: inherit;
+    font-size: 0.86rem;
+    background: transparent;
+    color: $text;
+  }
+
+  &__send {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.85rem;
+    border: none;
+    border-radius: 12px;
+    background: $primary;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover:not(:disabled) { background: $primary-hover; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &__hint {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.64rem;
+    color: #94a3b8;
+    text-align: right;
+  }
+}
+
+.acomms-admin {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1rem;
+  background: $card;
+  border: 1px solid $border;
+  border-left: none;
+  border-radius: 0 $radius $radius 0;
+  box-shadow: $shadow;
+  overflow: auto;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+
+  h3 {
+    margin: 0 0 0.75rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $muted;
+  }
+
+  &__card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.35rem 0.55rem;
+    padding: 0.75rem;
+    border: 1px solid $border;
+    border-radius: 16px;
+    background: $bg;
+  }
+
+  &__avatar {
+    grid-row: span 2;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $primary, #8b6cff);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+  }
+
+  &__info {
+    strong {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: $text;
+    }
+
+    span {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: $muted;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+  }
+
+  &__status {
+    grid-column: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: $success;
+  }
+
+  &__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: $success;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  }
+
+  &__files {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid $border;
+
+    h4 {
+      margin: 0 0 0.5rem;
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    small {
+      display: block;
+      font-size: 0.64rem;
+      color: $muted;
+      margin-top: 0.1rem;
+    }
+  }
+}
+
+.acomms-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  margin-top: 0.35rem;
+  border: none;
+  background: none;
+  color: $primary;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.acomms-empty {
+  flex: 1;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  color: $muted;
+  font-size: 0.85rem;
+  padding: 2rem;
+}

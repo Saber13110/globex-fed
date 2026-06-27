@@ -1,0 +1,21 @@
+<div class="emp-portal">
+  <header class="emp-portal__head">
+    <p class="emp-portal__badge">{{ 'employeePortal.badge' | t }}</p>
+    <h1>{{ 'employeePortal.welcome' | t }}, {{ accountName }}</h1>
+    <p>{{ 'employeePortal.subtitle' | t }}</p>
+  </header>
+  <div class="emp-portal__grid">
+    <a routerLink="/employee/ai-assistant" class="emp-portal__card emp-portal__card--primary">
+      <h2>{{ 'employeePortal.cardChat' | t }}</h2>
+      <p>{{ 'employeePortal.cardChatDesc' | t }}</p>
+    </a>
+    <a routerLink="/employee/ai-agent" class="emp-portal__card">
+      <h2>{{ 'employeePortal.cardClients' | t }}</h2>
+      <p>{{ 'employeePortal.cardClientsDesc' | t }}</p>
+    </a>
+    <a routerLink="/help" class="emp-portal__card">
+      <h2>{{ 'employeePortal.cardSupport' | t }}</h2>
+      <p>{{ 'employeePortal.cardSupportDesc' | t }}</p>
+    </a>
+  </div>
+</div>
