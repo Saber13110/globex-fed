@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.client_notification import ClientNotification
+from app.schemas.user_notifications import UserNotificationListResponse, UserNotificationRead
 from app.models.platform_notification import PlatformNotification
 from app.models.support_ticket import SupportTicket
 from app.models.user import User
@@ -140,6 +142,95 @@ def notify_admins_support_user_reply(
     )
     db.add(row)
     return row
+
+
+def notification_to_read(row: ClientNotification) -> UserNotificationRead:
+    return UserNotificationRead.model_validate(notification_to_dict(row))
+
+
+def list_user_notifications(
+    db: Session,
+    user_id: int,
+    *,
+    type: str | None = None,
+    status: str | None = None,
+    q: str | None = None,
+    limit: int = 100,
+    tracking_number: str | None = None,
+    priority: str | None = None,
+    since_days: int | None = None,
+) -> UserNotificationListResponse:
+    """Liste les notifications client — même logique que GET /notifications/me."""
+    stmt = select(ClientNotification).where(ClientNotification.user_id == user_id)
+    if type:
+        if type == "support":
+            stmt = stmt.where(ClientNotification.kind.in_(("admin_reply", "support_message")))
+        elif type == "documents":
+            stmt = stmt.where(ClientNotification.kind.in_(("document_ready", "export_ready")))
+        else:
+            stmt = stmt.where(ClientNotification.kind == type)
+    if status == "unread":
+        stmt = stmt.where(ClientNotification.is_read.is_(False))
+    elif status == "read":
+        stmt = stmt.where(ClientNotification.is_read.is_(True))
+    tn = (tracking_number or "").strip()
+    if tn:
+        stmt = stmt.where(ClientNotification.related_tracking_number == tn)
+    pr = (priority or "").strip().lower()
+    if pr and pr != "all":
+        stmt = stmt.where(ClientNotification.priority == pr)
+    if since_days is not None and since_days > 0:
+        since = datetime.now(timezone.utc) - timedelta(days=since_days)
+        stmt = stmt.where(ClientNotification.created_at >= since)
+    if q:
+        like = f"%{q.strip().lower()}%"
+        stmt = stmt.where(
+            or_(
+                func.lower(ClientNotification.title).like(like),
+                func.lower(ClientNotification.message).like(like),
+            )
+        )
+    stmt = stmt.order_by(ClientNotification.created_at.desc()).limit(min(max(limit, 1), 200))
+    rows = list(db.scalars(stmt).all())
+    unread = int(
+        db.scalar(
+            select(func.count())
+            .select_from(ClientNotification)
+            .where(ClientNotification.user_id == user_id, ClientNotification.is_read.is_(False))
+        )
+        or 0
+    )
+    total = int(
+        db.scalar(
+            select(func.count())
+            .select_from(ClientNotification)
+            .where(ClientNotification.user_id == user_id)
+        )
+        or 0
+    )
+    return UserNotificationListResponse(
+        items=[notification_to_read(r) for r in rows],
+        unread_count=unread,
+        total=total,
+    )
+
+
+def mark_all_user_notifications_read(db: Session, user_id: int) -> int:
+    """Marque toutes les notifications non lues de l'utilisateur — même logique que PATCH /read-all."""
+    now = datetime.now(timezone.utc)
+    rows = list(
+        db.scalars(
+            select(ClientNotification).where(
+                ClientNotification.user_id == user_id,
+                ClientNotification.is_read.is_(False),
+            )
+        ).all()
+    )
+    for row in rows:
+        row.is_read = True
+        row.read_at = now
+    db.commit()
+    return len(rows)
 
 
 def notification_to_dict(row: ClientNotification) -> dict:

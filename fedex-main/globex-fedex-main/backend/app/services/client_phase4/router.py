@@ -573,6 +573,11 @@ def try_client_sessions_turn(
         )
         return None
 
+    from app.services.client_phase5.notification_filters import is_notification_workspace
+
+    if is_notification_workspace(message) and not _is_session_workspace_message(message):
+        return None
+
     plan = _summarize_followup_plan(db, session.id, message)
     if plan is None:
         plan = plan_sessions_task(

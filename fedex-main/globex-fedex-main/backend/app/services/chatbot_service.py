@@ -1949,6 +1949,7 @@ from app.services.client_phase3.pdf_postprocess import (
     wants_pdf_format,
 )
 from app.services.client_phase4.router import try_client_sessions_turn
+from app.services.client_phase5.router import try_client_notifications_turn
 from app.services.chat_session_context import (
     build_conversation_history_for_llm,
     resolve_tracking_for_message,
@@ -2275,6 +2276,10 @@ def process_user_message(
             agent_turn = try_client_sessions_turn(
                 db, user, session, message, user_msg.id, ui_language
             )
+            if agent_turn is None:
+                agent_turn = try_client_notifications_turn(
+                    db, user, session, message, user_msg.id, ui_language
+                )
             if agent_turn is not None:
                 (
                     reply,
