@@ -1,0 +1,38 @@
+<div class="emp-page">
+  @if (ticket) {
+    <header class="emp-hero">
+      <a routerLink="/employee/support" class="emp-btn emp-btn--ghost">{{ 'employee.client.back' | t }}</a>
+      <h1>{{ ticket.subject }}</h1>
+      <p>{{ ticket.user_name }} · {{ ticket.user_email }}</p>
+      <span class="emp-badge" [class]="'emp-badge--' + ticket.status">{{ ticket.status }}</span>
+    </header>
+
+    <div class="emp-filters">
+      <button type="button" class="emp-btn emp-btn--ghost" (click)="setStatus('pending')">Pending</button>
+      <button type="button" class="emp-btn emp-btn--ghost" (click)="setStatus('resolved')">Resolved</button>
+      <button type="button" class="emp-btn emp-btn--ghost" (click)="setStatus('closed')">Closed</button>
+      <button type="button" class="emp-btn emp-btn--primary" (click)="setStatus('escalated')">{{ 'employee.support.escalate' | t }}</button>
+    </div>
+
+    <div class="emp-panel emp-chat-panel">
+      <div class="emp-chat-thread">
+        <div class="emp-chat-bubble emp-chat-bubble--other">{{ ticket.message }}</div>
+        @for (msg of ticket.messages; track msg.id) {
+          <div class="emp-chat-bubble" [class.emp-chat-bubble--mine]="msg.author_role !== 'user'" [class.emp-chat-bubble--other]="msg.author_role === 'user'">
+            <small>{{ msg.author_name || msg.author_role }}</small>
+            <div>{{ msg.body }}</div>
+            @if (msg.attachment_url) {
+              <button type="button" class="emp-btn emp-btn--ghost" (click)="openAttachment(msg.attachment_url!)">{{ 'support.openAttachment' | t }}</button>
+            }
+          </div>
+        }
+      </div>
+      <div class="emp-chat-input">
+        <textarea [(ngModel)]="reply" [placeholder]="'employee.support.replyPlaceholder' | t"></textarea>
+        <input type="file" #fileInput hidden (change)="onFileSelected($event)" />
+        <button type="button" class="emp-btn emp-btn--ghost" (click)="fileInput.click()">{{ 'support.attachFile' | t }}</button>
+        <button type="button" class="emp-btn emp-btn--primary" [disabled]="sending" (click)="sendReply()">{{ 'employee.support.send' | t }}</button>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,140 @@
+.tracking-map {
+  margin-top: 0.75rem;
+}
+
+.tracking-map__canvas {
+  width: 100%;
+  height: 280px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  z-index: 0;
+}
+
+.tracking-map__fallback {
+  margin: 0 0 0.75rem;
+  font-size: 0.86rem;
+  color: var(--fedex-muted, #64748b);
+}
+
+.tracking-map__timeline {
+  margin-top: 1rem;
+  border-top: 1px solid var(--ui-border, #e2e8f0);
+  padding-top: 0.85rem;
+}
+
+.tracking-map__timeline-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fedex-purple, #7c3aed);
+}
+
+.tracking-map__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tracking-map__item {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 0.65rem;
+  padding-bottom: 0.85rem;
+  position: relative;
+}
+
+.tracking-map__item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 18px;
+  bottom: 0;
+  width: 2px;
+  background: rgba(124, 58, 237, 0.2);
+}
+
+.tracking-map__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #6366f1;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.35);
+  margin-top: 4px;
+}
+
+.tracking-map__dot--delivered {
+  background: #059669;
+  box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.45);
+}
+
+.tracking-map__item--latest .tracking-map__dot {
+  background: #7c3aed;
+}
+
+.tracking-map__badge {
+  display: inline-block;
+  margin-bottom: 0.25rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(5, 150, 105, 0.12);
+  color: #047857;
+}
+
+.tracking-map__time {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--fedex-muted, #64748b);
+}
+
+.tracking-map__desc {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.tracking-map__loc {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: var(--fedex-muted, #64748b);
+}
+
+:host ::ng-deep .tracking-map-marker-wrap {
+  background: transparent;
+  border: none;
+}
+
+:host ::ng-deep .tracking-map-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  background: #6366f1;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+}
+
+:host ::ng-deep .tracking-map-marker--delivered {
+  background: #059669;
+}
+
+:host ::ng-deep .tracking-map-marker--current {
+  background: #7c3aed;
+}
+
+:host ::ng-deep .tracking-map-marker--origin {
+  background: #2563eb;
+}

@@ -1,0 +1,97 @@
+<section class="gpt-kb">
+  <header class="gpt-kb__head">
+    <div>
+      <h1 class="gpt-kb__title">Base de connaissances GPT</h1>
+      <p class="gpt-kb__sub">Upload PDF / DOCX / TXT — indexation vectorielle PGVector + Gemini embeddings.</p>
+    </div>
+    <div class="gpt-kb__actions">
+      <button type="button" class="gpt-kb__btn gpt-kb__btn--ghost" (click)="refresh()" [disabled]="loading()">Actualiser</button>
+      <button type="button" class="gpt-kb__btn" (click)="reindexEmbeddings()" [disabled]="reindexing()">
+        {{ reindexing() ? 'Réindexation…' : 'Réindexer embeddings' }}
+      </button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="gpt-kb__msg">Chargement…</p>
+  } @else {
+    <div class="gpt-kb__grid">
+      @for (p of profiles(); track p.slug) {
+        <article class="gpt-kb__card">
+          <h2>{{ p.name }}</h2>
+          <p class="gpt-kb__slug">{{ p.slug }}</p>
+          <ul>
+            <li>{{ p.collections }} collection(s)</li>
+            <li>{{ p.chunks }} chunk(s)</li>
+            <li>{{ p.embedded_chunks }} avec embedding</li>
+            <li>{{ p.documents }} document(s) uploadé(s)</li>
+          </ul>
+        </article>
+      }
+    </div>
+
+    <section class="gpt-kb__upload">
+      <h2>Importer un document</h2>
+      <div class="gpt-kb__form">
+        <label>
+          GPT cible
+          <select [(ngModel)]="selectedGpt" (ngModelChange)="onGptChange()">
+            <option value="fedex-admin-ops">Copilot Admin (fedex-admin-ops)</option>
+            <option value="fedex-client">Assistant Client (fedex-client)</option>
+          </select>
+        </label>
+        <label>
+          Langue
+          <select [(ngModel)]="selectedLang">
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <label class="gpt-kb__file">
+          Fichier (PDF, Excel, Word, images — max 15 Mo)
+          <input type="file" accept=".pdf,.docx,.xlsx,.xls,.txt,.md,.csv,.jpg,.jpeg,.png,.webp,.gif" (change)="onFileSelected($event)" [disabled]="uploading()" />
+        </label>
+      </div>
+      @if (uploading()) {
+        <p class="gpt-kb__msg">Indexation en cours…</p>
+      }
+    </section>
+
+    <section class="gpt-kb__docs">
+      <h2>Documents — {{ selectedGpt }}</h2>
+      @if (documents().length === 0) {
+        <p class="gpt-kb__msg gpt-kb__msg--muted">Aucun document uploadé pour ce GPT.</p>
+      } @else {
+        <table class="gpt-kb__table">
+          <thead>
+            <tr>
+              <th>Fichier</th>
+              <th>Statut</th>
+              <th>Chunks</th>
+              <th>Taille</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of documents(); track d.id) {
+              <tr>
+                <td>{{ d.original_filename }}</td>
+                <td><span class="gpt-kb__status" [attr.data-status]="d.status">{{ d.status }}</span></td>
+                <td>{{ d.chunk_count }}</td>
+                <td>{{ formatBytes(d.file_size_bytes) }}</td>
+                <td>
+                  <button type="button" class="gpt-kb__link" (click)="deleteDoc(d.id)">Supprimer</button>
+                </td>
+              </tr>
+              @if (d.error_message) {
+                <tr>
+                  <td colspan="5" class="gpt-kb__error">{{ d.error_message }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+</section>

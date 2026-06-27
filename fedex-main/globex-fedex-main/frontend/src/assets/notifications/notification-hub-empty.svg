@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 360" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="hub-glow" x1="260" y1="80" x2="260" y2="280" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6D4AFF" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#6D4AFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="hub-bell" x1="220" y1="120" x2="300" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B73FF"/>
+      <stop offset="1" stop-color="#6D4AFF"/>
+    </linearGradient>
+    <linearGradient id="hub-ring" x1="160" y1="100" x2="360" y2="260" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6D4AFF" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#8B73FF" stop-opacity="0.08"/>
+    </linearGradient>
+    <filter id="hub-soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#6D4AFF" flood-opacity="0.12"/>
+    </filter>
+    <filter id="card-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#111827" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Connection lines -->
+  <g stroke="#6D4AFF" stroke-opacity="0.18" stroke-width="1.5" stroke-dasharray="4 6">
+    <path d="M260 178 L108 118"/>
+    <path d="M260 178 L412 108"/>
+    <path d="M260 198 L430 188"/>
+    <path d="M260 198 L98 228"/>
+    <path d="M260 208 L412 268"/>
+  </g>
+  <g stroke="#8B73FF" stroke-opacity="0.28" stroke-width="1">
+    <path d="M260 178 L108 118" fill="none"/>
+    <path d="M260 178 L412 108" fill="none"/>
+    <path d="M260 198 L430 188" fill="none"/>
+    <path d="M260 198 L98 228" fill="none"/>
+    <path d="M260 208 L412 268" fill="none"/>
+  </g>
+
+  <!-- Ambient glow -->
+  <ellipse cx="260" cy="188" rx="120" ry="88" fill="url(#hub-glow)"/>
+  <circle cx="260" cy="188" r="92" stroke="url(#hub-ring)" stroke-width="1.5" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Center hub -->
+  <g filter="url(#hub-soft)">
+    <circle cx="260" cy="188" r="54" fill="rgba(255,255,255,0.72)" stroke="rgba(109,74,255,0.15)" stroke-width="1"/>
+    <circle cx="260" cy="188" r="44" fill="rgba(248,247,252,0.9)" stroke="rgba(109,74,255,0.12)" stroke-width="1"/>
+  </g>
+
+  <!-- Bell icon -->
+  <g transform="translate(260 188)">
+    <path d="M-18-10c0-12 8-22 18-22s18 10 18 22c0 14 6 18 6 18H-24s6-4 6-18Z" fill="url(#hub-bell)"/>
+    <path d="M-10 28a10 10 0 0 0 20 0" stroke="#6D4AFF" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <circle cx="0" cy="-18" r="3" fill="#fff" fill-opacity="0.85"/>
+  </g>
+
+  <!-- Support card (top-left) -->
+  <g filter="url(#card-shadow)" transform="translate(36 72)">
+    <rect width="144" height="56" rx="14" fill="rgba(255,255,255,0.88)" stroke="rgba(109,74,255,0.14)" stroke-width="1"/>
+    <rect x="12" y="14" width="28" height="28" rx="8" fill="rgba(109,74,255,0.1)"/>
+    <path d="M22 24h8M26 20v8" stroke="#6D4AFF" stroke-width="1.6" stroke-linecap="round"/>
+    <rect x="48" y="16" width="72" height="8" rx="4" fill="#ECE8F4"/>
+    <rect x="48" y="30" width="52" height="6" rx="3" fill="rgba(109,74,255,0.12)"/>
+    <circle cx="128" cy="16" r="5" fill="#6D4AFF"/>
+  </g>
+
+  <!-- Tracking card (top-right) -->
+  <g filter="url(#card-shadow)" transform="translate(340 58)">
+    <rect width="144" height="56" rx="14" fill="rgba(255,255,255,0.88)" stroke="rgba(255,122,26,0.18)" stroke-width="1"/>
+    <rect x="12" y="14" width="28" height="28" rx="8" fill="rgba(255,122,26,0.1)"/>
+    <path d="M20 28l4-6 4 4 6-10 6 12" stroke="#FF7A1A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <rect x="48" y="16" width="68" height="8" rx="4" fill="#ECE8F4"/>
+    <rect x="48" y="30" width="44" height="6" rx="3" fill="rgba(255,122,26,0.12)"/>
+  </g>
+
+  <!-- Document card (right) -->
+  <g filter="url(#card-shadow)" transform="translate(368 158)">
+    <rect width="132" height="56" rx="14" fill="rgba(255,255,255,0.88)" stroke="rgba(59,130,246,0.16)" stroke-width="1"/>
+    <rect x="12" y="14" width="28" height="28" rx="8" fill="rgba(59,130,246,0.1)"/>
+    <path d="M18 22h16v14H18z" stroke="#3B82F6" stroke-width="1.5" fill="none" rx="2"/>
+    <path d="M22 26h8M22 30h10" stroke="#3B82F6" stroke-width="1.4" stroke-linecap="round"/>
+    <rect x="48" y="16" width="64" height="8" rx="4" fill="#ECE8F4"/>
+    <rect x="48" y="30" width="40" height="6" rx="3" fill="rgba(59,130,246,0.12)"/>
+  </g>
+
+  <!-- Security card (bottom-left) -->
+  <g filter="url(#card-shadow)" transform="translate(24 228)">
+    <rect width="144" height="56" rx="14" fill="rgba(255,255,255,0.88)" stroke="rgba(239,68,68,0.14)" stroke-width="1"/>
+    <rect x="12" y="14" width="28" height="28" rx="8" fill="rgba(239,68,68,0.08)"/>
+    <path d="M26 20v8c0 4-6 6-6 6s-6-2-6-6v-8l6-3 6 3Z" stroke="#EF4444" stroke-width="1.5" fill="none"/>
+    <rect x="48" y="16" width="70" height="8" rx="4" fill="#ECE8F4"/>
+    <rect x="48" y="30" width="48" height="6" rx="3" fill="rgba(239,68,68,0.1)"/>
+  </g>
+
+  <!-- AI card (bottom-right) -->
+  <g filter="url(#card-shadow)" transform="translate(332 248)">
+    <rect width="152" height="56" rx="14" fill="rgba(255,255,255,0.88)" stroke="rgba(139,115,255,0.2)" stroke-width="1"/>
+    <rect x="12" y="14" width="28" height="28" rx="8" fill="rgba(139,115,255,0.12)"/>
+    <path d="M26 18l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6Z" stroke="#8B73FF" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+    <rect x="48" y="16" width="76" height="8" rx="4" fill="#ECE8F4"/>
+    <rect x="48" y="30" width="56" height="6" rx="3" fill="rgba(139,115,255,0.14)"/>
+    <circle cx="134" cy="16" r="5" fill="#8B73FF" fill-opacity="0.5"/>
+  </g>
+
+  <!-- Floating particles -->
+  <circle cx="180" cy="98" r="3" fill="#6D4AFF" fill-opacity="0.25"/>
+  <circle cx="380" cy="132" r="2.5" fill="#FF7A1A" fill-opacity="0.3"/>
+  <circle cx="420" cy="248" r="2" fill="#8B73FF" fill-opacity="0.35"/>
+  <circle cx="120" cy="268" r="2.5" fill="#6D4AFF" fill-opacity="0.2"/>
+</svg>

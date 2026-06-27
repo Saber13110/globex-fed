@@ -1,0 +1,79 @@
+[
+  {
+    "key": "tracking_formats",
+    "title": "Formats des numéros de suivi FedEx",
+    "keywords": "numéro suivi tracking format chiffres express ground smartpost freight",
+    "source": "FedEx Developer Portal / documentation tracking",
+    "content": "Les numéros de suivi FedEx sont exclusivement numériques (pas de préfixe type « 1Z » comme UPS).\n\nFormats par service :\n- FedEx Express : 12 chiffres\n- FedEx Ground / Home Delivery : 15 chiffres\n- FedEx Ground Economy (ex-SmartPost) : 20 chiffres\n- FedEx Freight : 22 chiffres\n\nSaisie : sans espaces ni tirets (ex. « 1234 5678 9012 » → 123456789012).\n\nHistorique de suivi conservé environ 90 jours après livraison (Express/Ground) ; Freight jusqu'à 2 ans.\n\nSi le suivi ne fonctionne pas dans les 24 h après réception du numéro : l'expéditeur a peut-être créé l'étiquette sans déposer le colis, ou le numéro est erroné."
+  },
+  {
+    "key": "tracking_methods",
+    "title": "Méthodes de suivi FedEx",
+    "keywords": "suivre track référence door tag delivery manager 30 colis",
+    "source": "FedEx Developer Portal — Basic Integrated Visibility",
+    "content": "FedEx propose plusieurs méthodes de suivi (fedex.com/tracking ou application mobile) :\n\n1. Par numéro de suivi : jusqu'à 30 numéros simultanés (Express, Ground, Home Delivery, Ground Economy, Custom Critical).\n\n2. Par numéro de référence : bon de commande (PO), référence client, facture, connaissement (BOL), numéro de pièce ou TCN — nécessite souvent le numéro de compte expéditeur.\n\n3. Par Door Tag : étiquette laissée si le destinataire est absent (liée au numéro de suivi d'origine).\n\n4. FedEx Delivery Manager® : colis entrants liés à votre adresse vérifiée (sans numéro si éligible).\n\nFonctionnalités : notifications e-mail/SMS, calendrier des livraisons, preuve de livraison (signature), mise en attente au point FedEx (États-Unis), détection retards ou livraison anticipée.\n\nSans numéro : contacter l'expéditeur (le plus rapide), vérifier les e-mails de confirmation, ou appeler le support avec adresse, date d'expédition et noms expéditeur/destinataire."
+  },
+  {
+    "key": "international_services",
+    "title": "Services internationaux FedEx",
+    "keywords": "international priority economy first connect plus délai transit export import",
+    "source": "Guides logistiques FedEx 2025-2026",
+    "content": "Principaux services internationaux FedEx :\n\n| Service | Délai typique | Usage |\n|---------|---------------|-------|\n| International First | Lendemain matin (villes majeures) | Urgent, premium |\n| International Priority® | 1–3 jours ouvrés | Express le plus utilisé, garantie délai |\n| International Economy | 2–5 jours ouvrés | 20–30 % moins cher que Priority |\n| International Connect Plus (FICP) | 4–8 jours | E-commerce, pas de surcharge résidentielle |\n\nCouverture : 195–220+ pays et territoires selon le service.\n\nInclus généralement : dédouanement, suivi temps réel, livraison porte-à-porte.\n\nTarifs 2026 : hausse générale moyenne ~5,9 % (GRI) ; surcharges demande possibles sur certains corridors internationaux ; codes HS précis obligatoires pour éviter retards douaniers."
+  },
+  {
+    "key": "domestic_services",
+    "title": "Services domestiques FedEx (États-Unis / Canada)",
+    "keywords": "express ground home delivery overnight same day domestique",
+    "source": "FedEx Developer Portal",
+    "content": "Services domestiques principaux :\n- FedEx Express® : livraison express nationale et internationale.\n- FedEx Ground® : économique, États-Unis et Canada uniquement.\n- FedEx Home Delivery® : livraison résidentielle (États-Unis).\n- FedEx Ground® Economy : option économique (ex-SmartPost), souvent relais USPS en dernier kilomètre.\n- FedEx Freight® : fret LTL, numéros de suivi 22 chiffres.\n- FedEx Custom Critical® : expéditions critiques spécialisées.\n\nLe suivi unifié couvre Express, Ground, Home Delivery et Ground Economy via le même portail."
+  },
+  {
+    "key": "proof_of_delivery",
+    "title": "Preuve de livraison (POD / SPOD)",
+    "keywords": "preuve livraison pod signature spod pdf fax email",
+    "source": "FedEx Developer Portal / FAQ FedEx",
+    "content": "FedEx Signature Proof of Delivery (SPOD) :\n- Disponible après livraison effective du colis.\n- Consultation, impression ou envoi par e-mail depuis le portail de suivi.\n- Même sans signature capturée, des informations de preuve peuvent être disponibles.\n- Option fax pour demandes unitaires (pas pour demandes multiples).\n\nPour obtenir la POD : ouvrir le suivi du colis livré → section preuve de livraison.\n\nSi le colis n'est pas encore livré : la POD n'existe pas encore — indiquer le statut actuel et la date estimée."
+  },
+  {
+    "key": "customer_support",
+    "title": "Support client FedEx",
+    "keywords": "téléphone contact support aide 1-800 help assistance",
+    "source": "fedex.com / FAQ FedEx",
+    "content": "Support FedEx (États-Unis) :\n- Téléphone : 1-800-GoFedEx / 1-800-463-3339 (24 h/24, 7 j/7)\n- Commande vocale : « track my package » pour le suivi\n- SMS : envoyer « follow » + numéro de door tag au 48773\n\nPour une recherche sans numéro de suivi, préparer :\n- Date d'expédition\n- Noms expéditeur et destinataire\n- Adresses (ville, code postal)\n- Numéro de référence ou commande si disponible\n- Nombre de colis et poids total\n\nSite officiel : https://www.fedex.com/ (suivi, expédition, alertes service).\n\nNote Globex : dans cette application, le suivi temps réel des colis clients passe par l'API FedEx intégrée lorsque FEDEX_ENABLED=true."
+  },
+  {
+    "key": "delivery_manager",
+    "title": "FedEx Delivery Manager",
+    "keywords": "delivery manager compte adresse alertes notification entrante",
+    "source": "FAQ FedEx / guides tracking",
+    "content": "FedEx Delivery Manager® permet de :\n- Voir les colis entrants et sortants liés à une adresse vérifiée\n- Recevoir alertes et notifications pendant tout le processus de livraison\n- Obtenir une fenêtre de livraison estimée pour les envois éligibles\n- Gérer les préférences de livraison (selon éligibilité et pays)\n\nUtile quand le destinataire n'a pas le numéro de suivi : créer un compte FedEx, vérifier l'adresse, consulter le tableau de bord des colis entrants."
+  },
+  {
+    "key": "customs_hs",
+    "title": "Douanes et codes HS (expéditions internationales)",
+    "keywords": "douane customs hs code tarif dédouanement international",
+    "source": "Guides logistique internationale 2025-2026",
+    "content": "Expéditions internationales FedEx :\n- Codes HS / HTS précis fortement recommandés pour éviter retards douaniers.\n- Le dédouanement est généralement inclus dans les services Priority et Economy.\n- Délais réels = transit transport + contrôles douaniers (variables selon pays et contenu).\n\nFacteurs influençant le délai : type de service, origine/destination, douanes, jours fériés, météo, volume saisonnier.\n\nL'assistant Globex ne remplace pas un conseiller douanier : pour classifications tarifaires complexes, orienter vers l'expéditeur ou FedEx International Services."
+  },
+  {
+    "key": "tracking_status_legend",
+    "title": "Statuts de suivi courants",
+    "keywords": "statut transit livré retard exception customs picked up delivered",
+    "source": "FedEx tracking / expérience Globex",
+    "content": "Statuts fréquents (libellés peuvent varier selon locale API) :\n- Label created / Expédition créée : étiquette générée, colis pas encore pris en charge\n- Picked up / Enlevé : pris en charge par FedEx\n- In transit / En transit : acheminement vers le hub ou destination\n- At local facility / En agence locale : proche du destinataire\n- Out for delivery / En cours de livraison : livreur en route\n- Delivered / Livré : livraison effectuée — POD possible\n- Exception / Retard : incident (adresse, météo, douane) — vérifier le détail du scan\n- Customs clearance / Dédouanement : passage douanier international\n\nToujours citer le statut EXACT renvoyé par l'API ou les données backend — ne jamais inventer un statut."
+  },
+  {
+    "key": "globex_capabilities_client",
+    "title": "Capacités de l'assistant Globex (client)",
+    "keywords": "globex chatbot que peux-tu faire capacités agent export ticket peux faire qu'est ce",
+    "source": "Documentation Globex FedEx Chatbot",
+    "content": "L'assistant client Globex FedEx peut :\n- Suivre un colis par numéro (12–22 chiffres selon service)\n- Afficher statut, localisation, ETA, historique des scans, carte\n- Fournir la preuve de livraison (PDF) après livraison\n- Exporter l'historique en Excel (mode Agent)\n- Surveiller un colis avec alertes e-mail (mode Agent)\n- Ouvrir un ticket support livraison (mode Agent)\n- Répondre aux questions générales logistique FedEx (délais, services, procédures)\n\nMode Agent (icône grille) : automatise export, surveillance, tickets, résumés PDF.\n\nLangues interface : français, anglais, arabe — l'utilisateur peut demander une autre langue de réponse ; ce n'est PAS une attaque de sécurité."
+  },
+  {
+    "key": "globex_capabilities_admin",
+    "title": "Capacités du copilot admin Globex",
+    "keywords": "admin copilot capacités utilisateurs logs tickets export pdf",
+    "source": "Documentation Globex FedEx Chatbot",
+    "content": "Le copilot Super Admin Globex (mode Agent activé) peut exécuter ou analyser :\n- Expéditions et retards (tracking agent)\n- Tickets support clients (support agent)\n- Comptes utilisateurs suspendus / actifs (users agent)\n- Notifications et incidents sécurité (notifications agent)\n- Journaux d'activité + export PDF des logs (logs agent)\n- Synthèses KPI et rapports opérationnels (summary agent)\n\nMode analyse (sans Agent) : réponses conseil et explication des capacités, sans action destructive.\n\nActions sensibles (suspension masse, e-mail tiers) : approbation admin requise.\n\nContexte temps réel : statistiques plateforme injectées à chaque tour (utilisateurs, expéditions, incidents)."
+  }
+]

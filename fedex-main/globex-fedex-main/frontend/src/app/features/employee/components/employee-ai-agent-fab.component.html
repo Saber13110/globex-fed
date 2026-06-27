@@ -1,0 +1,20 @@
+@if (visible) {
+  <button
+    type="button"
+    class="emp-ai-fab"
+    [class.emp-ai-fab--online]="aiAvailable"
+    (click)="openAgent()"
+    [attr.aria-label]="'employee.agent.fabTooltip' | t"
+  >
+    <span class="emp-ai-fab__glow" aria-hidden="true"></span>
+    <img
+      class="emp-ai-fab__logo"
+      src="assets/employee/ai-agent-fab.svg"
+      alt=""
+      width="56"
+      height="56"
+      loading="eager"
+    />
+    <span class="emp-ai-fab__tooltip">{{ 'employee.agent.fabTooltip' | t }}</span>
+  </button>
+}

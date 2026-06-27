@@ -1,0 +1,24 @@
+# PostgreSQL avec PGVector (optionnel — dev local)
+# Usage : docker compose -f docker/docker-compose.pgvector.yml up -d
+# Puis DATABASE_URL=postgresql+psycopg2://globex:globex@localhost:5433/globex_fedex
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: globex-pgvector
+    environment:
+      POSTGRES_USER: globex
+      POSTGRES_PASSWORD: globex
+      POSTGRES_DB: globex_fedex
+    ports:
+      - "5433:5432"
+    volumes:
+      - globex_pgvector_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U globex -d globex_fedex"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  globex_pgvector_data:

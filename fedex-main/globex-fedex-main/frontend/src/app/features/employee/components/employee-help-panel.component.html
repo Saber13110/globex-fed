@@ -1,0 +1,8 @@
+<div class="emp-settings-overlay" (click)="close()">
+  <div class="emp-settings-dialog emp-help-dialog" (click)="$event.stopPropagation()" role="dialog" [attr.aria-label]="'employee.help.title' | t">
+    <button type="button" class="emp-settings-close" (click)="close()" [attr.aria-label]="'common.close' | t">×</button>
+    <div class="emp-help-dialog__body">
+      <app-employee-help-page />
+    </div>
+  </div>
+</div>

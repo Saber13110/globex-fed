@@ -1,0 +1,47 @@
+<div class="uspace">
+  <header class="uspace__head">
+    <a routerLink="/chat" class="uspace__back">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      {{ 'userSpace.backToChat' | t }}
+    </a>
+    <div>
+      <h1>{{ 'userSpace.title' | t }}</h1>
+      <p>{{ 'userSpace.subtitle' | t }}</p>
+    </div>
+  </header>
+
+  @if (loading) {
+    <p class="uspace__loading" role="status">{{ 'common.loading' | t }}</p>
+  } @else {
+    <div class="uspace__grid">
+      <article class="uspace__card">
+        <span class="uspace__card-value">{{ trackedCount }}</span>
+        <span class="uspace__card-label">{{ 'userSpace.kpiTracked' | t }}</span>
+      </article>
+      <article class="uspace__card">
+        <span class="uspace__card-value">{{ deliveredCount }}</span>
+        <span class="uspace__card-label">{{ 'userSpace.kpiDelivered' | t }}</span>
+      </article>
+      <article class="uspace__card">
+        <span class="uspace__card-value">{{ inTransitCount }}</span>
+        <span class="uspace__card-label">{{ 'userSpace.kpiInTransit' | t }}</span>
+      </article>
+      <article class="uspace__card">
+        <span class="uspace__card-value">{{ sessionsCount }}</span>
+        <span class="uspace__card-label">{{ 'userSpace.kpiReports' | t }}</span>
+      </article>
+      <article class="uspace__card uspace__card--accent">
+        <span class="uspace__card-value">{{ unreadNotifications }}</span>
+        <span class="uspace__card-label">{{ 'userSpace.kpiNotifications' | t }}</span>
+      </article>
+    </div>
+
+    <nav class="uspace__links" [attr.aria-label]="'userSpace.quickLinks' | t">
+      <a routerLink="/history" class="uspace__link">{{ 'userSpace.linkHistory' | t }}</a>
+      <a routerLink="/help" class="uspace__link">{{ 'userSpace.linkHelp' | t }}</a>
+      <a routerLink="/settings/profile" class="uspace__link">{{ 'userSpace.linkSettings' | t }}</a>
+    </nav>
+  }
+</div>

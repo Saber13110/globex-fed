@@ -1,0 +1,27 @@
+[
+  {
+    "id": "track",
+    "question": "Comment suivre mon colis ?",
+    "answer": "Saisissez votre numéro de suivi FedEx (12 ou 14 chiffres) dans le chat. Vous verrez le statut, la chronologie et pourrez exporter l'historique en Excel."
+  },
+  {
+    "id": "pod",
+    "question": "Comment obtenir une preuve de livraison ?",
+    "answer": "Une fois le colis livré, utilisez le bouton « Télécharger la preuve de livraison (PDF) » sous le récapitulatif du suivi. En mode démo (FedEx désactivé), un PDF d'exemple est fourni."
+  },
+  {
+    "id": "export",
+    "question": "Comment exporter mes suivis ?",
+    "answer": "Allez dans Historique puis « Exporter Excel », ou demandez l'export dans le chat. Les quotas journaliers peuvent s'appliquer selon votre compte."
+  },
+  {
+    "id": "prefs",
+    "question": "Comment personnaliser les réponses du chatbot ?",
+    "answer": "Paramètres → préférences de style (ton, options). Votre demande est validée par un administrateur avant d'être appliquée."
+  },
+  {
+    "id": "account",
+    "question": "Problème de connexion ou de compte ?",
+    "answer": "Vérifiez votre email et mot de passe. Les employés doivent être validés par un admin. Utilisez le formulaire ci-dessous pour contacter le support."
+  }
+]

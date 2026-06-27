@@ -1,0 +1,304 @@
+<div class="helpdesk">
+  <aside class="helpdesk-inbox">
+    <header class="helpdesk-inbox__head">
+      <div>
+        <span class="helpdesk-inbox__badge">{{ 'employee.helpdesk.badge' | t }}</span>
+        <h1>{{ 'employee.helpdesk.title' | t }}</h1>
+      </div>
+      @if (stats?.unread) {
+        <span class="helpdesk-inbox__alert">{{ stats!.unread }}</span>
+      }
+    </header>
+
+    <div class="helpdesk-search">
+      <input
+        type="search"
+        [(ngModel)]="q"
+        (keyup.enter)="applyFilters()"
+        [placeholder]="'employee.helpdesk.searchPlaceholder' | t"
+      />
+    </div>
+
+    <div class="helpdesk-filters">
+      <select [(ngModel)]="priority" (change)="applyFilters()">
+        <option value="">{{ 'employee.helpdesk.allPriorities' | t }}</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+      <select [(ngModel)]="category" (change)="applyFilters()">
+        <option value="">{{ 'employee.helpdesk.allCategories' | t }}</option>
+        <option value="tracking">Tracking</option>
+        <option value="documents">Documents</option>
+        <option value="ai">AI</option>
+        <option value="security">Security</option>
+        <option value="account">Account</option>
+        <option value="other">Other</option>
+      </select>
+      <select [(ngModel)]="assigned" (change)="applyFilters()">
+        <option value="">{{ 'employee.helpdesk.allAssignees' | t }}</option>
+        @for (emp of employees; track emp.id) {
+          <option [value]="emp.id">{{ emp.full_name }}</option>
+        }
+      </select>
+    </div>
+
+    <nav class="helpdesk-tabs">
+      @for (tab of ['open', 'pending', 'resolved', 'closed']; track tab) {
+        <button
+          type="button"
+          class="helpdesk-tabs__btn"
+          [class.helpdesk-tabs__btn--active]="inboxTab === tab"
+          (click)="setTab($any(tab))"
+        >
+          {{ ('employee.helpdesk.tab.' + tab) | t }}
+          <span class="helpdesk-tabs__count">{{ tabCount($any(tab)) }}</span>
+        </button>
+      }
+    </nav>
+
+    <div class="helpdesk-inbox__list">
+      @if (loadingList) {
+        <div class="helpdesk-loading"><span class="helpdesk-spinner"></span></div>
+      } @else if (!tickets.length) {
+        <p class="helpdesk-empty">{{ 'employee.helpdesk.noTickets' | t }}</p>
+      } @else {
+        @for (tk of tickets; track tk.id) {
+          <button
+            type="button"
+            class="helpdesk-card"
+            [class.helpdesk-card--active]="selectedId === tk.id"
+            (click)="selectTicket(tk.id)"
+          >
+            <div class="helpdesk-card__top">
+              <span class="helpdesk-card__number">{{ tk.ticket_number }}</span>
+              @if (tk.unread) {
+                <span class="helpdesk-card__unread"></span>
+              }
+            </div>
+            <h3 class="helpdesk-card__subject">{{ tk.subject }}</h3>
+            <p class="helpdesk-card__customer">{{ tk.customer_name }}</p>
+            <div class="helpdesk-card__meta">
+              <span class="helpdesk-pill helpdesk-pill--category">{{ tk.category }}</span>
+              <span class="helpdesk-pill" [class]="'helpdesk-pill--' + tk.priority">{{ tk.priority }}</span>
+            </div>
+            <p class="helpdesk-card__activity">{{ relativeActivity(tk.last_activity_at) }} · {{ tk.last_activity }}</p>
+          </button>
+        }
+      }
+    </div>
+  </aside>
+
+  <section class="helpdesk-conversation">
+    @if (!selected) {
+      <div class="helpdesk-conversation__empty">
+        <h2>{{ 'employee.helpdesk.selectTicket' | t }}</h2>
+        <p>{{ 'employee.helpdesk.selectTicketHint' | t }}</p>
+      </div>
+    } @else {
+      <header class="helpdesk-conversation__head">
+        <div>
+          <h2>{{ selected.subject }}</h2>
+          <p>{{ selected.ticket_number }} · {{ selected.customer_name }}</p>
+        </div>
+        <div class="helpdesk-conversation__actions">
+          <span class="helpdesk-status" [class]="'helpdesk-status--' + selected.status">{{ selected.status }}</span>
+          <div class="helpdesk-actions-menu" (click)="$event.stopPropagation()">
+            <button type="button" class="helpdesk-actions-menu__trigger" (click)="toggleActionsMenu($event)">
+              {{ 'employee.helpdesk.actions' | t }}
+              <span class="helpdesk-actions-menu__chev" [class.helpdesk-actions-menu__chev--open]="actionsOpen">▾</span>
+            </button>
+            @if (actionsOpen) {
+              <div class="helpdesk-actions-menu__dropdown">
+                <button type="button" (click)="runTicketAction('reply', $event)">{{ 'employee.helpdesk.action.reply' | t }}</button>
+                <button type="button" (click)="runTicketAction('resolve', $event)">{{ 'employee.helpdesk.action.resolve' | t }}</button>
+                <button type="button" (click)="runTicketAction('pending', $event)">{{ 'employee.helpdesk.action.pending' | t }}</button>
+                <button type="button" (click)="runTicketAction('escalate', $event)">{{ 'employee.support.escalate' | t }}</button>
+                <button type="button" (click)="runTicketAction('assign', $event)">{{ 'employee.helpdesk.action.assign' | t }}</button>
+                <button type="button" (click)="runTicketAction('internal', $event)">{{ 'employee.helpdesk.action.internalNote' | t }}</button>
+                <div class="helpdesk-actions-menu__sep"></div>
+                <button type="button" (click)="runTicketAction('profile', $event)">{{ 'employee.helpdesk.action.clientProfile' | t }}</button>
+                @if (selected.tracking_number) {
+                  <button type="button" (click)="runTicketAction('tracking', $event)">{{ 'employee.helpdesk.action.tracking' | t }}</button>
+                }
+                <button type="button" (click)="runTicketAction('download', $event)">{{ 'employee.helpdesk.action.download' | t }}</button>
+              </div>
+            }
+          </div>
+        </div>
+      </header>
+
+      <div class="helpdesk-thread" #threadEl>
+        <div class="helpdesk-msg helpdesk-msg--customer">
+          <span class="helpdesk-msg__role">{{ 'employee.helpdesk.roleClient' | t }}</span>
+          <article class="helpdesk-bubble helpdesk-bubble--customer">
+            <p>{{ selected.message }}</p>
+            @if (selected.attachment_url) {
+              <button type="button" class="helpdesk-link" (click)="openAttachment(selected.attachment_url!)">
+                {{ 'employee.helpdesk.attachment' | t }}
+              </button>
+            }
+            <footer class="helpdesk-bubble__foot">
+              <span>{{ selected.customer_name }}</span>
+              <time>{{ formatDate(selected.created_at) }} · {{ formatTime(selected.created_at) }}</time>
+            </footer>
+          </article>
+        </div>
+
+        @for (msg of selected.messages; track msg.id) {
+          <div [class]="msgWrapperClass(msg.author_role, msg.is_internal)">
+            <span class="helpdesk-msg__role">{{ msgRoleKey(msg) | t }}</span>
+            <article [class]="bubbleClass(msg.author_role, msg.is_internal)">
+              <p>{{ msg.body }}</p>
+              @if (msg.attachment_url) {
+                <button type="button" class="helpdesk-link" (click)="openAttachment(msg.attachment_url!)">
+                  {{ 'employee.helpdesk.attachment' | t }}
+                </button>
+              }
+              <footer class="helpdesk-bubble__foot">
+                <span>{{ msg.is_internal ? ('employee.helpdesk.internalNote' | t) : (msg.author_name || msg.author_role) }}</span>
+                <time>{{ formatDate(msg.created_at) }} · {{ formatTime(msg.created_at) }}</time>
+              </footer>
+            </article>
+          </div>
+        }
+      </div>
+
+      @if (showInternalNote) {
+        <div class="helpdesk-compose helpdesk-compose--internal">
+          <textarea [(ngModel)]="internalNote" [placeholder]="'employee.helpdesk.internalPlaceholder' | t"></textarea>
+          <div class="helpdesk-compose__actions">
+            <input type="file" #noteFile hidden (change)="onNoteFile($event)" />
+            <button type="button" class="helpdesk-btn helpdesk-btn--ghost" (click)="noteFile.click()">
+              {{ 'employee.helpdesk.attach' | t }}
+            </button>
+            <button type="button" class="helpdesk-btn helpdesk-btn--ghost" (click)="showInternalNote = false">
+              {{ 'employee.helpdesk.cancel' | t }}
+            </button>
+            <button type="button" class="helpdesk-btn helpdesk-btn--accent" [disabled]="noteSending" (click)="sendInternalNote()">
+              {{ 'employee.helpdesk.saveNote' | t }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="helpdesk-compose">
+          <textarea [(ngModel)]="reply" [placeholder]="'employee.support.replyPlaceholder' | t"></textarea>
+          <div class="helpdesk-compose__actions">
+            <input type="file" #replyFile hidden (change)="onReplyFile($event)" />
+            <button type="button" class="helpdesk-btn helpdesk-btn--ghost" (click)="replyFile.click()">
+              {{ 'employee.helpdesk.attach' | t }}
+            </button>
+            <button type="button" class="helpdesk-btn helpdesk-btn--primary" [disabled]="sending" (click)="sendReply()">
+              {{ 'employee.support.send' | t }}
+            </button>
+          </div>
+        </div>
+      }
+
+    }
+  </section>
+
+  <aside class="helpdesk-details">
+    @if (selected) {
+      <div class="helpdesk-details__scroll">
+        <header class="helpdesk-details__head">
+          <h3>{{ 'employee.helpdesk.details' | t }}</h3>
+          <span class="helpdesk-details__id">{{ selected.ticket_number }}</span>
+        </header>
+
+        <div class="helpdesk-kpi-grid">
+          <article class="helpdesk-kpi" [class]="'helpdesk-kpi--status-' + selected.status">
+            <strong>{{ selected.status }}</strong>
+            <span>{{ 'employee.helpdesk.field.status' | t }}</span>
+          </article>
+          <article class="helpdesk-kpi" [class]="priorityKpiClass(selected.priority)">
+            <strong>{{ selected.priority }}</strong>
+            <span>{{ 'employee.helpdesk.field.priority' | t }}</span>
+          </article>
+          <article class="helpdesk-kpi helpdesk-kpi--category">
+            <strong>{{ selected.category }}</strong>
+            <span>{{ 'employee.helpdesk.field.category' | t }}</span>
+          </article>
+          <article class="helpdesk-kpi">
+            <strong class="helpdesk-kpi__truncate">{{ selected.assigned_employee || '—' }}</strong>
+            <span>{{ 'employee.helpdesk.field.assignee' | t }}</span>
+          </article>
+        </div>
+
+        <section class="helpdesk-customer">
+          <h4>{{ 'employee.helpdesk.field.customer' | t }}</h4>
+          <button type="button" class="helpdesk-customer__card" (click)="openClientProfile()">
+            <span class="helpdesk-customer__avatar">{{ customerInitials() }}</span>
+            <div class="helpdesk-customer__info">
+              <strong>{{ selected.customer_name }}</strong>
+              <p>{{ selected.customer_email }}</p>
+            </div>
+          </button>
+          @if (clientSummary) {
+            <div class="helpdesk-customer__stats">
+              <span>{{ clientSummary.active_shipments }} {{ 'employee.helpdesk.statShipments' | t }}</span>
+              <span>{{ clientSummary.open_tickets }} {{ 'employee.helpdesk.statTickets' | t }}</span>
+              <span>{{ clientSummary.total_documents }} {{ 'employee.helpdesk.statDocuments' | t }}</span>
+            </div>
+          }
+        </section>
+
+        <dl class="helpdesk-details__meta">
+          <div>
+            <dt>{{ 'employee.helpdesk.field.created' | t }}</dt>
+            <dd>{{ formatDate(selected.created_at) }} {{ formatTime(selected.created_at) }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'employee.helpdesk.field.updated' | t }}</dt>
+            <dd>{{ selected.updated_at ? formatDate(selected.updated_at) + ' ' + formatTime(selected.updated_at) : '—' }}</dd>
+          </div>
+          @if (selected.tracking_number) {
+            <div>
+              <dt>{{ 'employee.helpdesk.field.tracking' | t }}</dt>
+              <dd><button type="button" class="helpdesk-link" (click)="openTracking()">{{ selected.tracking_number }}</button></dd>
+            </div>
+          }
+        </dl>
+
+        <section class="helpdesk-timeline">
+          <h4>{{ 'employee.helpdesk.timeline' | t }}</h4>
+          <ul class="helpdesk-timeline__list">
+            @for (ev of ticketTimeline(); track $index; let last = $last) {
+              <li class="helpdesk-timeline__item" [class.helpdesk-timeline__item--now]="ev.isNow" [class.helpdesk-timeline__item--last]="last">
+                <span class="helpdesk-timeline__rail">
+                  <span class="helpdesk-timeline__dot"></span>
+                </span>
+                <div class="helpdesk-timeline__body">
+                  <time>{{ ev.isNow ? ('employee.helpdesk.now' | t) : formatTimelineDate(ev.at!) }}</time>
+                  <p>
+                    {{ ev.labelKey | t }}
+                    @if (ev.detail) { <em>{{ ev.detail }}</em> }
+                  </p>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      </div>
+    } @else {
+      <p class="helpdesk-empty">{{ 'employee.helpdesk.noSelection' | t }}</p>
+    }
+  </aside>
+</div>
+
+@if (assignOpen) {
+  <div class="helpdesk-modal-backdrop" (click)="assignOpen = false">
+    <div class="helpdesk-modal" (click)="$event.stopPropagation()">
+      <h3>{{ 'employee.helpdesk.assignTitle' | t }}</h3>
+      <select [(ngModel)]="assignEmployeeId">
+        @for (emp of employees; track emp.id) {
+          <option [ngValue]="emp.id">{{ emp.full_name }}</option>
+        }
+      </select>
+      <div class="helpdesk-modal__actions">
+        <button type="button" class="helpdesk-btn helpdesk-btn--ghost" (click)="assignOpen = false">{{ 'employee.helpdesk.cancel' | t }}</button>
+        <button type="button" class="helpdesk-btn helpdesk-btn--primary" (click)="confirmAssign()">{{ 'employee.helpdesk.action.assign' | t }}</button>
+      </div>
+    </div>
+  </div>
+}

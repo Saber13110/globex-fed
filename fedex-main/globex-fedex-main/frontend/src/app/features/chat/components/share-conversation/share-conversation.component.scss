@@ -1,0 +1,101 @@
+.share-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(17, 24, 39, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.share-modal {
+  width: min(520px, 100%);
+  border-radius: var(--ui-radius-lg);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow-md);
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.share-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.share-modal__head h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #111827;
+}
+
+.share-modal__head button {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.share-modal__desc {
+  margin: 0;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.share-modal__field {
+  display: grid;
+  gap: 6px;
+}
+
+.share-modal__field span {
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.share-modal__field input {
+  border: 1px solid #d2d7e2;
+  background: #fff;
+  color: #111827;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.share-modal__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #2f3641;
+  font-size: 14px;
+}
+
+.share-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.share-modal__actions .primary,
+.share-modal__actions .light {
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.share-modal__actions .primary {
+  border-color: var(--ui-accent);
+  background: var(--ui-accent);
+  color: #fff;
+}
+
+.share-modal__actions .light {
+  border-color: #d2d7e2;
+  background: #fff;
+  color: #2f3641;
+}

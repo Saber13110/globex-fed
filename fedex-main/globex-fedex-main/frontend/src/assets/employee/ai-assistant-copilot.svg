@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+  <defs>
+    <radialGradient id="aiGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8B73FF" stop-opacity="0.45"/>
+      <stop offset="70%" stop-color="#6D4AFF" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#6D4AFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="aiBody" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#8B73FF"/>
+      <stop offset="100%" stop-color="#6D4AFF"/>
+    </linearGradient>
+    <filter id="aiPulse"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <circle cx="100" cy="100" r="88" fill="url(#aiGlow)"/>
+  <circle cx="100" cy="100" r="62" stroke="#6D4AFF" stroke-width="1.5" stroke-opacity="0.25" fill="none"/>
+  <g filter="url(#aiPulse)">
+    <rect x="62" y="58" width="76" height="58" rx="22" fill="url(#aiBody)"/>
+    <rect x="74" y="72" width="52" height="20" rx="10" fill="rgba(15,10,35,0.3)"/>
+    <circle cx="88" cy="82" r="5" fill="#fff"/>
+    <circle cx="112" cy="82" r="5" fill="#fff"/>
+    <path d="M82 98 Q100 108 118 98" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <rect x="78" y="118" width="44" height="36" rx="16" fill="url(#aiBody)"/>
+    <circle cx="100" cy="134" r="10" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+    <circle cx="100" cy="134" r="4" fill="#fff"/>
+  </g>
+</svg>

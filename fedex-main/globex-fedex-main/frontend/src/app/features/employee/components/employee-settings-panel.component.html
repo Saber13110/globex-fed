@@ -1,0 +1,186 @@
+<div class="emp-settings-overlay" (click)="close()">
+  <div class="emp-settings-dialog" (click)="$event.stopPropagation()" role="dialog" [attr.aria-label]="'settings.title' | t">
+    <button type="button" class="emp-settings-close" (click)="close()" [attr.aria-label]="'common.close' | t">×</button>
+
+    <div class="sp sp--modal">
+      <aside class="sp-sidebar">
+        <h1 class="sp-sidebar__title">{{ 'settings.title' | t }}</h1>
+        <nav class="sp-sidebar__nav" [attr.aria-label]="'settings.title' | t">
+          @for (item of primaryNav; track item.tab) {
+            <button type="button" class="sp-sidebar__link" [class.sp-sidebar__link--active]="tab === item.tab" (click)="goTo(item.tab)">
+              <span class="sp-sidebar__icon" aria-hidden="true">
+                @switch (item.icon) {
+                  @case ('user') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/></svg> }
+                  @case ('shield') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg> }
+                  @case ('palette') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg> }
+                  @case ('languages') { <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg> }
+                }
+              </span>
+              <span>{{ item.labelKey | t }}</span>
+            </button>
+          }
+        </nav>
+      </aside>
+
+      <main class="sp-main">
+        <div class="sp-content">
+          @if (saved) {
+            <div class="sp-toast" role="status">{{ 'settings.saved' | t }}</div>
+          }
+
+          @if (tab === 'profile') {
+            <header class="sp-page-head">
+              <h2>{{ 'settings.profile' | t }}</h2>
+              <p>{{ 'settings.profileLead' | t }}</p>
+            </header>
+
+            <section class="sp-card sp-card--hero">
+              <div class="sp-profile-top">
+                <div class="sp-avatar sp-avatar--lg">{{ avatarInitial }}</div>
+                <div class="sp-profile-top__info">
+                  <strong>{{ fullName || accountNameFallback() }}</strong>
+                  <span>{{ userEmail || '—' }}</span>
+                  <span class="sp-badge">{{ 'employee.sidebar.portal' | t }}</span>
+                </div>
+              </div>
+              <div class="sp-meta-grid">
+                <div class="sp-meta-item">
+                  <span>{{ 'settings.role' | t }}</span>
+                  <strong>{{ userRole }}</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="sp-card">
+              <h3 class="sp-card__title">{{ 'settings.personalInfo' | t }}</h3>
+              <div class="sp-form-grid">
+                <label class="sp-field">
+                  <span>{{ 'common.fullName' | t }}</span>
+                  <input type="text" [(ngModel)]="fullName" />
+                </label>
+                <label class="sp-field">
+                  <span>{{ 'settings.email' | t }}</span>
+                  <input type="email" [value]="userEmail || '—'" readonly />
+                </label>
+              </div>
+              <footer class="sp-card__foot">
+                <button type="button" class="sp-btn sp-btn--primary" (click)="saveProfile()">{{ 'settings.saveChanges' | t }}</button>
+              </footer>
+            </section>
+          }
+
+          @if (tab === 'security') {
+            <header class="sp-page-head">
+              <h2>{{ 'settings.nav.security' | t }}</h2>
+              <p>{{ 'settings.accountLead' | t }}</p>
+            </header>
+
+            <div class="sp-action-cards">
+              <article class="sp-action-card">
+                <div class="sp-action-card__icon sp-action-card__icon--purple">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <div class="sp-action-card__body">
+                  <strong>{{ 'settings.password' | t }}</strong>
+                  <p>{{ 'settings.passwordHint' | t }}</p>
+                </div>
+                <span class="sp-badge">{{ 'settings.comingSoon' | t }}</span>
+              </article>
+
+              <article class="sp-action-card">
+                <div class="sp-action-card__icon sp-action-card__icon--orange">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                </div>
+                <div class="sp-action-card__body">
+                  <strong>{{ 'settings.twoFactor' | t }}</strong>
+                  <p>{{ 'settings.twoFactorHint' | t }}</p>
+                </div>
+                <span class="sp-badge sp-badge--success">{{ 'settings.twoFactorActive' | t }}</span>
+              </article>
+            </div>
+          }
+
+          @if (tab === 'appearance') {
+            <header class="sp-page-head">
+              <h2>{{ 'settings.appearance' | t }}</h2>
+              <p>{{ 'settings.appearanceLead' | t }}</p>
+            </header>
+
+            <section class="sp-card">
+              <h3 class="sp-card__title">{{ 'settings.theme' | t }}</h3>
+              <div class="sp-theme-grid">
+                <button type="button" class="sp-theme-card" [class.sp-theme-card--active]="colorMode === 'light'" (click)="setColorMode('light')">
+                  <span class="sp-theme-preview sp-theme-preview--light">
+                    <span class="sp-theme-preview__bar"></span>
+                    <span class="sp-theme-preview__content"></span>
+                  </span>
+                  <span>{{ 'settings.simplified' | t }}</span>
+                </button>
+                <button type="button" class="sp-theme-card" [class.sp-theme-card--active]="colorMode === 'dark'" (click)="setColorMode('dark')">
+                  <span class="sp-theme-preview sp-theme-preview--dark">
+                    <span class="sp-theme-preview__bar"></span>
+                    <span class="sp-theme-preview__content"></span>
+                  </span>
+                  <span>{{ 'settings.dark' | t }}</span>
+                </button>
+                <button type="button" class="sp-theme-card" [class.sp-theme-card--active]="colorMode === 'auto'" (click)="setColorMode('auto')">
+                  <span class="sp-theme-preview sp-theme-preview--auto">
+                    <span class="sp-theme-preview__half sp-theme-preview__half--light"></span>
+                    <span class="sp-theme-preview__half sp-theme-preview__half--dark"></span>
+                  </span>
+                  <span>{{ 'settings.systemTheme' | t }}</span>
+                </button>
+              </div>
+            </section>
+
+            <section class="sp-card">
+              <h3 class="sp-card__title">{{ 'settings.accentColor' | t }}</h3>
+              <div class="sp-accent-grid">
+                <button type="button" class="sp-accent-card" [class.sp-accent-card--active]="accentColor === 'fedex'" (click)="setAccentColor('fedex')">
+                  <span class="sp-accent-swatch sp-accent-swatch--fedex"></span>
+                  <span>{{ 'settings.accentFedex' | t }}</span>
+                </button>
+                <button type="button" class="sp-accent-card" [class.sp-accent-card--active]="accentColor === 'purple'" (click)="setAccentColor('purple')">
+                  <span class="sp-accent-swatch sp-accent-swatch--purple"></span>
+                  <span>{{ 'settings.accentPurple' | t }}</span>
+                </button>
+                <button type="button" class="sp-accent-card" [class.sp-accent-card--active]="accentColor === 'orange'" (click)="setAccentColor('orange')">
+                  <span class="sp-accent-swatch sp-accent-swatch--orange"></span>
+                  <span>{{ 'settings.accentOrange' | t }}</span>
+                </button>
+                <button type="button" class="sp-accent-card" [class.sp-accent-card--active]="accentColor === 'blue'" (click)="setAccentColor('blue')">
+                  <span class="sp-accent-swatch sp-accent-swatch--blue"></span>
+                  <span>{{ 'settings.accentBlue' | t }}</span>
+                </button>
+              </div>
+            </section>
+          }
+
+          @if (tab === 'language') {
+            <header class="sp-page-head">
+              <h2>{{ 'settings.language' | t }}</h2>
+              <p>{{ 'settings.languageCenterLead' | t }}</p>
+            </header>
+
+            <section class="sp-card">
+              <div class="sp-lang-grid">
+                <button type="button" class="sp-lang-card" [class.sp-lang-card--active]="i18n.langCode() === 'fr'" (click)="setLanguage('fr')">
+                  <strong>Français</strong>
+                  <span>FR</span>
+                </button>
+                <button type="button" class="sp-lang-card" [class.sp-lang-card--active]="i18n.langCode() === 'en'" (click)="setLanguage('en')">
+                  <strong>English</strong>
+                  <span>EN</span>
+                </button>
+                <button type="button" class="sp-lang-card" [class.sp-lang-card--active]="i18n.langCode() === 'ar'" (click)="setLanguage('ar')">
+                  <strong>العربية</strong>
+                  <span>AR</span>
+                </button>
+              </div>
+            </section>
+          }
+        </div>
+      </main>
+    </div>
+  </div>
+</div>

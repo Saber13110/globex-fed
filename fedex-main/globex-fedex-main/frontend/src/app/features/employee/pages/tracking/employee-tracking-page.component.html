@@ -1,0 +1,93 @@
+<div class="ship-ops">
+  <section class="ship-ops-hero">
+    <div class="ship-ops-hero__illustration" [style.backgroundImage]="'url(' + heroBanner + ')'" aria-hidden="true"></div>
+    <div class="ship-ops-hero__overlay" aria-hidden="true"></div>
+    <div class="ship-ops-hero__content">
+      <span class="ship-ops-hero__badge">{{ 'employee.shipOps.badge' | t }}</span>
+      <h1>{{ 'employee.shipOps.title' | t }}</h1>
+      <p class="ship-ops-hero__subtitle">{{ 'employee.shipOps.subtitle' | t }}</p>
+    </div>
+  </section>
+
+  <section class="ship-ops-search-panel">
+    <div class="ship-ops-search">
+      <span class="ship-ops-icon ship-ops-icon--search" data-icon="search"></span>
+      <input
+        type="search"
+        [(ngModel)]="q"
+        (keyup.enter)="search()"
+        [placeholder]="'employee.shipOps.searchPlaceholder' | t"
+      />
+      <button type="button" class="ship-ops-btn ship-ops-btn--primary" (click)="search()">
+        {{ 'employee.filters.apply' | t }}
+      </button>
+    </div>
+    <a routerLink="/employee/tracking-history" class="ship-ops-btn ship-ops-btn--ghost">
+      <span class="ship-ops-icon" data-icon="clock"></span>
+      {{ 'employee.tracking.history' | t }}
+    </a>
+  </section>
+
+  @if (loading) {
+    <div class="ship-ops-grid ship-ops-grid--skeleton">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="ship-ops__skeleton"></div>
+      }
+    </div>
+  } @else if (items.length === 0) {
+    <div class="ship-ops-empty">
+      <span class="ship-ops-icon ship-ops-empty__icon" data-icon="package"></span>
+      <p>{{ 'employee.shipOps.empty' | t }}</p>
+    </div>
+  } @else {
+    <section class="ship-ops-grid">
+      @for (item of items; track item.id) {
+        <article class="ship-ops-card" [class.ship-ops-card--exception]="item.is_exception">
+          <header class="ship-ops-card__head">
+            <div class="ship-ops-card__icon-wrap">
+              <span class="ship-ops-icon" data-icon="package"></span>
+            </div>
+            <div class="ship-ops-card__identity">
+              <strong class="ship-ops-card__tracking">{{ item.tracking_number }}</strong>
+              @if (item.client_id) {
+                <a [routerLink]="['/employee/client', item.client_id]" class="ship-ops-card__client">{{ item.client_name }}</a>
+              } @else {
+                <span class="ship-ops-card__client">{{ item.client_name || '—' }}</span>
+              }
+            </div>
+            <span class="ship-ops-card__status" [class]="statusClass(item.status_category)">{{ item.status }}</span>
+          </header>
+          <div class="ship-ops-card__meta">
+            <span>
+              <span class="ship-ops-icon ship-ops-icon--sm" data-icon="pin"></span>
+              {{ 'employee.shipOps.location' | t }}: {{ item.current_location || '—' }}
+            </span>
+            <span>
+              <span class="ship-ops-icon ship-ops-icon--sm" data-icon="calendar"></span>
+              ETA: {{ item.estimated_delivery || '—' }}
+            </span>
+          </div>
+          <footer class="ship-ops-card__actions">
+            <button type="button" class="ship-ops-btn ship-ops-btn--primary ship-ops-btn--sm" (click)="openShipment(item)">
+              {{ 'employee.shipOps.openShipment' | t }}
+            </button>
+          </footer>
+        </article>
+      }
+    </section>
+
+    @if (totalPages > 1) {
+      <nav class="ship-ops-pagination">
+        <button type="button" class="ship-ops-pagination__btn" [disabled]="page <= 1" (click)="goToPage(page - 1)">
+          {{ 'employee.clientOps.prevPage' | t }}
+        </button>
+        <span class="ship-ops-pagination__info">
+          {{ 'employee.clientOps.pageOf' | t:{ page: '' + page, total: '' + totalPages } }}
+        </span>
+        <button type="button" class="ship-ops-pagination__btn" [disabled]="page >= totalPages" (click)="goToPage(page + 1)">
+          {{ 'employee.clientOps.nextPage' | t }}
+        </button>
+      </nav>
+    }
+  }
+</div>

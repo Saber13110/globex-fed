@@ -1,0 +1,274 @@
+@if (loading() && !data()) {
+  <div class="gx-dash gx-dash--loading" aria-busy="true"><div class="gx-skel"></div></div>
+} @else if (error()) {
+  <div class="gx-error" role="alert">
+    <p>{{ error() }}</p>
+    <button type="button" class="gx-btn gx-btn--primary" (click)="load()">Réessayer</button>
+  </div>
+} @else if (data()) {
+  <div class="gx-dash">
+    <!-- HERO PREMIUM — introduction visuelle minimaliste -->
+    <section class="gx-hero-premium gx-clickable-surface" aria-label="Command Center">
+      <button type="button" class="gx-hero-premium__hit" (click)="openAiAssistant()" aria-label="Ouvrir l'assistant IA">
+      <div class="gx-hero-premium__bg" [style.background-image]="'url(' + heroBackground + ')'" aria-hidden="true"></div>
+      <div class="gx-hero-premium__veil" aria-hidden="true"></div>
+
+      <div class="gx-hero-premium__content">
+        <p class="gx-hero-premium__hello">Welcome back,</p>
+
+        <div class="gx-hero-premium__headline">
+          <h1 class="gx-hero-premium__title">{{ adminName }}</h1>
+          <span class="gx-hero-premium__badge">{{ roleBadge() }}</span>
+        </div>
+
+        <p class="gx-hero-premium__status">
+          <span class="gx-hero-premium__live"></span>
+          Globex Logistics Intelligence Center
+        </p>
+      </div>
+      </button>
+    </section>
+
+    <!-- AI COMMAND CENTER (full width) -->
+    <section class="gx-row gx-row--ai">
+      <article class="gx-card gx-ai-card" aria-label="AI Command Center">
+        <div class="gx-ai-card__visual" aria-hidden="true">
+          <div class="gx-ai-card__brain-glow"></div>
+          <div class="gx-ai-card__brain-ring"></div>
+          <picture>
+            <source [attr.srcset]="aiBrainWebp" type="image/webp" />
+            <img
+              class="gx-ai-card__brain-bg"
+              [src]="aiBrain"
+              alt=""
+              width="744"
+              height="496"
+              fetchpriority="high"
+              loading="eager"
+              decoding="async"
+            />
+          </picture>
+        </div>
+        <div class="gx-ai-card__overlay" aria-hidden="true"></div>
+        <div class="gx-ai-card__layout">
+          <div class="gx-ai-card__left">
+            <header class="gx-ai-card__head">
+              <button type="button" class="gx-ai-card__title-btn" (click)="openAiAssistant()" aria-label="Ouvrir l'assistant IA">
+                <span class="gx-ai-card__icon" aria-hidden="true">✦</span>
+                <h2 class="gx-ai-card__title">AI Command Center <span class="gx-beta">BETA</span></h2>
+              </button>
+            </header>
+            <p class="gx-ai-card__hint">Ask anything about shipments, reports, users, incidents or analytics.</p>
+            <div class="gx-ai-input">
+              <span class="gx-ai-input__search" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5Zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z"/></svg>
+              </span>
+              <input
+                type="text"
+                placeholder="Ask a question or type a command..."
+                [ngModel]="aiQuery()"
+                (ngModelChange)="aiQuery.set($event)"
+                (keydown.enter)="sendAi()"
+                [disabled]="aiLoading()"
+              />
+              <button type="button" class="gx-ai-input__send" (click)="sendAi()" [disabled]="aiLoading() || !aiQuery().trim()" aria-label="Envoyer">
+                @if (aiLoading()) {
+                  <span class="gx-spinner"></span>
+                } @else {
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                }
+              </button>
+            </div>
+            <div class="gx-ai-card__commands">
+              <p class="gx-ai-card__recent-label">Recent Commands</p>
+              <div class="gx-chips">
+                @for (cmd of aiCommands; track cmd.label) {
+                  <button type="button" class="gx-chip" (click)="runCommand(cmd.key, cmd.label)">{{ cmd.label }}</button>
+                }
+              </div>
+            </div>
+            @if (aiReply()) {
+              <div class="gx-ai-reply">
+                <span class="gx-ai-reply__label">AI Response</span>
+                <p>{{ aiReply() }}</p>
+              </div>
+            }
+            @if (aiError()) {
+              <div class="gx-ai-reply gx-ai-reply--error">
+                <p>{{ aiError() }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- OPS GRID — 2 rows × 3 columns (design référence) -->
+    <section class="gx-ops-grid" aria-label="Operations dashboard">
+      <article class="gx-card gx-ops-card gx-shipments-card gx-panel gx-clickable-surface" aria-label="Live Shipments">
+        <header class="gx-card__head">
+          <button type="button" class="gx-card__title-btn" (click)="go('tracking')">Live Shipments</button>
+          <button type="button" class="gx-link" (click)="go('tracking')">View all</button>
+        </header>
+        <div class="gx-ship-list">
+          @for (s of data()!.live_shipments.slice(0, 5); track s.id) {
+            <button type="button" class="gx-ship-row gx-clickable-row" (click)="openShipment(s)" [attr.aria-label]="'Track ' + s.tracking_number">
+              <div class="gx-ship-route">
+                <span class="gx-ship-loc">
+                  @if (flagImg(s.origin_flag, s.origin); as src) {
+                    <img class="gx-flag-img" [src]="src" alt="" width="20" height="15" loading="lazy" decoding="async" />
+                  } @else {
+                    <span class="gx-flag gx-flag--fallback" aria-hidden="true">🌍</span>
+                  }
+                  <span class="gx-ship-loc__text">{{ s.origin }}</span>
+                </span>
+                <span class="gx-ship-arrow" aria-hidden="true">→</span>
+                <span class="gx-ship-loc">
+                  @if (flagImg(s.destination_flag, s.destination); as src) {
+                    <img class="gx-flag-img" [src]="src" alt="" width="20" height="15" loading="lazy" decoding="async" />
+                  } @else {
+                    <span class="gx-flag gx-flag--fallback" aria-hidden="true">🌍</span>
+                  }
+                  <span class="gx-ship-loc__text">{{ s.destination }}</span>
+                </span>
+              </div>
+              <span class="gx-status" [ngClass]="statusClass(s.status_key)">{{ s.status }}</span>
+              <span class="gx-ship-eta">{{ s.eta_label }}</span>
+            </button>
+          } @empty {
+            <button type="button" class="gx-panel-empty gx-clickable-row" (click)="go('tracking')">No active shipments — open tracking</button>
+          }
+        </div>
+      </article>
+
+      <article class="gx-card gx-ops-card gx-health-card gx-panel gx-clickable-surface" aria-label="System Health">
+        <header class="gx-card__head">
+          <button type="button" class="gx-card__title-btn" (click)="go('monitoring')">System Health</button>
+        </header>
+        <ul class="gx-health-list">
+          @for (h of dashboardHealthItems(); track h.key) {
+            <li>
+              <button type="button" class="gx-health-row gx-clickable-row" (click)="openHealth(h)" [attr.aria-label]="h.name + ' — ' + h.status">
+                <span class="gx-health-row__check" [class.gx-health-row__check--ok]="h.operational" [class.gx-health-row__check--warn]="!h.operational" aria-hidden="true">✓</span>
+                <span class="gx-health-row__name">{{ h.name }}</span>
+                <span class="gx-health-row__status" [class.gx-health-row__status--ok]="h.operational" [class.gx-health-row__status--warn]="!h.operational">{{ h.status }}</span>
+                <span class="gx-health-row__pct">{{ h.percent | number:'1.2-2' }}%</span>
+              </button>
+            </li>
+          } @empty {
+            <li class="gx-panel-empty">No services to display.</li>
+          }
+        </ul>
+      </article>
+
+      <article class="gx-card gx-ops-card gx-quick-card gx-panel" aria-label="Quick Actions">
+        <header class="gx-card__head">
+          <h2 class="gx-card__title">Quick Actions</h2>
+        </header>
+        <div class="gx-quick-grid gx-quick-grid--panel">
+          @for (action of quickActions; track action.action) {
+            <button type="button" class="gx-quick-btn" [ngClass]="'gx-quick-btn--' + action.tone" (click)="quickNav(action.action)">
+              <span class="gx-quick-btn__icon" [attr.data-icon]="action.icon" aria-hidden="true"></span>
+              <span class="gx-quick-btn__label">{{ action.label }}</span>
+              @if (quickActionCount(action.action); as count) {
+                <span class="gx-quick-btn__count">{{ count }}</span>
+              }
+            </button>
+          }
+        </div>
+      </article>
+
+      <article class="gx-card gx-ops-card gx-panel gx-conv-card gx-clickable-surface" aria-label="Recent AI Conversations">
+        <header class="gx-card__head">
+          <button type="button" class="gx-card__title-btn" (click)="go('conversations')">Recent AI Conversations</button>
+          <button type="button" class="gx-link" (click)="go('conversations')">View all</button>
+        </header>
+        <ul class="gx-conv-list">
+          @for (c of data()!.recent_conversations.slice(0, 5); track c.id) {
+            <li>
+              <button type="button" class="gx-conv-item gx-clickable-row" (click)="openConversation(c)" [attr.aria-label]="c.title">
+                <span class="gx-conv-item__icon">✦</span>
+                <div class="gx-conv-item__body">
+                  <strong>{{ c.title }}</strong>
+                  <p>{{ c.preview }}</p>
+                </div>
+                <time class="gx-conv-item__time">{{ c.created_at | date: 'HH:mm' }}</time>
+              </button>
+            </li>
+          } @empty {
+            <li><button type="button" class="gx-panel-empty gx-clickable-row" (click)="go('conversations')">No conversations — open</button></li>
+          }
+        </ul>
+      </article>
+
+      <article class="gx-card gx-ops-card gx-panel gx-users-card gx-clickable-surface" aria-label="User Management">
+        <header class="gx-card__head">
+          <button type="button" class="gx-card__title-btn" (click)="manageUsers.emit()">User Management</button>
+        </header>
+        <div class="gx-users-wrap">
+          <div class="gx-users-chart">
+            <button type="button" class="gx-donut gx-clickable-surface" (click)="manageUsers.emit()" aria-label="Manage users">
+              @if (roleChart().length) {
+                <ngx-charts-pie-chart
+                  [results]="roleChart()"
+                  [scheme]="lightScheme"
+                  [doughnut]="true"
+                  [arcWidth]="0.42"
+                  [labels]="false"
+                  [legend]="false"
+                  [view]="chartView"
+                />
+              }
+              <div class="gx-donut__center">
+                <strong>{{ data()!.total_users }}</strong>
+                <span>Total Users</span>
+              </div>
+            </button>
+            <ul class="gx-role-legend">
+              @for (r of data()!.user_roles; track r.role_key) {
+                <li>
+                  <button type="button" class="gx-role-legend__btn gx-clickable-row" (click)="openRole(r)">
+                    <i [style.background]="r.color"></i>{{ r.label }} <b>{{ r.count }}</b>
+                  </button>
+                </li>
+              }
+            </ul>
+          </div>
+          <div class="gx-users-actions">
+            <button type="button" class="gx-btn gx-btn--outline" (click)="manageUsers.emit()">Manage Users</button>
+            <button type="button" class="gx-btn gx-btn--outline" (click)="go('users')">Invite User</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="gx-card gx-ops-card gx-panel gx-activity-card gx-clickable-surface" aria-label="Recent Activity">
+        <header class="gx-card__head">
+          <button type="button" class="gx-card__title-btn" (click)="go('audit-logs')">Recent Activity</button>
+          <button type="button" class="gx-link" (click)="go('audit-logs')">Audit logs</button>
+        </header>
+        <ol class="gx-activity">
+          @for (a of data()!.activity_timeline.slice(0, 5); track a.created_at + a.message) {
+            <li>
+              <button type="button" class="gx-activity__item gx-clickable-row" (click)="openActivity(a)" [attr.aria-label]="a.message">
+                <span class="gx-activity__letter" [ngClass]="timelineDotClass(a.level, a.message)">{{ activityLetter(a.category) }}</span>
+                <div class="gx-activity__body">
+                  <time>{{ a.time_label }}</time>
+                  <p>{{ a.message }}</p>
+                </div>
+                <span class="gx-activity__badge">{{ a.category }}</span>
+              </button>
+            </li>
+          } @empty {
+            <li><button type="button" class="gx-panel-empty gx-clickable-row" (click)="go('audit-logs')">No activity — open audit logs</button></li>
+          }
+        </ol>
+      </article>
+    </section>
+
+    <footer class="gx-footer">
+      <span>© 2024 Globex AI. All rights reserved.</span>
+      <span class="gx-footer__badge">🔒 AES-256 Encryption</span>
+      <span class="gx-footer__badge">🛡 GDPR Compliant</span>
+    </footer>
+  </div>
+}

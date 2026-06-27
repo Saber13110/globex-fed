@@ -1,0 +1,337 @@
+<div class="workspace" [class.workspace--collapsed]="sidebarCollapsed">
+  <!-- Arrière-plan animé minimaliste -->
+  <div class="ambient ambient--chat-home" aria-hidden="true"></div>
+
+  <aside class="sidebar" [class.sidebar--collapsed]="sidebarCollapsed" aria-label="Navigation">
+    <app-sidebar
+      [collapsed]="sidebarCollapsed"
+      [showAdminLink]="false"
+      [portalMode]="portalMode"
+      [activeNav]="'home'"
+      [language]="accountLanguage"
+      [accountName]="accountName"
+      [accountEmail]="accountEmail"
+      [avatarUrl]="accountAvatarUrl"
+      [avatarInitial]="accountAvatarInitial"
+      [avatarClass]="accountAvatarClass"
+      [colorMode]="colorMode"
+      [unreadCount]="unreadNotifications"
+      [recentGroups]="sidebarRecentGroups"
+      [folderShortcuts]="sidebarFolderShortcuts"
+      [searchQuery]="search"
+      [pinnedConversations]="pinnedConversations"
+      [recentConversations]="recentConversations"
+      [projects]="sidebarProjects"
+      [allChatsActive]="selectedCollectionId === null"
+      [totalChatsCount]="totalChatsCount"
+      [loading]="loadingSessions"
+      (collapseToggle)="toggleSidebar()"
+      (createChat)="newConversation()"
+      (goHome)="home()"
+      (openTrackingHistory)="openHistory()"
+      (openSearch)="openSearchView()"
+      (openHistory)="openHistory()"
+      (openHelp)="openHelp()"
+      (openNotifications)="openNotificationsPanel()"
+      (openProfile)="openProfile()"
+      (openDocuments)="openDocuments()"
+      (openSupport)="openSupport()"
+      (folderShortcut)="onFolderShortcut($event)"
+      (createProject)="createCollection()"
+      (selectProject)="selectCollection($event)"
+      (selectConversation)="onSidebarSelectConversation($event)"
+      (renameConversation)="onSidebarRenameConversation($event)"
+      (renameConversationRequest)="onSidebarRenameConversationRequest($event)"
+      (togglePinConversation)="onSidebarTogglePinConversation($event)"
+      (moveConversation)="onSidebarMoveConversation($event)"
+      (deleteConversation)="onSidebarDeleteConversation($event)"
+      (openSettings)="openSettings()"
+      (toggleTheme)="toggleTheme()"
+      (logout)="logout()"
+    />
+  </aside>
+
+  <main class="canvas">
+    <app-workspace-topbar
+      [accountName]="accountName"
+      [avatarInitial]="accountAvatarInitial"
+      [avatarClass]="accountAvatarClass"
+      (logout)="logout()"
+    />
+
+    <div class="canvas__body">
+    @if (actionFeedback) {
+      <div class="action-feedback" role="status" aria-live="polite">{{ actionFeedback }}</div>
+    }
+
+    @if (currentView === 'discussions') {
+      <section class="discussions-view">
+        <header class="discussions-view__head">
+          <h2>Discussions</h2>
+          <button type="button" class="discussions-view__new" (click)="newConversation()">+ Nouvelle conversation</button>
+        </header>
+        <input
+          type="text"
+          class="discussions-view__search"
+          [(ngModel)]="discussionsQuery"
+          placeholder="Rechercher dans vos conversations..."
+        />
+        <p class="discussions-view__hint">Vos conversations Globex FedEx</p>
+        <div class="discussions-view__list">
+          @for (s of filteredDiscussions; track s.id) {
+            <button type="button" class="discussions-view__row" (click)="openSession(s)">
+              <span class="title">{{ s.title }}</span>
+              <span class="sub">Dernière mise à jour {{ s.updated_at | date : 'short' }}</span>
+            </button>
+          }
+        </div>
+      </section>
+    } @else if (currentView === 'project' && selectedCollectionName) {
+      <section class="project-view">
+        <header class="project-view__head">
+          <h2>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+              <path d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
+            </svg>
+            {{ selectedCollectionName }}
+          </h2>
+        </header>
+        <div class="project-view__input">
+          <app-chat-input
+            layout="hero"
+            [showHint]="false"
+            [disabled]="isBotThinking"
+            [placeholderText]="'Nouveau chat dans ' + selectedCollectionName"
+            (send)="onSend($event)"
+          />
+        </div>
+        <div class="project-view__tabs">
+          <button type="button" [class.active]="projectTab === 'chats'" (click)="projectTab = 'chats'">Chats</button>
+          <button type="button" [class.active]="projectTab === 'sources'" (click)="projectTab = 'sources'">Sources</button>
+        </div>
+        @if (projectTab === 'chats') {
+          @if (projectSessions.length === 0) {
+            <div class="project-view__empty">
+              <h3>Aucun chat pour le moment</h3>
+              <p>Les discussions de {{ selectedCollectionName }} apparaîtront ici</p>
+            </div>
+          } @else {
+            <div class="project-view__list">
+              @for (s of projectSessions; track s.id) {
+                <button type="button" class="project-view__row" (click)="openSession(s)">
+                  <span class="project-view__row-title">{{ s.title }}</span>
+                  <span class="project-view__row-sub">Mis à jour {{ s.updated_at | date : 'medium' }}</span>
+                </button>
+              }
+            </div>
+          }
+        } @else {
+          <div class="project-view__empty">
+            <h3>Aucune source</h3>
+            <p>Ajoutez des sources à ce projet dans une prochaine étape.</p>
+          </div>
+        }
+      </section>
+    } @else if (showHero) {
+      <app-chat-hero
+        [displayName]="heroDisplayName"
+        [greetingPrefix]="greetingPrefix"
+        [folderName]="selectedCollectionName"
+        [actions]="heroActions"
+        [stats]="heroStats"
+        [inputDisabled]="isBotThinking"
+        (send)="onSend($event)"
+        (actionSelect)="onHeroAction($event)"
+      />
+    } @else {
+      <app-conversation-thread
+        [title]="activeSession?.title || ('conversation.newTitle' | t)"
+        [sessionUpdatedAt]="activeSession?.updated_at || ''"
+        [isPinned]="activeSession?.is_pinned || false"
+        [userName]="accountName"
+        [messages]="messages"
+        [loading]="loadingMessages"
+        [thinking]="isBotThinking"
+        [error]="error"
+        [inputDisabled]="isBotThinking"
+        (send)="onSend($event)"
+        (agentAnswers)="onAgentAnswers($event)"
+        (agentSuggestionActivate)="onAgentSuggestionActivate($event)"
+        (shareConversation)="openShareModal()"
+        (renameConversation)="onHeaderRenameConversation()"
+        (togglePinConversation)="onHeaderTogglePin()"
+        (moveConversation)="onHeaderMoveConversation()"
+        (deleteConversation)="onHeaderDeleteConversation()"
+      />
+    }
+    </div>
+  </main>
+
+  @if (shareModalOpen && activeSession) {
+    <app-share-conversation
+      [conversationId]="'' + activeSession.id"
+      [conversationTitle]="activeSession.title"
+      [shareUrl]="shareLink"
+      [loading]="shareModalLoading"
+      (includeTrackingDetailsChange)="onShareIncludeTrackingDetailsChange($event)"
+      (regenerateLink)="generateShareLink()"
+      (close)="shareModalOpen = false"
+    />
+  }
+
+  @if (collectionModalOpen) {
+    <div class="dialog-overlay" (click)="closeAllModals()">
+      <section class="dialog-panel" (click)="$event.stopPropagation()">
+        <h3>Affecter à un dossier</h3>
+        <p>Saisissez l'ID du dossier. Laissez vide pour retirer l'affectation.</p>
+        <input type="text" [(ngModel)]="collectionDraft" placeholder="Ex: 1" />
+        <div class="dialog-panel__list">
+          @for (c of collections; track c.id) {
+            <button type="button" (click)="pickCollection(c.id)">{{ c.id }} · {{ c.name }}</button>
+          }
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="light" (click)="closeAllModals()">Annuler</button>
+          <button type="button" class="dark" (click)="saveCollectionAssignment()">Enregistrer</button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (tagsModalOpen) {
+    <div class="dialog-overlay" (click)="closeAllModals()">
+      <section class="dialog-panel" (click)="$event.stopPropagation()">
+        <h3>Modifier les tags</h3>
+        <p>Séparez les tags par des virgules.</p>
+        <input type="text" [(ngModel)]="tagsDraft" placeholder="ex: urgent, colis" />
+        <div class="dialog-actions">
+          <button type="button" class="light" (click)="closeAllModals()">Annuler</button>
+          <button type="button" class="dark" (click)="saveTags()">Enregistrer</button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (newFolderModalOpen) {
+    <div class="dialog-overlay" (click)="closeAllModals()">
+      <section class="dialog-panel" (click)="$event.stopPropagation()">
+        <h3>{{ 'chat.newFolder.title' | t }}</h3>
+        <p>{{ 'chat.newFolder.sub' | t }}</p>
+        <input type="text" [(ngModel)]="newFolderDraft" [placeholder]="'chat.newFolder.placeholder' | t" />
+        <div class="dialog-panel__note">
+          {{ 'chat.newFolder.note' | t }}
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="light" (click)="closeAllModals()">{{ 'common.cancel' | t }}</button>
+          <button type="button" class="dark" (click)="saveNewCollection()">{{ 'chat.newFolder.create' | t }}</button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (renameModalOpen) {
+    <div class="dialog-overlay" (click)="closeActionModals()">
+      <section class="dialog-panel" (click)="$event.stopPropagation()">
+        <h3>{{ 'chat.header.rename' | t }}</h3>
+        <p>{{ 'chat.renameModal.sub' | t }}</p>
+        <input type="text" [(ngModel)]="renameModalDraft" [placeholder]="'chat.renameModal.placeholder' | t" />
+        <div class="dialog-actions">
+          <button type="button" class="light" (click)="closeActionModals()">{{ 'common.cancel' | t }}</button>
+          <button type="button" class="dark" (click)="saveRenameModal()">{{ 'common.save' | t }}</button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (deleteModalOpen) {
+    <div class="dialog-overlay" (click)="closeActionModals()">
+      <section class="dialog-panel" (click)="$event.stopPropagation()">
+        <h3>{{ 'chat.header.delete' | t }}</h3>
+        <p>{{ 'chat.deleteModal.sub' | t }}</p>
+        <div class="dialog-actions">
+          <button type="button" class="light" (click)="closeActionModals()">{{ 'common.cancel' | t }}</button>
+          <button type="button" class="danger" (click)="confirmDeleteModal()">{{ 'common.delete' | t }}</button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (movingModalOpen) {
+    <div class="dialog-overlay" (click)="closeActionModals()">
+      <section class="dialog-panel dialog-panel--move" (click)="$event.stopPropagation()">
+        <h3>{{ 'chat.moveFolder.title' | t }}</h3>
+        <p>{{ 'chat.moveFolder.hint' | t }}</p>
+        <div class="dialog-panel__list dialog-panel__list--folders">
+          @for (folder of moveFolderChoices; track folder.id) {
+            <button
+              type="button"
+              class="dialog-panel__folder"
+              [class.dialog-panel__folder--active]="isSessionInFolderShortcut(folder.id)"
+              (click)="moveConversationToShortcut(folder.id)"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+              <span>{{ folder.label }}</span>
+            </button>
+          }
+          @for (c of customCollectionsForMove; track c.id) {
+            <button
+              type="button"
+              class="dialog-panel__folder"
+              [class.dialog-panel__folder--active]="isSessionInCollection(c.id)"
+              (click)="moveToFolderFromModal(c.id)"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+              <span>{{ c.name }}</span>
+            </button>
+          }
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="light" (click)="closeActionModals()">{{ 'common.close' | t }}</button>
+        </div>
+      </section>
+    </div>
+  }
+</div>
+
+@if (searchModalOpen) {
+  <div class="search-overlay" role="dialog" aria-modal="true" [attr.aria-label]="'sidebar.searchInChats' | t" (click)="closeSearchView()">
+    <div class="search-overlay__panel" (click)="$event.stopPropagation()">
+      <div class="search-overlay__head">
+        <input
+          #searchInput
+          type="text"
+          class="search-overlay__input"
+          [(ngModel)]="searchOverlayQuery"
+          [placeholder]="'sidebar.searchPlaceholder' | t"
+          autofocus
+        />
+        <button type="button" class="search-overlay__close" [attr.aria-label]="'common.close' | t" (click)="closeSearchView()">×</button>
+      </div>
+      <div class="search-overlay__list">
+        @if (groupedSearchResults.length === 0) {
+          <p class="search-overlay__empty">{{ 'search.noResults' | t }}</p>
+        } @else {
+          @for (group of groupedSearchResults; track group.label) {
+            <section class="search-overlay__group">
+              <h3 class="search-overlay__group-title">{{ group.label }}</h3>
+              @for (s of group.sessions; track s.id) {
+                <button type="button" class="search-overlay__item" (click)="openSession(s)">
+                  <span class="search-overlay__item-icon" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  </span>
+                  <span class="search-overlay__item-title">{{ s.title }}</span>
+                </button>
+              }
+            </section>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}

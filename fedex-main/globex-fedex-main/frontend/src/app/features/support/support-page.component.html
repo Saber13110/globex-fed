@@ -1,0 +1,186 @@
+<div class="workspace" [class.workspace--collapsed]="sidebarCollapsed">
+  <div class="ambient" aria-hidden="true">
+    <span class="ambient__orb ambient__orb--purple"></span>
+    <span class="ambient__orb ambient__orb--violet"></span>
+    <span class="ambient__orb ambient__orb--orange"></span>
+    <span class="ambient__mesh"></span>
+  </div>
+
+  <aside class="sidebar" [class.sidebar--collapsed]="sidebarCollapsed" aria-label="Navigation">
+    <app-sidebar
+      [collapsed]="sidebarCollapsed"
+      [showAdminLink]="false"
+      [activeNav]="'home'"
+      [language]="accountLanguage"
+      [accountName]="accountName"
+      [accountEmail]="accountEmail"
+      [avatarInitial]="accountAvatarInitial"
+      [avatarClass]="accountAvatarClass"
+      [colorMode]="colorMode"
+      [unreadCount]="unreadNotifications"
+      [searchQuery]="search"
+      [pinnedConversations]="pinnedConversations"
+      [recentConversations]="recentConversations"
+      [totalChatsCount]="sessions.length"
+      [loading]="loadingSessions"
+      (collapseToggle)="toggleSidebar()"
+      (createChat)="goToChat()"
+      (goHome)="goToChat()"
+      (openTrackingHistory)="goToHistory()"
+      (openHistory)="goToHistory()"
+      (openDocuments)="goToDocuments()"
+      (openSupport)="openSupport()"
+      (openHelp)="openHelp()"
+      (openProfile)="openProfile()"
+      (openSettings)="openSettings()"
+      (selectConversation)="goToChat($event)"
+      (renameConversationRequest)="onSidebarRenameConversation($event)"
+      (togglePinConversation)="onSidebarTogglePinConversation($event)"
+      (moveConversation)="onSidebarMoveConversation($event)"
+      (deleteConversation)="onSidebarDeleteConversation($event)"
+      (toggleTheme)="toggleTheme()"
+      (logout)="logout()"
+    />
+  </aside>
+
+  <main class="canvas canvas--scrollable">
+    <div class="support">
+      <header class="support__head">
+        <div>
+          <h1 class="support__title">{{ 'support.pageTitle' | t }}</h1>
+          <p class="support__sub">{{ 'support.pageSub' | t }}</p>
+        </div>
+        <button type="button" class="btn primary" (click)="startNewTicket()">
+          {{ 'support.newTicket' | t }}
+        </button>
+      </header>
+
+      @if (error) {
+        <p class="support__error" role="alert">{{ error }}</p>
+      }
+
+      <div class="support__layout">
+        <aside class="support__list" aria-label="Tickets">
+          @if (loadingTickets) {
+            <p>{{ 'common.loading' | t }}</p>
+          } @else if (tickets.length === 0) {
+            <p class="support__empty">{{ 'support.noTickets' | t }}</p>
+          } @else {
+            @for (ticket of tickets; track ticket.id) {
+              <button
+                type="button"
+                class="support__ticket"
+                [class.support__ticket--active]="activeTicket?.id === ticket.id"
+                (click)="openTicket(ticket.id)"
+              >
+                <strong>{{ ticket.subject }}</strong>
+                <span class="support__ticket-meta">
+                  <span class="support__status support__status--{{ ticket.status }}">{{ statusLabel(ticket.status) }}</span>
+                  <time>{{ ticket.created_at | date : 'short' }}</time>
+                </span>
+              </button>
+            }
+          }
+        </aside>
+
+        <section class="support__thread">
+          @if (showNewForm) {
+            <div class="support__form">
+              <h2>{{ 'support.newTicket' | t }}</h2>
+              <label class="field">
+                {{ 'support.subject' | t }}
+                <input type="text" [(ngModel)]="newSubject" maxlength="200" />
+              </label>
+              <label class="field">
+                {{ 'support.message' | t }}
+                <textarea rows="6" [(ngModel)]="newMessage" maxlength="4000"></textarea>
+              </label>
+              <div class="support__attach-row">
+                <label class="support__attach-btn">
+                  <input type="file" hidden (change)="onNewAttachmentSelected($event)" />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                  {{ 'support.attachFile' | t }}
+                </label>
+                @if (uploadingAttachment && !newAttachmentName) {
+                  <span class="support__attach-name">{{ 'support.attachmentUploading' | t }}</span>
+                }
+                @if (newAttachmentName) {
+                  <span class="support__attach-name">{{ newAttachmentName }}</span>
+                  <button type="button" class="support__attach-clear" (click)="clearNewAttachment()">{{ 'support.attachmentRemove' | t }}</button>
+                }
+              </div>
+              <button type="button" class="btn primary" [disabled]="submitting || uploadingAttachment" (click)="submitNewTicket()">
+                {{ (submitting ? 'support.submitting' : 'support.submit') | t }}
+              </button>
+            </div>
+          } @else if (loadingThread) {
+            <p>{{ 'common.loading' | t }}</p>
+          } @else if (activeTicket) {
+            <header class="support__thread-head">
+              <h2>{{ activeTicket.subject }}</h2>
+              <span class="support__status support__status--{{ activeTicket.status }}">
+                {{ statusLabel(activeTicket.status) }}
+              </span>
+            </header>
+            <div class="support__messages">
+              @for (msg of activeTicket.messages; track msg.id) {
+                <article
+                  class="support__bubble"
+                  [class.support__bubble--user]="msg.author_role === 'user'"
+                  [class.support__bubble--admin]="msg.author_role === 'admin'"
+                >
+                  <header>
+                    <strong>{{ msg.author_role === 'admin' ? (msg.author_name || 'Admin') : ('support.you' | t) }}</strong>
+                    <time>{{ msg.created_at | date : 'short' }}</time>
+                  </header>
+                  <p>{{ msg.body }}</p>
+                  @if (msg.attachment_url) {
+                    <button type="button" class="support__attach-link" (click)="openAttachment(msg.attachment_url, $event)">
+                      {{ attachmentName(msg.attachment_url) }}
+                    </button>
+                  }
+                </article>
+              }
+            </div>
+            @if (activeTicket.status !== 'closed') {
+              <div class="support__reply">
+                <textarea
+                  rows="3"
+                  [(ngModel)]="replyMessage"
+                  [placeholder]="'support.replyPlaceholder' | t"
+                  maxlength="4000"
+                ></textarea>
+                <div class="support__attach-row">
+                  <label class="support__attach-btn">
+                    <input type="file" hidden (change)="onReplyAttachmentSelected($event)" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                    {{ 'support.attachFile' | t }}
+                  </label>
+                  @if (uploadingAttachment && !replyAttachmentName) {
+                    <span class="support__attach-name">{{ 'support.attachmentUploading' | t }}</span>
+                  }
+                  @if (replyAttachmentName) {
+                    <span class="support__attach-name">{{ replyAttachmentName }}</span>
+                    <button type="button" class="support__attach-clear" (click)="clearReplyAttachment()">{{ 'support.attachmentRemove' | t }}</button>
+                  }
+                </div>
+                <button type="button" class="btn primary" [disabled]="submitting || uploadingAttachment || (!replyMessage.trim() && !replyAttachmentUrl)" (click)="sendReply()">
+                  {{ (submitting ? 'support.submitting' : 'support.sendReply') | t }}
+                </button>
+              </div>
+            } @else {
+              <p class="support__closed">{{ 'support.closedHint' | t }}</p>
+            }
+          } @else {
+            <div class="support__placeholder">
+              <p>{{ 'support.selectTicket' | t }}</p>
+              <button type="button" class="btn secondary" (click)="startNewTicket()">
+                {{ 'support.newTicket' | t }}
+              </button>
+            </div>
+          }
+        </section>
+      </div>
+    </div>
+  </main>
+</div>

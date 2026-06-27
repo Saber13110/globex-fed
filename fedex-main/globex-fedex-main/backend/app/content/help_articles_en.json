@@ -1,0 +1,348 @@
+[
+  {
+    "id": "1",
+    "slug": "how-to-track-a-package",
+    "title": "How to track a package",
+    "category": "tracking",
+    "summary": "Enter your tracking number, view real-time status, ETA and notifications.",
+    "readTime": "4 min read",
+    "updatedAt": "2025-06-01",
+    "relatedSlugs": ["how-to-find-eta", "shipment-exceptions"],
+    "sections": [
+      {
+        "type": "paragraph",
+        "body": "FedEx AI Tracking lets you monitor any shipment in real time from the chat or Tracking History page. This guide walks you through entering a number, reading status updates, and resolving common tracking issues."
+      },
+      {
+        "type": "steps",
+        "heading": "Step-by-step",
+        "steps": [
+          {"title": "Open the AI chat or History page", "body": "From the sidebar, click Chat to ask the assistant, or History to browse past lookups."},
+          {"title": "Enter your tracking number", "body": "Type a valid FedEx tracking number (12 or 14 digits). Example: 7946 1234 5678. You can paste multiple numbers separated by commas."},
+          {"title": "Review the shipment timeline", "body": "The assistant returns current status, last scan location, estimated delivery window, and any exceptions."},
+          {"title": "Enable notifications", "body": "Go to Settings → Notifications and enable shipment alerts to receive updates by email or in-app."}
+        ]
+      },
+      {
+        "type": "tips",
+        "heading": "Pro tips",
+        "items": [
+          "Save frequently tracked numbers as favorites in History for one-click access.",
+          "Ask the AI « Where is my package? » followed by the number for a natural-language summary.",
+          "If status hasn't updated in 24 hours, check Shipment exceptions for delay codes."
+        ]
+      },
+      {
+        "type": "faq",
+        "heading": "Common errors",
+        "faq": [
+          {"question": "Invalid tracking number", "answer": "Verify all digits. FedEx numbers are 12 or 14 characters with no spaces or special characters."},
+          {"question": "No information available", "answer": "The label may not be scanned yet. Wait 2–4 hours after pickup, then try again."},
+          {"question": "Shipment not found in demo mode", "answer": "In sandbox environments, use sample numbers provided in the onboarding guide."}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "slug": "how-to-find-eta",
+    "title": "How to find ETA",
+    "category": "tracking",
+    "summary": "Locate estimated delivery dates, time windows and delivery commitments.",
+    "readTime": "3 min read",
+    "updatedAt": "2025-05-28",
+    "relatedSlugs": ["how-to-track-a-package", "delivery-issues"],
+    "sections": [
+      {
+        "type": "paragraph",
+        "body": "The Estimated Time of Arrival (ETA) shows when your package is expected to reach its destination. FedEx AI aggregates carrier data and presents a clear delivery window in the chat and on the shipment detail card."
+      },
+      {
+        "type": "steps",
+        "heading": "How to view ETA",
+        "steps": [
+          {"title": "Track your shipment", "body": "Enter the tracking number in chat or open it from Tracking History."},
+          {"title": "Locate the ETA block", "body": "The summary card displays « Estimated delivery » with date and optional time window (e.g. Before 6:00 PM)."},
+          {"title": "Check service level", "body": "Express shipments show tighter windows. Ground services may show « End of day » only."},
+          {"title": "Refresh for updates", "body": "ETAs recalculate after each scan. Click Refresh or ask « What is the updated ETA? »"}
+        ]
+      },
+      {
+        "type": "tips",
+        "heading": "Tips",
+        "items": [
+          "Weather or customs delays may push ETA forward — watch for exception alerts.",
+          "International shipments include customs clearance in the estimate.",
+          "Subscribe to notifications to get ETA change alerts automatically."
+        ]
+      },
+      {
+        "type": "faq",
+        "heading": "FAQ",
+        "faq": [
+          {"question": "Why did my ETA change?", "answer": "Operational delays, weather, or rerouting can adjust the delivery date after a new scan."},
+          {"question": "Can I get a guaranteed time?", "answer": "Only specific FedEx services include time-definite delivery. Check your service type on the label."}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "3",
+    "slug": "shipment-exceptions",
+    "title": "Shipment exceptions",
+    "category": "tracking",
+    "summary": "Understand delay codes, holds, customs issues and how to resolve them.",
+    "readTime": "5 min read",
+    "updatedAt": "2025-05-25",
+    "relatedSlugs": ["how-to-track-a-package", "delivery-issues"],
+    "sections": [
+      {
+        "type": "paragraph",
+        "body": "An exception means something interrupted the normal delivery flow — address problems, customs holds, weather, or missed delivery attempts. FedEx AI highlights exceptions in red on the timeline and suggests next steps."
+      },
+      {
+        "type": "steps",
+        "heading": "What to do when you see an exception",
+        "steps": [
+          {"title": "Read the exception code", "body": "Each event includes a short description (e.g. « Delivery attempted — recipient not available »)."},
+          {"title": "Follow recommended actions", "body": "The AI assistant may suggest contacting the recipient, updating the address, or scheduling redelivery."},
+          {"title": "Contact support if needed", "body": "For customs or damaged-package exceptions, open a support ticket with the tracking number attached."},
+          {"title": "Monitor the timeline", "body": "Exceptions often resolve within 24–48 hours after corrective action."}
+        ]
+      },
+      {
+        "type": "tips",
+        "heading": "Prevention tips",
+        "items": [
+          "Ensure the delivery address includes apartment or suite numbers.",
+          "For international shipments, provide accurate customs documentation upfront.",
+          "Use delivery instructions in Settings for gate codes or safe-drop preferences."
+        ]
+      },
+      {
+        "type": "faq",
+        "heading": "Common exception types",
+        "faq": [
+          {"question": "Customs delay", "answer": "Additional documentation may be required. Check email for FedEx customs notifications."},
+          {"question": "Weather delay", "answer": "No action needed — delivery resumes when conditions improve."},
+          {"question": "Returned to sender", "answer": "Contact support immediately if the package was returned without your request."}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "4",
+    "slug": "delivery-issues",
+    "title": "Delivery issues",
+    "category": "tracking",
+    "summary": "Resolve missed deliveries, wrong addresses, damaged packages and proof requests.",
+    "readTime": "4 min read",
+    "updatedAt": "2025-05-22",
+    "relatedSlugs": ["proof-of-delivery", "shipment-exceptions"],
+    "sections": [
+      {
+        "type": "paragraph",
+        "body": "Delivery issues range from missed attempts to incorrect addresses. This guide covers diagnosis, self-service fixes, and when to escalate to FedEx support."
+      },
+      {
+        "type": "steps",
+        "heading": "Resolution steps",
+        "steps": [
+          {"title": "Confirm delivery status", "body": "Check if the package shows « Delivered », « Out for delivery », or « Exception »."},
+          {"title": "Verify the address", "body": "Compare the label address with the intended destination. Request an address correction before the next attempt."},
+          {"title": "Schedule redelivery", "body": "For missed deliveries, use FedEx Delivery Manager or ask the AI to guide you through redelivery options."},
+          {"title": "File a claim if needed", "body": "For lost or damaged items, gather photos and open a support ticket within 21 days of delivery date."}
+        ]
+      },
+      {
+        "type": "tips",
+        "heading": "Best practices",
+        "items": [
+          "Require signature for high-value shipments.",
+          "Add delivery instructions for apartment complexes.",
+          "Download proof of delivery immediately after confirmation."
+        ]
+      },
+      {
+        "type": "faq",
+        "heading": "FAQ",
+        "faq": [
+          {"question": "Package marked delivered but not received", "answer": "Check with neighbors and building staff. If still missing, contact support within 48 hours."},
+          {"question": "Can I change the delivery address?", "answer": "Yes, before the final delivery attempt via Delivery Manager or support ticket."}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "5",
+    "slug": "proof-of-delivery",
+    "title": "Proof of delivery",
+    "category": "documents",
+    "summary": "Access, download and share POD documents and delivery signatures.",
+    "readTime": "3 min read",
+    "updatedAt": "2025-05-20",
+    "relatedSlugs": ["download-reports", "delivery-issues"],
+    "sections": [
+      {
+        "type": "paragraph",
+        "body": "Proof of Delivery (POD) confirms that a shipment was delivered, including date, time, and recipient signature when available. Access POD from Documents or directly from the shipment detail view."
+      },
+      {
+        "type": "steps",
+        "heading": "Download POD",
+        "steps": [
+          {"title": "Navigate to Documents", "body": "Open My Documents from the sidebar, or ask the AI « Show proof of delivery for [tracking number] »."},
+          {"title": "Select the shipment", "body": "Filter by tracking number or delivery date to locate the record."},
+          {"title": "Download PDF", "body": "Click « Download POD » to save the signed delivery confirmation."},
+          {"title": "Share securely", "body": "Use the share link option for time-limited access to external stakeholders."}
+        ]
+      },
+      {
+        "type": "tips",
+        "heading": "Tips",
+        "items": [
+          "POD is available within minutes after delivery confirmation.",
+          "Archive important POD files monthly for compliance audits.",
+          "In demo mode, sample POD PDFs are generated for testing."
+        ]
+      },
+      {
+        "type": "faq",
+        "heading": "FAQ",
+        "faq": [
+          {"question": "POD not available yet", "answer": "Wait until status shows « Delivered ». Signature capture may take up to 30 minutes to process."},
+          {"question": "Missing signature on POD", "answer": "Some deliveries are release-authorization only. Contact support for a delivery photo if available."}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "6",
+    "slug": "export-excel",
+    "title": "Export Excel",
+    "category": "documents",
+    "summary": "Export tracking history and shipment data to Excel spreadsheets.",
+    "readTime": "3 min read",
+    "updatedAt": "2025-05-18",
+    "relatedSlugs": ["download-reports", "archive-history"],
+    "sections": [
+      {
+        "type": "paragraph",
+        "body": "Export your tracking history to Excel for reporting, billing reconciliation, and team sharing. Exports include tracking numbers, statuses, ETAs, and delivery dates."
+      },
+      {
+        "type": "steps",
+        "heading": "Export steps",
+        "steps": [
+          {"title": "Open Tracking History", "body": "Go to History from the sidebar to view all tracked shipments."},
+          {"title": "Apply filters", "body": "Filter by date range, status, or search term to narrow the export."},
+          {"title": "Click Export Excel", "body": "The file downloads as .xlsx with formatted columns and headers."},
+          {"title": "Alternative: ask the AI", "body": "Type « Export my tracking history to Excel » in chat for a guided export."}
+        ]
+      },
+      {
+        "type": "tips",
+        "heading": "Tips",
+        "items": [
+          "Daily export quotas may apply depending on your plan.",
+          "Schedule recurring exports via Settings → Reports (Enterprise).",
+          "Large exports (>1000 rows) are emailed as a download link."
+        ]
+      },
+      {
+        "type": "faq",
+        "heading": "FAQ",
+        "faq": [
+          {"question": "Export limit reached", "answer": "Wait until the next day or upgrade your plan for higher quotas."},
+          {"question": "Missing columns", "answer": "Customize export fields in Settings → Documents → Export preferences."}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "7",
+    "slug": "download-reports",
+    "title": "Download reports",
+    "category": "documents",
+    "summary": "Generate and download PDF summaries, analytics reports and audit logs.",
+    "readTime": "4 min read",
+    "updatedAt": "2025-05-15",
+    "relatedSlugs": ["export-excel", "proof-of-delivery"],
+    "sections": [
+      {
+        "type": "paragraph",
+        "body": "FedEx AI Tracking generates PDF reports for individual shipments, monthly summaries, and compliance audits. Reports are available from Documents and the admin dashboard."
+      },
+      {
+        "type": "steps",
+        "heading": "Generate a report",
+        "steps": [
+          {"title": "Open Documents → Reports", "body": "Browse available report templates: Shipment Summary, Monthly Activity, POD Bundle."},
+          {"title": "Configure parameters", "body": "Select date range, tracking numbers, or account scope."},
+          {"title": "Generate and download", "body": "Click Generate. PDFs under 10 MB download instantly; larger files are sent by email."},
+          {"title": "Schedule recurring reports", "body": "Enterprise users can schedule weekly or monthly auto-delivery to email."}
+        ]
+      },
+      {
+        "type": "tips",
+        "heading": "Tips",
+        "items": [
+          "Use Monthly Activity reports for executive dashboards.",
+          "POD Bundle combines all delivery proofs for a date range.",
+          "Reports include your organization logo when configured in Settings."
+        ]
+      },
+      {
+        "type": "faq",
+        "heading": "FAQ",
+        "faq": [
+          {"question": "Report generation failed", "answer": "Reduce the date range or number of shipments and retry."},
+          {"question": "Can I export to CSV?", "answer": "Use Export Excel for spreadsheet format; PDF reports are optimized for printing."}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "8",
+    "slug": "archive-history",
+    "title": "Archive history",
+    "category": "documents",
+    "summary": "Archive, restore and manage long-term tracking history records.",
+    "readTime": "3 min read",
+    "updatedAt": "2025-05-12",
+    "relatedSlugs": ["export-excel", "download-reports"],
+    "sections": [
+      {
+        "type": "paragraph",
+        "body": "Archiving moves older tracking records out of the active view while keeping them searchable and exportable. This keeps your workspace clean without losing data."
+      },
+      {
+        "type": "steps",
+        "heading": "Archive shipments",
+        "steps": [
+          {"title": "Open Tracking History", "body": "Select one or more shipments using the checkboxes."},
+          {"title": "Click Archive", "body": "Archived items move to the Archive tab and no longer appear in the default list."},
+          {"title": "Access archived records", "body": "Switch to the Archive tab or search with « include:archived » in the filter bar."},
+          {"title": "Restore if needed", "body": "Select archived items and click Restore to return them to active history."}
+        ]
+      },
+      {
+        "type": "tips",
+        "heading": "Tips",
+        "items": [
+          "Auto-archive rules can be configured in Settings → History (90/180/365 days).",
+          "Archived records remain exportable to Excel and PDF.",
+          "Enterprise retention policies may override manual archive settings."
+        ]
+      },
+      {
+        "type": "faq",
+        "heading": "FAQ",
+        "faq": [
+          {"question": "Are archived records deleted?", "answer": "No. Archive is a organizational feature only. Data is retained per your plan's retention policy."},
+          {"question": "Bulk archive limit", "answer": "You can archive up to 500 shipments at once. For larger batches, use auto-archive rules."}
+        ]
+      }
+    ]
+  }
+]

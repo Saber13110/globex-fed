@@ -1,0 +1,27 @@
+@mixin chat-md-table-styles {
+  :deep(.chat-md-table) {
+    width: 100%;
+    margin: 0.75rem 0;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    white-space: normal;
+
+    th,
+    td {
+      border: 1px solid rgba(124, 58, 237, 0.18);
+      padding: 0.45rem 0.55rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: rgba(124, 58, 237, 0.08);
+      font-weight: 600;
+      color: #5b21b6;
+    }
+
+    tr:nth-child(even) td {
+      background: rgba(248, 250, 252, 0.9);
+    }
+  }
+}

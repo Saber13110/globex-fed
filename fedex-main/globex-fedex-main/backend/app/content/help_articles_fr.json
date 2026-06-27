@@ -1,0 +1,228 @@
+[
+  {
+    "id": "1",
+    "slug": "how-to-track-a-package",
+    "title": "Comment suivre un colis",
+    "category": "tracking",
+    "summary": "Saisissez votre numéro de suivi, consultez le statut en temps réel, l'ETA et les notifications.",
+    "readTime": "4 min de lecture",
+    "updatedAt": "2025-06-01",
+    "relatedSlugs": ["how-to-find-eta", "shipment-exceptions"],
+    "sections": [
+      {"type": "paragraph", "body": "FedEx AI Tracking vous permet de suivre tout envoi en temps réel depuis le chat ou la page Historique. Ce guide explique comment saisir un numéro, lire les mises à jour et résoudre les problèmes courants."},
+      {"type": "steps", "heading": "Étapes", "steps": [
+        {"title": "Ouvrir le chat IA ou Historique", "body": "Cliquez sur Chat dans la barre latérale ou sur Historique pour parcourir vos recherches passées."},
+        {"title": "Saisir le numéro de suivi", "body": "Entrez un numéro FedEx valide (12 ou 14 chiffres). Exemple : 7946 1234 5678."},
+        {"title": "Consulter la timeline", "body": "L'assistant affiche le statut actuel, le dernier scan, la fenêtre de livraison estimée et les éventuelles exceptions."},
+        {"title": "Activer les notifications", "body": "Allez dans Paramètres → Notifications pour recevoir les alertes par e-mail ou in-app."}
+      ]},
+      {"type": "tips", "heading": "Conseils", "items": [
+        "Enregistrez vos numéros fréquents en favoris dans Historique.",
+        "Demandez « Où est mon colis ? » suivi du numéro pour un résumé en langage naturel.",
+        "Si le statut n'a pas changé depuis 24 h, consultez Exceptions d'expédition."
+      ]},
+      {"type": "faq", "heading": "Erreurs fréquentes", "faq": [
+        {"question": "Numéro de suivi invalide", "answer": "Vérifiez tous les chiffres. Les numéros FedEx font 12 ou 14 caractères sans espaces."},
+        {"question": "Aucune information disponible", "answer": "L'étiquette n'a peut-être pas encore été scannée. Réessayez 2 à 4 heures après l'enlèvement."},
+        {"question": "Colis introuvable en mode démo", "answer": "En environnement sandbox, utilisez les numéros d'exemple de l'onboarding."}
+      ]}
+    ]
+  },
+  {
+    "id": "2",
+    "slug": "how-to-find-eta",
+    "title": "Comment trouver l'ETA",
+    "category": "tracking",
+    "summary": "Localisez les dates de livraison estimées, créneaux horaires et engagements de livraison.",
+    "readTime": "3 min de lecture",
+    "updatedAt": "2025-05-28",
+    "relatedSlugs": ["how-to-track-a-package", "delivery-issues"],
+    "sections": [
+      {"type": "paragraph", "body": "L'ETA (Estimated Time of Arrival) indique quand votre colis devrait arriver. FedEx AI agrège les données transporteur et affiche une fenêtre de livraison claire dans le chat et sur la fiche colis."},
+      {"type": "steps", "heading": "Consulter l'ETA", "steps": [
+        {"title": "Suivre l'expédition", "body": "Entrez le numéro dans le chat ou ouvrez-le depuis Historique."},
+        {"title": "Repérer le bloc ETA", "body": "La carte récapitulative affiche « Livraison estimée » avec la date et le créneau."},
+        {"title": "Vérifier le niveau de service", "body": "Express affiche des créneaux plus précis. Ground peut indiquer « Fin de journée » uniquement."},
+        {"title": "Actualiser", "body": "L'ETA se recalcule à chaque scan. Cliquez Actualiser ou demandez « Quelle est l'ETA mise à jour ? »"}
+      ]},
+      {"type": "tips", "heading": "Conseils", "items": [
+        "Météo ou douanes peuvent repousser l'ETA — surveillez les alertes d'exception.",
+        "Les envois internationaux incluent le dédouanement dans l'estimation.",
+        "Abonnez-vous aux notifications pour les changements d'ETA."
+      ]},
+      {"type": "faq", "heading": "FAQ", "faq": [
+        {"question": "Pourquoi mon ETA a-t-il changé ?", "answer": "Retards opérationnels, météo ou réacheminement peuvent ajuster la date après un nouveau scan."},
+        {"question": "Puis-je obtenir une heure garantie ?", "answer": "Seuls certains services FedEx incluent une livraison à heure fixe. Vérifiez le type de service sur l'étiquette."}
+      ]}
+    ]
+  },
+  {
+    "id": "3",
+    "slug": "shipment-exceptions",
+    "title": "Exceptions d'expédition",
+    "category": "tracking",
+    "summary": "Comprendre les codes de retard, blocages, douanes et comment les résoudre.",
+    "readTime": "5 min de lecture",
+    "updatedAt": "2025-05-25",
+    "relatedSlugs": ["how-to-track-a-package", "delivery-issues"],
+    "sections": [
+      {"type": "paragraph", "body": "Une exception signifie qu'un événement a interrompu le flux normal — adresse incorrecte, blocage douanier, météo ou tentative de livraison manquée. FedEx AI met en évidence les exceptions sur la timeline."},
+      {"type": "steps", "heading": "Que faire", "steps": [
+        {"title": "Lire le code d'exception", "body": "Chaque événement inclut une description (ex. « Tentative de livraison — destinataire absent »)."},
+        {"title": "Suivre les actions recommandées", "body": "L'assistant peut suggérer de contacter le destinataire, corriger l'adresse ou reprogrammer."},
+        {"title": "Contacter le support si besoin", "body": "Pour douanes ou colis endommagé, ouvrez un ticket avec le numéro de suivi."},
+        {"title": "Surveiller la timeline", "body": "Les exceptions se résolvent souvent sous 24–48 h après action corrective."}
+      ]},
+      {"type": "tips", "heading": "Prévention", "items": [
+        "Indiquez appartement ou suite dans l'adresse.",
+        "Pour l'international, fournissez une documentation douanière exacte.",
+        "Utilisez les instructions de livraison dans Paramètres."
+      ]},
+      {"type": "faq", "heading": "Types courants", "faq": [
+        {"question": "Retard douanier", "answer": "Des documents supplémentaires peuvent être requis. Vérifiez vos e-mails FedEx."},
+        {"question": "Retard météo", "answer": "Aucune action requise — la livraison reprend dès que possible."},
+        {"question": "Retour à l'expéditeur", "answer": "Contactez le support immédiatement si le colis a été retourné sans votre demande."}
+      ]}
+    ]
+  },
+  {
+    "id": "4",
+    "slug": "delivery-issues",
+    "title": "Problèmes de livraison",
+    "category": "tracking",
+    "summary": "Résoudre livraisons manquées, mauvaises adresses, colis endommagés et demandes de preuve.",
+    "readTime": "4 min de lecture",
+    "updatedAt": "2025-05-22",
+    "relatedSlugs": ["proof-of-delivery", "shipment-exceptions"],
+    "sections": [
+      {"type": "paragraph", "body": "Les problèmes de livraison vont des tentatives manquées aux adresses incorrectes. Ce guide couvre le diagnostic, les corrections en self-service et l'escalade vers le support FedEx."},
+      {"type": "steps", "heading": "Résolution", "steps": [
+        {"title": "Confirmer le statut", "body": "Vérifiez si le colis est « Livré », « En cours de livraison » ou « Exception »."},
+        {"title": "Vérifier l'adresse", "body": "Comparez l'adresse de l'étiquette avec la destination prévue."},
+        {"title": "Reprogrammer la livraison", "body": "Utilisez FedEx Delivery Manager ou demandez à l'IA les options de nouvelle livraison."},
+        {"title": "Déposer une réclamation", "body": "Pour colis perdus ou endommagés, ouvrez un ticket sous 21 jours avec photos."}
+      ]},
+      {"type": "tips", "heading": "Bonnes pratiques", "items": [
+        "Exigez une signature pour les envois de valeur.",
+        "Ajoutez des instructions pour les immeubles.",
+        "Téléchargez la preuve de livraison dès confirmation."
+      ]},
+      {"type": "faq", "heading": "FAQ", "faq": [
+        {"question": "Marqué livré mais non reçu", "answer": "Vérifiez avec voisins et gardien. Si toujours absent, contactez le support sous 48 h."},
+        {"question": "Changer l'adresse de livraison ?", "answer": "Oui, avant la dernière tentative via Delivery Manager ou ticket support."}
+      ]}
+    ]
+  },
+  {
+    "id": "5",
+    "slug": "proof-of-delivery",
+    "title": "Preuve de livraison",
+    "category": "documents",
+    "summary": "Accéder, télécharger et partager les POD et signatures de livraison.",
+    "readTime": "3 min de lecture",
+    "updatedAt": "2025-05-20",
+    "relatedSlugs": ["download-reports", "delivery-issues"],
+    "sections": [
+      {"type": "paragraph", "body": "La preuve de livraison (POD) confirme qu'un envoi a été livré, avec date, heure et signature si disponible. Accédez-y depuis Documents ou la fiche colis."},
+      {"type": "steps", "heading": "Télécharger le POD", "steps": [
+        {"title": "Aller dans Documents", "body": "Ouvrez Mes documents ou demandez « Preuve de livraison pour [numéro] » au chat."},
+        {"title": "Sélectionner l'envoi", "body": "Filtrez par numéro ou date de livraison."},
+        {"title": "Télécharger le PDF", "body": "Cliquez « Télécharger POD » pour enregistrer la confirmation signée."},
+        {"title": "Partager", "body": "Utilisez le lien de partage pour un accès limité dans le temps."}
+      ]},
+      {"type": "tips", "heading": "Conseils", "items": [
+        "Le POD est disponible quelques minutes après confirmation.",
+        "Archivez les POD importants mensuellement pour les audits.",
+        "En mode démo, des PDF d'exemple sont générés."
+      ]},
+      {"type": "faq", "heading": "FAQ", "faq": [
+        {"question": "POD pas encore disponible", "answer": "Attendez le statut « Livré ». La signature peut prendre jusqu'à 30 minutes."},
+        {"question": "Signature absente", "answer": "Certaines livraisons sont sans signature. Contactez le support pour une photo si disponible."}
+      ]}
+    ]
+  },
+  {
+    "id": "6",
+    "slug": "export-excel",
+    "title": "Exporter Excel",
+    "category": "documents",
+    "summary": "Exporter l'historique de suivi et les données d'expédition vers Excel.",
+    "readTime": "3 min de lecture",
+    "updatedAt": "2025-05-18",
+    "relatedSlugs": ["download-reports", "archive-history"],
+    "sections": [
+      {"type": "paragraph", "body": "Exportez votre historique vers Excel pour reporting, facturation et partage d'équipe. Les exports incluent numéros, statuts, ETA et dates de livraison."},
+      {"type": "steps", "heading": "Étapes d'export", "steps": [
+        {"title": "Ouvrir Historique", "body": "Accédez à Historique depuis la barre latérale."},
+        {"title": "Appliquer des filtres", "body": "Filtrez par date, statut ou terme de recherche."},
+        {"title": "Cliquer Exporter Excel", "body": "Le fichier .xlsx se télécharge avec colonnes formatées."},
+        {"title": "Alternative : demander à l'IA", "body": "Tapez « Exporter mon historique en Excel » dans le chat."}
+      ]},
+      {"type": "tips", "heading": "Conseils", "items": [
+        "Des quotas quotidiens peuvent s'appliquer selon votre plan.",
+        "Planifiez des exports récurrents via Paramètres → Rapports (Enterprise).",
+        "Les gros exports (>1000 lignes) sont envoyés par e-mail."
+      ]},
+      {"type": "faq", "heading": "FAQ", "faq": [
+        {"question": "Limite d'export atteinte", "answer": "Attendez le lendemain ou mettez à niveau votre plan."},
+        {"question": "Colonnes manquantes", "answer": "Personnalisez les champs dans Paramètres → Documents → Préférences d'export."}
+      ]}
+    ]
+  },
+  {
+    "id": "7",
+    "slug": "download-reports",
+    "title": "Télécharger des rapports",
+    "category": "documents",
+    "summary": "Générer et télécharger résumés PDF, rapports analytiques et journaux d'audit.",
+    "readTime": "4 min de lecture",
+    "updatedAt": "2025-05-15",
+    "relatedSlugs": ["export-excel", "proof-of-delivery"],
+    "sections": [
+      {"type": "paragraph", "body": "FedEx AI Tracking génère des rapports PDF pour envois individuels, résumés mensuels et audits de conformité. Disponibles depuis Documents et le tableau de bord admin."},
+      {"type": "steps", "heading": "Générer un rapport", "steps": [
+        {"title": "Documents → Rapports", "body": "Parcourez les modèles : Résumé envoi, Activité mensuelle, Bundle POD."},
+        {"title": "Configurer les paramètres", "body": "Sélectionnez période, numéros ou périmètre compte."},
+        {"title": "Générer et télécharger", "body": "Cliquez Générer. PDF < 10 Mo : téléchargement instantané ; sinon envoi par e-mail."},
+        {"title": "Planifier des rapports", "body": "Enterprise : planification hebdomadaire ou mensuelle par e-mail."}
+      ]},
+      {"type": "tips", "heading": "Conseils", "items": [
+        "Utilisez Activité mensuelle pour les tableaux de bord direction.",
+        "Le Bundle POD regroupe toutes les preuves sur une période.",
+        "Les rapports incluent votre logo si configuré dans Paramètres."
+      ]},
+      {"type": "faq", "heading": "FAQ", "faq": [
+        {"question": "Échec de génération", "answer": "Réduisez la période ou le nombre d'envois et réessayez."},
+        {"question": "Export CSV ?", "answer": "Utilisez Exporter Excel ; les PDF sont optimisés pour l'impression."}
+      ]}
+    ]
+  },
+  {
+    "id": "8",
+    "slug": "archive-history",
+    "title": "Archiver l'historique",
+    "category": "documents",
+    "summary": "Archiver, restaurer et gérer les enregistrements de suivi à long terme.",
+    "readTime": "3 min de lecture",
+    "updatedAt": "2025-05-12",
+    "relatedSlugs": ["export-excel", "download-reports"],
+    "sections": [
+      {"type": "paragraph", "body": "L'archivage déplace les anciens enregistrements hors de la vue active tout en les gardant consultables et exportables. Votre espace reste propre sans perte de données."},
+      {"type": "steps", "heading": "Archiver des envois", "steps": [
+        {"title": "Ouvrir Historique", "body": "Sélectionnez un ou plusieurs envois via les cases à cocher."},
+        {"title": "Cliquer Archiver", "body": "Les éléments passent dans l'onglet Archive."},
+        {"title": "Consulter les archives", "body": "Onglet Archive ou filtre « include:archived »."},
+        {"title": "Restaurer", "body": "Sélectionnez et cliquez Restaurer pour revenir à l'historique actif."}
+      ]},
+      {"type": "tips", "heading": "Conseils", "items": [
+        "Règles d'auto-archivage dans Paramètres → Historique (90/180/365 jours).",
+        "Les archives restent exportables Excel et PDF.",
+        "Les politiques Enterprise peuvent remplacer l'archivage manuel."
+      ]},
+      {"type": "faq", "heading": "FAQ", "faq": [
+        {"question": "Les archives sont-elles supprimées ?", "answer": "Non. L'archive est organisationnelle. Conservation selon votre plan."},
+        {"question": "Limite d'archivage groupé", "answer": "Jusqu'à 500 envois à la fois. Au-delà, utilisez l'auto-archivage."}
+      ]}
+    ]
+  }
+]

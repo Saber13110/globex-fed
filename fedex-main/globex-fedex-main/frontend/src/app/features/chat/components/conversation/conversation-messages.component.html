@@ -1,0 +1,133 @@
+<div class="conv-messages chat-scroll" #scrollRoot>
+  @for (m of messages; track m.id; let i = $index) {
+    @if (m.role === 'user') {
+      <div class="msg-row msg-row--user" [style.animation-delay.ms]="i * 35">
+        <div class="msg-stack">
+          <div class="msg-bubble msg-bubble--user">
+            @if (m.imageUrl) {
+              <img class="msg-bubble__image" [src]="m.imageUrl" alt="" loading="lazy" />
+            }
+            @if (m.text) {
+              <p class="msg-bubble__text">{{ m.text }}</p>
+            }
+          </div>
+        </div>
+        <div class="msg-avatar msg-avatar--user" aria-hidden="true">{{ userInitial }}</div>
+      </div>
+    } @else {
+      <div class="msg-row msg-row--bot" [style.animation-delay.ms]="i * 35">
+        <app-fedex-ai-avatar class="msg-avatar-slot" role="img" aria-label="FedEx AI Assistant" />
+        <div class="msg-meta">
+          <span class="msg-meta__name">{{ 'conversation.aiAssistant' | t }}</span>
+          <span class="msg-meta__badge">
+            <span class="msg-meta__dot" aria-hidden="true"></span>
+            {{ 'conversation.online' | t }}
+          </span>
+        </div>
+        <div class="msg-body">
+          @if (m.text || m.exportDownload) {
+            <article class="msg-bubble msg-bubble--bot" [class.msg-bubble--security]="m.source === 'security'">
+              @if (m.text) {
+                <div class="msg-bubble__text" [innerHTML]="m.text | chatFormattedText"></div>
+              }
+              @if (m.exportDownload) {
+                <div class="msg-export-inline">
+                  <p class="msg-export-inline__lead">{{ exportLead(m.exportDownload!, m.text) }}</p>
+                  <button
+                    type="button"
+                    class="msg-export-inline__link"
+                    [disabled]="exportLoadingId() === m.id"
+                    [attr.title]="'conversation.exportDownloadHint' | t"
+                    (click)="downloadExport(m.id, m.exportDownload!)"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    {{
+                      exportLoadingId() === m.id
+                        ? ('conversation.downloading' | t)
+                        : exportLinkLabel(m.exportDownload!)
+                    }}
+                  </button>
+                </div>
+              }
+              @if (m.source && m.source !== 'unknown' && m.source !== 'user_input' && sourceLabel(m.source)) {
+                <footer class="msg-bubble__footer">
+                  <span class="msg-bubble__source">{{ sourceLabel(m.source) }}</span>
+                </footer>
+              }
+            </article>
+          }
+
+          @if (m.agentSuggestion) {
+            <aside class="agent-suggest" role="note">
+              <div class="agent-suggest__head">
+                <span class="agent-suggest__badge">{{ 'chat.agent.suggestBadge' | t }}</span>
+                <strong class="agent-suggest__title">{{ m.agentSuggestion.label }}</strong>
+              </div>
+              <p class="agent-suggest__text">{{ m.agentSuggestion.message }}</p>
+              <button
+                type="button"
+                class="agent-suggest__btn"
+                [disabled]="inputDisabled"
+                (click)="onActivateAgentSuggestion(m.agentSuggestion!)"
+              >
+                {{ 'chat.agent.switchToAgent' | t }}
+              </button>
+            </aside>
+          }
+
+          @if (m.agentQuestionnaire) {
+            <app-agent-questionnaire
+              [questionnaire]="m.agentQuestionnaire"
+              [disabled]="inputDisabled"
+              (submitAnswers)="onAgentSubmit(m.agentQuestionnaire!.flow_id, $event)"
+            />
+          }
+
+          @if (showShipmentCard(m.shipment)) {
+            <div class="msg-data-card">
+              <app-shipment-card [shipment]="m.shipment!" [compact]="true" />
+              @if (hasTrackingResponse(m)) {
+                <button type="button" class="msg-history-link" (click)="openTrackingHistory(m, $event)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  {{ 'conversation.viewFullHistory' | t }}
+                </button>
+              }
+            </div>
+          } @else if (hasTrackingResponse(m)) {
+            <button type="button" class="msg-history-link msg-history-link--standalone" (click)="openTrackingHistory(m, $event)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              {{ 'conversation.viewFullHistory' | t }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+  }
+
+  @if (thinking) {
+    <div class="msg-row msg-row--bot msg-row--thinking" aria-live="polite" [attr.aria-label]="'chat.thinking' | t">
+      <app-fedex-ai-avatar class="msg-avatar-slot" role="img" aria-label="FedEx AI Assistant" />
+      <div class="msg-meta">
+        <span class="msg-meta__name">{{ 'conversation.aiAssistant' | t }}</span>
+        <span class="msg-meta__badge msg-meta__badge--pulse">
+          <span class="msg-meta__dot" aria-hidden="true"></span>
+          {{ 'conversation.thinking' | t }}
+        </span>
+      </div>
+      <div class="msg-body">
+        <article class="msg-bubble msg-bubble--bot msg-bubble--typing">
+          <div class="typing-dots" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+        </article>
+      </div>
+    </div>
+  }
+</div>

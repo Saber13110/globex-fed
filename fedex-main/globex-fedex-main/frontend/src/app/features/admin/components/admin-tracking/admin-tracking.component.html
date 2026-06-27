@@ -1,0 +1,230 @@
+<div class="trk-page trk-page--premium">
+  <!-- HERO BANNER -->
+  <section class="trk-hero" aria-label="FedEx Tracking Center">
+    <div class="trk-hero__bg" aria-hidden="true">
+      <div class="trk-hero__gradient"></div>
+      <img class="trk-hero__map" [src]="worldMap" alt="" />
+      <div class="trk-hero__routes">
+        <span class="trk-hero__route trk-hero__route--1"></span>
+        <span class="trk-hero__route trk-hero__route--2"></span>
+        <span class="trk-hero__node trk-hero__node--1"></span>
+        <span class="trk-hero__node trk-hero__node--2"></span>
+        <span class="trk-hero__node trk-hero__node--3"></span>
+      </div>
+      <div class="trk-hero__plane-wrap">
+        <div class="trk-hero__plane-glow" aria-hidden="true"></div>
+        <picture>
+          <source [attr.srcset]="heroPlaneWebp" type="image/webp" />
+          <img
+            class="trk-hero__plane"
+            [src]="heroPlane"
+            alt=""
+            width="947"
+            height="340"
+            fetchpriority="high"
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
+      </div>
+    </div>
+    <div class="trk-hero__content">
+      <h1>FedEx Tracking Center</h1>
+      <p>Monitor all shipments in real-time across the network.</p>
+    </div>
+  </section>
+
+  <!-- KPI CARDS -->
+  <div class="ap-kpi-grid trk-kpis">
+    @for (kpi of kpis(); track kpi.label) {
+      <article class="ap-kpi trk-kpi" [attr.data-tone]="kpi.tone">
+        <div class="trk-kpi__icon" [attr.data-icon]="kpi.icon"></div>
+        <div>
+          <span class="trk-kpi__label">{{ kpi.label }}</span>
+          <strong class="trk-kpi__value">{{ kpi.value }}</strong>
+          <span class="trk-kpi__trend" [class.trk-kpi__trend--down]="!kpi.trendUp">{{ kpi.trendUp ? '↗' : '↘' }} {{ kpi.trend }}</span>
+        </div>
+      </article>
+    }
+  </div>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="trk-workspace">
+    <section class="trk-table-panel">
+      <div class="ap-filter-toggle-row ap-filter-toggle-row--offset trk-filter-toggle">
+        <button
+          type="button"
+          class="ap-filter-toggle-btn"
+          [class.ap-filter-toggle-btn--open]="filtersOpen()"
+          (click)="filtersOpen.set(!filtersOpen())"
+          [attr.aria-expanded]="filtersOpen()"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" d="M3 4h18M7 8h10M10 12h4"/>
+          </svg>
+          Filtres
+        </button>
+      </div>
+
+      @if (filtersOpen()) {
+        <div class="ap-filter-panel">
+          <div class="trk-table-toolbar ap-filter-bar">
+            <div class="ap-filter-search trk-table-search">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z"/></svg>
+              <input type="search" placeholder="Search shipments..." [ngModel]="search()" (ngModelChange)="search.set($event)" />
+            </div>
+            <div class="ap-filter-chip-group trk-table-tabs">
+              @for (tab of statusTabs; track tab.id) {
+                <button type="button" class="ap-filter-chip trk-table-tab" [class.ap-filter-chip--active]="statusFilter() === tab.id" (click)="statusFilter.set(tab.id)">
+                  {{ tab.label }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (loading()) {
+        <p class="trk-empty">Chargement…</p>
+      } @else {
+        <div class="trk-table-wrap">
+          <table class="trk-table">
+            <thead>
+              <tr>
+                <th>Shipment</th>
+                <th>Tracking ID</th>
+                <th>Carrier</th>
+                <th>Status</th>
+                <th>ETA</th>
+                <th>Progress</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of filteredShipments(); track s.id) {
+                <tr
+                  class="trk-row"
+                  [class.trk-row--selected]="selectedId() === s.id"
+                  (click)="selectShipment(s)"
+                  (keydown.enter)="selectShipment(s)"
+                  tabindex="0"
+                  role="button"
+                  [attr.aria-label]="'Détails ' + s.tracking_number"
+                >
+                  <td>
+                    <div class="trk-shipment">
+                      <span class="trk-shipment__route">
+                        <span>{{ resolveFlag(s.origin_flag, s.origin) }}</span> {{ s.origin }}
+                        <span class="trk-shipment__arrow">→</span>
+                        <span>{{ resolveFlag(s.destination_flag, s.destination) }}</span> {{ s.destination }}
+                      </span>
+                    </div>
+                  </td>
+                  <td><code class="trk-code">{{ s.tracking_number }}</code></td>
+                  <td><span class="trk-carrier" [ngClass]="carrierClass(s.carrier)">{{ s.carrier }}</span></td>
+                  <td>
+                    <span class="trk-status" [ngClass]="statusClass(s.status_key)">{{ s.status }}</span>
+                  </td>
+                  <td>{{ s.eta_label }}</td>
+                  <td>
+                    <div class="trk-progress">
+                      <div class="trk-progress__bar"><span [style.width.%]="s.progress_percent"></span></div>
+                      <small>{{ s.progress_percent }}%</small>
+                    </div>
+                  </td>
+                  <td><button type="button" class="trk-row__action" aria-label="Actions" (click)="$event.stopPropagation()">⋯</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <footer class="trk-table-footer">
+          Showing 1 to {{ filteredShipments().length }} of {{ shipments().length || 1245 }} results
+        </footer>
+      }
+    </section>
+
+    @if (selected(); as s) {
+      <aside class="trk-detail">
+        <header class="trk-detail__head">
+          <div>
+            <code class="trk-code trk-code--lg">{{ s.tracking_number }}</code>
+            <span class="trk-status" [ngClass]="statusClass(s.status_key)">{{ s.status }}</span>
+          </div>
+        </header>
+
+        <div class="trk-detail__route">
+          <div class="trk-detail__endpoint">
+            <span class="trk-detail__flag">{{ resolveFlag(s.origin_flag, s.origin) }}</span>
+            <strong>{{ s.origin }}</strong>
+            <small>Origin</small>
+          </div>
+          <div class="trk-detail__route-track" aria-hidden="true">
+            <span class="trk-detail__route-dot trk-detail__route-dot--start"></span>
+            <span class="trk-detail__route-line" [style.--progress]="s.progress_percent + '%'"></span>
+            <span class="trk-detail__route-dot trk-detail__route-dot--end"></span>
+            <span class="trk-detail__route-pill">{{ s.progress_percent }}%</span>
+          </div>
+          <div class="trk-detail__endpoint trk-detail__endpoint--dest">
+            <span class="trk-detail__flag">{{ resolveFlag(s.destination_flag, s.destination) }}</span>
+            <strong>{{ s.destination }}</strong>
+            <small>Destination</small>
+          </div>
+        </div>
+
+        <div class="trk-detail__metrics">
+          <article class="trk-detail__metric">
+            <span class="trk-detail__metric-label">Shipment ID</span>
+            <strong>#{{ s.id }}</strong>
+          </article>
+          <article class="trk-detail__metric">
+            <span class="trk-detail__metric-label">ETA</span>
+            <strong>{{ s.eta_label }}</strong>
+          </article>
+          <article class="trk-detail__metric">
+            <span class="trk-detail__metric-label">Carrier</span>
+            <strong>{{ serviceLabel(s.carrier) }}</strong>
+          </article>
+          <article class="trk-detail__metric">
+            <span class="trk-detail__metric-label">Route</span>
+            <strong>{{ s.route }}</strong>
+          </article>
+          <article class="trk-detail__metric">
+            <span class="trk-detail__metric-label">Origin</span>
+            <strong>{{ s.origin }}</strong>
+          </article>
+          <article class="trk-detail__metric">
+            <span class="trk-detail__metric-label">Destination</span>
+            <strong>{{ s.destination }}</strong>
+          </article>
+          <article class="trk-detail__metric">
+            <span class="trk-detail__metric-label">Updated</span>
+            <strong>{{ formatUpdatedAt(s.updated_at) }}</strong>
+          </article>
+          <article class="trk-detail__metric">
+            <span class="trk-detail__metric-label">Progress</span>
+            <strong>{{ s.progress_percent }}%</strong>
+          </article>
+        </div>
+
+        <section class="trk-detail__progress-block">
+          <div class="trk-detail__progress-head">
+            <h3>Delivery progress</h3>
+            <span>{{ s.progress_percent }}%</span>
+          </div>
+          <div class="trk-detail__progress-bar">
+            <span [style.width.%]="s.progress_percent"></span>
+          </div>
+        </section>
+
+        <div class="trk-detail__insight" [attr.data-tone]="detailInsight(s).tone">
+          <span class="trk-detail__insight-icon" aria-hidden="true"></span>
+          <div>
+            <strong>{{ detailInsight(s).title }}</strong>
+            <p>{{ detailInsight(s).message }}</p>
+          </div>
+        </div>
+      </aside>
+    }
+  </div>
+</div>

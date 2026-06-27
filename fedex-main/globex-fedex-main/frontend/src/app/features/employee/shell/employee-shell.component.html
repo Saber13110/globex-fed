@@ -1,0 +1,60 @@
+<div class="emp-workspace">
+
+  <div class="emp-workspace__ambient" aria-hidden="true"></div>
+
+  <app-employee-sidebar
+
+    [accountName]="accountName"
+
+    [accountEmail]="accountEmail"
+
+    [avatarInitial]="avatarInitial"
+
+    (openProfile)="openProfile()"
+
+    (openSettings)="openSettings('appearance')"
+
+    (openHelp)="openHelp()"
+
+    (logout)="logout()"
+
+  />
+
+  <div class="emp-workspace__main">
+
+    <app-employee-topbar
+
+      [accountName]="accountName"
+
+      [avatarInitial]="avatarInitial"
+
+      (logout)="logout()"
+
+    />
+
+    <div class="emp-workspace__content">
+
+      <router-outlet />
+
+    </div>
+
+  </div>
+
+
+
+  @if (settingsOpen) {
+
+    <app-employee-settings-panel [tab]="settingsTab" (closed)="closeSettings()" />
+
+  }
+
+  @if (helpOpen) {
+
+    <app-employee-help-panel (closed)="closeHelp()" />
+
+  }
+
+  <app-employee-ai-agent-fab />
+
+</div>
+

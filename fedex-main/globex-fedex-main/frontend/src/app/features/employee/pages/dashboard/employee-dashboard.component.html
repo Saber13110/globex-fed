@@ -1,0 +1,410 @@
+<div class="ops-center">
+
+  @if (loading) {
+
+    <div class="ops-center__loading">
+
+      <div class="ops-center__spinner"></div>
+
+      <p>{{ 'employee.ops.loading' | t }}</p>
+
+    </div>
+
+  } @else if (workspace) {
+
+
+
+    <section class="ops-hero">
+      <img
+        class="ops-hero__banner"
+        src="assets/employee/hero-dashboard-banner.png"
+        alt=""
+        width="2100"
+        height="900"
+        loading="eager"
+      />
+      <div class="ops-hero__overlay" aria-hidden="true"></div>
+      <div class="ops-hero__content">
+        <span class="ops-hero__badge">{{ 'employee.ops.badge' | t }}</span>
+        <h1>{{ 'employee.ops.welcome' | t }}, {{ accountName }}</h1>
+        <p class="ops-hero__subtitle">{{ 'employee.ops.subtitle' | t }}</p>
+      </div>
+    </section>
+
+
+
+    <section class="emp-ai-cc" aria-label="Employee AI Command Center">
+      <article class="emp-ai-cc__card">
+        <div class="emp-ai-cc__art" aria-hidden="true">
+          <img
+            class="emp-ai-cc__art-img"
+            [src]="heroIllustration"
+            alt=""
+            width="1024"
+            height="682"
+            loading="eager"
+          />
+        </div>
+        <div class="emp-ai-cc__layout">
+          <div class="emp-ai-cc__left">
+            <span class="emp-ai-cc__eyebrow">{{ 'employee.ops.commandCenterBadge' | t }}</span>
+            <div class="emp-ai-cc__head">
+              <span class="emp-ai-cc__icon" aria-hidden="true">✦</span>
+              <div class="emp-ai-cc__title-row">
+                <h2>{{ 'employee.ops.copilotTitle' | t }}</h2>
+                <span class="emp-ai-cc__online">{{ 'employee.ops.aiOnline' | t }}</span>
+              </div>
+            </div>
+            <p class="emp-ai-cc__hint">{{ 'employee.ops.commandCenterDesc' | t }}</p>
+            <form class="emp-ai-cc__input" (ngSubmit)="sendAi()">
+              <span class="emp-ai-cc__input-search" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="7"/>
+                  <path d="M20 20l-3.5-3.5"/>
+                </svg>
+              </span>
+              <input
+                type="text"
+                [(ngModel)]="aiDraft"
+                name="aiDraft"
+                [placeholder]="'employee.ops.commandInputPlaceholder' | t"
+              />
+              <button type="submit" class="emp-ai-cc__send" [disabled]="!aiDraft.trim()" [attr.aria-label]="'employee.ai.send' | t">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M22 2L11 13"/>
+                  <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+              </button>
+            </form>
+            <a routerLink="/employee/ai-agent" class="emp-ai-cc__open-full">{{ 'employee.ops.openFull' | t }} →</a>
+          </div>
+        </div>
+      </article>
+    </section>
+
+
+
+    <section class="ops-quick-access">
+
+      @for (action of quickActions; track action.route) {
+
+        <a [routerLink]="action.route" class="ops-quick-access__card">
+
+          <span class="ops-quick-access__icon-wrap">
+
+            <span class="ops-icon" [attr.data-icon]="action.icon"></span>
+
+          </span>
+
+          <strong>{{ action.labelKey | t }}</strong>
+
+          <span>{{ action.descKey | t }}</span>
+
+        </a>
+
+      }
+
+    </section>
+
+
+
+    <div class="ops-grid ops-grid--triple">
+
+      <section class="ops-panel">
+
+        <header class="ops-panel__head">
+
+          <h3>{{ 'employee.ops.recentClients' | t }}</h3>
+
+          <a routerLink="/employee/clients" class="ops-panel__link">{{ 'employee.ops.viewAll' | t }}</a>
+
+        </header>
+
+        <ul class="ops-client-list">
+
+          @for (c of workspace.recent_clients; track c.id) {
+
+            <li class="ops-client-list__item">
+
+              <a [routerLink]="['/employee/client', c.id]" class="ops-client-list__link">
+
+              <div class="ops-client-list__avatar">{{ c.avatar_initials }}</div>
+
+              <div class="ops-client-list__body">
+
+                <strong>{{ c.full_name }}</strong>
+
+                <span class="ops-client-list__email">{{ c.email }}</span>
+
+              </div>
+
+              <span class="ops-client-list__status">{{ 'employee.comms.statusActive' | t }}</span>
+
+              </a>
+
+            </li>
+
+          } @empty {
+
+            <li class="ops-empty">{{ 'employee.clients.empty' | t }}</li>
+
+          }
+
+        </ul>
+
+      </section>
+
+
+
+      <section class="ops-panel">
+
+        <header class="ops-panel__head">
+
+          <h3>{{ 'employee.ops.recentTickets' | t }}</h3>
+
+          <a routerLink="/employee/support" class="ops-panel__link">{{ 'employee.ops.viewAll' | t }}</a>
+
+        </header>
+
+        <ul class="ops-ticket-list">
+
+          @for (t of workspace.recent_tickets; track t.id) {
+
+            <li class="ops-ticket-list__item">
+
+              <div class="ops-ticket-list__meta">
+
+                <span class="ops-ticket-list__id">{{ t.ticket_number }}</span>
+
+                <span class="ops-priority" [class]="priorityClass(t.priority)">{{ t.priority }}</span>
+
+                <span class="ops-status" [class]="statusClass(t.status)">{{ t.status }}</span>
+
+              </div>
+
+              <strong class="ops-ticket-list__title">{{ t.subject }}</strong>
+
+              <span class="ops-ticket-list__time">{{ timeAgo(t.created_at) }}</span>
+
+              <a [routerLink]="['/employee/support', t.id]" class="ops-btn ops-btn--ghost ops-btn--sm">{{ 'employee.ops.open' | t }}</a>
+
+            </li>
+
+          } @empty {
+
+            <li class="ops-empty">{{ 'employee.support.subtitle' | t }}</li>
+
+          }
+
+        </ul>
+
+      </section>
+
+
+
+      <section class="ops-panel ops-panel--tracking">
+
+        <header class="ops-panel__head">
+
+          <h3>{{ 'employee.ops.trackingWidget' | t }}</h3>
+
+          <a routerLink="/employee/tracking" class="ops-panel__link">{{ 'employee.ops.viewAll' | t }}</a>
+
+        </header>
+
+        <div class="ops-tracking-stats">
+
+          <div class="ops-tracking-stat">
+
+            <strong>{{ workspace.tracking_summary.delayed_count }}</strong>
+
+            <span>{{ 'employee.ops.delayed' | t }}</span>
+
+          </div>
+
+          <div class="ops-tracking-stat ops-tracking-stat--warn">
+
+            <strong>{{ workspace.tracking_summary.exception_count }}</strong>
+
+            <span>{{ 'employee.ops.exceptions' | t }}</span>
+
+          </div>
+
+          <div class="ops-tracking-stat">
+
+            <strong>{{ workspace.tracking_summary.active_count }}</strong>
+
+            <span>{{ 'employee.ops.activeTracking' | t }}</span>
+
+          </div>
+
+        </div>
+
+        <div class="ops-table-wrap">
+
+          <table class="ops-table ops-table--compact">
+
+            <thead>
+
+              <tr>
+
+                <th>{{ 'employee.ops.colTracking' | t }}</th>
+
+                <th>{{ 'employee.ops.colClient' | t }}</th>
+
+                <th>{{ 'employee.ops.colStatus' | t }}</th>
+
+                <th>{{ 'employee.ops.colUpdated' | t }}</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              @for (ev of trackingEvents(); track ev.tracking_number + ev.created_at) {
+
+                <tr [class.ops-table__row--exception]="ev.is_exception">
+
+                  <td><a [routerLink]="['/employee/tracking', ev.tracking_number]">{{ ev.tracking_number }}</a></td>
+
+                  <td>{{ ev.client_name }}</td>
+
+                  <td><span class="ops-ship-status" [class]="shipmentStatusClass(ev.status)">{{ ev.status }}</span></td>
+
+                  <td class="ops-table__time">{{ ev.created_at | date:'shortTime' }}</td>
+
+                </tr>
+
+              } @empty {
+
+                <tr>
+
+                  <td colspan="4" class="ops-empty">{{ 'employee.tracking.subtitle' | t }}</td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+    </div>
+
+
+
+    <div class="ops-grid ops-grid--bottom">
+
+      <section class="ops-panel ops-panel--admin">
+
+        <header class="ops-panel__head">
+
+          <h3>{{ 'employee.ops.adminComm' | t }}</h3>
+
+          @if (workspace.admin_communication.unread_count > 0) {
+
+            <span class="ops-badge-orange">{{ workspace.admin_communication.unread_count }}</span>
+
+          }
+
+        </header>
+
+        @if (workspace.admin_communication.latest_announcement) {
+
+          <div class="ops-admin-announce">
+
+            <span class="ops-admin-announce__label">{{ 'employee.ops.announcement' | t }}</span>
+
+            <p>{{ workspace.admin_communication.latest_announcement }}</p>
+
+          </div>
+
+        }
+
+        @if (workspace.admin_communication.latest_message) {
+
+          <div class="ops-admin-msg">
+
+            <strong>{{ workspace.admin_communication.latest_sender }}</strong>
+
+            <p>{{ workspace.admin_communication.latest_message }}</p>
+
+            @if (workspace.admin_communication.latest_at) {
+
+              <small>{{ workspace.admin_communication.latest_at | date:'short' }}</small>
+
+            }
+
+          </div>
+
+        } @else {
+
+          <p class="ops-empty">{{ 'employee.adminChat.empty' | t }}</p>
+
+        }
+
+        <a routerLink="/employee/admin-chat" class="ops-btn ops-btn--gradient ops-btn--block">{{ 'employee.ops.chatAdmin' | t }}</a>
+
+      </section>
+
+
+
+      <section class="ops-panel">
+
+        <header class="ops-panel__head">
+
+          <h3>{{ 'employee.ops.notifPreview' | t }}</h3>
+
+          <a routerLink="/employee/notifications" class="ops-panel__link">{{ 'employee.ops.viewAll' | t }}</a>
+
+        </header>
+
+        <ul class="ops-notif-list">
+
+          @for (n of workspace.recent_notifications; track n.id) {
+
+            <li class="ops-notif-list__item" [class.ops-notif-list__item--unread]="!n.is_read">
+
+              <a [routerLink]="n.link || '/employee/notifications'" class="ops-notif-list__link">
+
+              <span class="ops-notif-list__icon-wrap">
+
+                <span class="ops-icon ops-icon--sm" [attr.data-icon]="notifIcon(n.kind)"></span>
+
+              </span>
+
+              <div>
+
+                <strong>{{ n.title }}</strong>
+
+                <p>{{ n.message }}</p>
+
+                <small>{{ n.created_at | date:'short' }}</small>
+
+              </div>
+
+              </a>
+
+            </li>
+
+          } @empty {
+
+            <li class="ops-empty">{{ 'employee.notifications.title' | t }}</li>
+
+          }
+
+        </ul>
+
+      </section>
+
+    </div>
+
+  }
+
+</div>
+

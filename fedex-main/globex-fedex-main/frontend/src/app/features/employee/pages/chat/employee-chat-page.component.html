@@ -1,0 +1,308 @@
+<div class="copilot">
+  <!-- HERO -->
+  <section class="copilot-hero">
+    <div class="copilot-hero__content">
+      <span class="copilot-hero__badge">{{ 'employee.copilot.badge' | t }}</span>
+      <h1>{{ 'employee.ai.title' | t }}</h1>
+      <p>{{ 'employee.copilot.subtitle' | t }}</p>
+    </div>
+    <div class="copilot-hero__visual" aria-hidden="true">
+      <div class="copilot-hero__glow"></div>
+      <div class="copilot-hero__glass">
+        <svg viewBox="0 0 200 200" fill="none" class="copilot-hero__svg">
+          <circle cx="100" cy="100" r="70" stroke="url(#cpGrad1)" stroke-width="1.5" opacity="0.45"/>
+          <circle cx="100" cy="100" r="48" stroke="#6D4AFF" stroke-width="2" opacity="0.3"/>
+          <rect x="62" y="72" width="76" height="56" rx="16" fill="url(#cpGrad2)" opacity="0.95"/>
+          <path d="M72 88 H128 M72 104 H128 M72 120 H108" stroke="rgba(255,255,255,0.85)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="100" cy="48" r="8" fill="#8B73FF" opacity="0.8"/>
+          <path d="M100 56 V72" stroke="#8B73FF" stroke-width="2"/>
+          <defs>
+            <linearGradient id="cpGrad1" x1="0" y1="0" x2="200" y2="200">
+              <stop stop-color="#6D4AFF"/><stop offset="1" stop-color="#8B73FF"/>
+            </linearGradient>
+            <linearGradient id="cpGrad2" x1="62" y1="72" x2="138" y2="128">
+              <stop stop-color="#6D4AFF"/><stop offset="1" stop-color="#8B73FF"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="copilot-hero__tag">{{ 'employee.copilot.aiTag' | t }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK ACTIONS -->
+  <section class="copilot-actions">
+    @for (action of quickActions; track action.titleKey) {
+      <button type="button" class="copilot-actions__card" (click)="runQuickAction(action)">
+        <span class="copilot-icon" [attr.data-icon]="action.icon"></span>
+        <strong>{{ action.titleKey | t }}</strong>
+        <span>{{ action.descKey | t }}</span>
+      </button>
+    }
+  </section>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="copilot-workspace">
+    <div class="copilot-main">
+      <!-- PROMPTS -->
+      <div class="copilot-prompts">
+        @for (p of suggestedPrompts; track p.key) {
+          <button type="button" class="copilot-prompts__chip" (click)="usePrompt(p.key)">{{ p.key | t }}</button>
+        }
+      </div>
+
+      <!-- CHAT -->
+      <div class="copilot-chat">
+        <div class="copilot-chat__thread" #threadEl>
+          @if (messages.length === 0 && !loading) {
+            <div class="copilot-welcome">
+              <div class="copilot-welcome__avatar copilot-welcome__avatar--ai">AI</div>
+              <h2>{{ 'employee.copilot.welcomeTitle' | t }}</h2>
+              <p>{{ 'employee.copilot.welcomeDesc' | t }}</p>
+              <ul>
+                <li>{{ 'employee.copilot.welcomeItem1' | t }}</li>
+                <li>{{ 'employee.copilot.welcomeItem2' | t }}</li>
+                <li>{{ 'employee.copilot.welcomeItem3' | t }}</li>
+              </ul>
+            </div>
+          }
+
+          @for (msg of messages; track $index) {
+            <div class="copilot-msg" [class.copilot-msg--user]="msg.role === 'user'" [class.copilot-msg--ai]="msg.role === 'assistant'">
+              <div class="copilot-msg__avatar" [class.copilot-msg__avatar--ai]="msg.role === 'assistant'">
+                {{ msg.role === 'user' ? employeeInitials : 'AI' }}
+              </div>
+              <div class="copilot-msg__body">
+                @if (msg.role === 'user') {
+                  <p class="copilot-msg__text">{{ msg.text }}</p>
+                } @else {
+                  <div class="copilot-msg__markdown" [innerHTML]="msg.html"></div>
+
+                  @if (msg.clients?.length) {
+                    <div class="copilot-results">
+                      @for (c of msg.clients; track c.id) {
+                        <article class="copilot-result-card">
+                          <header>
+                            <strong>{{ c.full_name }}</strong>
+                            <span class="copilot-result-card__company">{{ c.company }}</span>
+                          </header>
+                          <p>{{ c.email }}</p>
+                          <div class="copilot-result-card__stats">
+                            <span>{{ c.total_trackings }} shipments</span>
+                            <span>{{ c.open_tickets }} tickets</span>
+                            <span>{{ c.total_documents }} docs</span>
+                          </div>
+                          <div class="copilot-result-card__actions">
+                            <a [routerLink]="['/employee/client', c.id]" class="copilot-btn copilot-btn--primary">{{ 'employee.copilot.openClient' | t }}</a>
+                            <a routerLink="/employee/tracking" class="copilot-btn copilot-btn--ghost">{{ 'employee.copilot.openTracking' | t }}</a>
+                          </div>
+                        </article>
+                      }
+                    </div>
+                  }
+
+                  @if (msg.tracking) {
+                    <article class="copilot-result-card copilot-result-card--tracking">
+                      <header>
+                        <strong>{{ msg.tracking.tracking_number }}</strong>
+                        @if (msg.tracking.is_exception) {
+                          <span class="copilot-exception-badge">{{ 'employee.copilot.exception' | t }}</span>
+                        }
+                      </header>
+                      <div class="copilot-tracking-grid">
+                        <div><span>Status</span><strong>{{ msg.tracking.status }}</strong></div>
+                        <div><span>Location</span><strong>{{ msg.tracking.current_location }}</strong></div>
+                        <div><span>ETA</span><strong>{{ msg.tracking.estimated_delivery }}</strong></div>
+                        @if (msg.tracking.client_name) {
+                          <div><span>Client</span><strong>{{ msg.tracking.client_name }}</strong></div>
+                        }
+                      </div>
+                      @if (msg.tracking.events.length) {
+                        <ul class="copilot-timeline">
+                          @for (ev of msg.tracking.events; track ev.label + ev.at) {
+                            <li><span>{{ ev.at }}</span><strong>{{ ev.label }}</strong></li>
+                          }
+                        </ul>
+                      }
+                      <a [routerLink]="['/employee/tracking', msg.tracking.tracking_number]" class="copilot-btn copilot-btn--primary">{{ 'employee.copilot.viewTracking' | t }}</a>
+                    </article>
+                  }
+
+                  @if (msg.tickets?.length) {
+                    <div class="copilot-results">
+                      @for (t of msg.tickets; track t.id) {
+                        <article class="copilot-result-card">
+                          <header>
+                            <code>{{ t.ticket_number }}</code>
+                            <span class="copilot-priority" [class]="priorityClass(t.priority)">{{ t.priority }}</span>
+                            <span class="copilot-status" [class]="statusClass(t.status)">{{ t.status }}</span>
+                          </header>
+                          <strong>{{ t.subject }}</strong>
+                          <p>{{ t.client_name }}</p>
+                          <div class="copilot-result-card__actions">
+                            <a [routerLink]="['/employee/support', t.id]" class="copilot-btn copilot-btn--primary">{{ 'employee.copilot.openTicket' | t }}</a>
+                            <a [routerLink]="['/employee/support', t.id]" class="copilot-btn copilot-btn--ghost">{{ 'employee.copilot.reply' | t }}</a>
+                            <a [routerLink]="['/employee/support', t.id]" class="copilot-btn copilot-btn--ghost">{{ 'employee.copilot.escalate' | t }}</a>
+                          </div>
+                        </article>
+                      }
+                    </div>
+                  }
+
+                  @if (msg.documents?.length) {
+                    <div class="copilot-results">
+                      @for (d of msg.documents; track d.id) {
+                        <article class="copilot-result-card">
+                          <header>
+                            <strong>{{ d.title }}</strong>
+                            <span class="copilot-doc-type">{{ d.doc_type }}</span>
+                          </header>
+                          <p>{{ d.client_name }} · {{ d.created_at | date:'short' }}</p>
+                          @if (d.client_id) {
+                            <a [routerLink]="['/employee/client', d.client_id]" [queryParams]="{ tab: 'documents' }" class="copilot-btn copilot-btn--primary">{{ 'employee.copilot.download' | t }}</a>
+                          }
+                        </article>
+                      }
+                    </div>
+                  }
+
+                  @if (msg.admin_draft) {
+                    <article class="copilot-result-card copilot-result-card--admin">
+                      <header><strong>{{ 'employee.copilot.adminDraft' | t }}</strong></header>
+                      <pre>{{ msg.admin_draft }}</pre>
+                      <button type="button" class="copilot-btn copilot-btn--primary" (click)="sendAdminDraft(msg.admin_draft!)">{{ 'employee.copilot.sendToAdmin' | t }}</button>
+                    </article>
+                  }
+
+                  @if (msg.actions?.length) {
+                    <div class="copilot-quick-reply">
+                      @for (a of msg.actions; track a.route + a.kind) {
+                        <a [routerLink]="a.route" class="copilot-btn copilot-btn--ghost">{{ a.label }}</a>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+
+          @if (loading) {
+            <div class="copilot-msg copilot-msg--ai">
+              <div class="copilot-msg__avatar copilot-msg__avatar--ai">AI</div>
+              <div class="copilot-msg__body">
+                <div class="copilot-typing">
+                  <span></span><span></span><span></span>
+                </div>
+                <div class="copilot-skeleton">
+                  <div class="copilot-skeleton__line copilot-skeleton__line--lg"></div>
+                  <div class="copilot-skeleton__line"></div>
+                  <div class="copilot-skeleton__line copilot-skeleton__line--sm"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="copilot-chat__composer">
+          <input
+            type="text"
+            [(ngModel)]="draft"
+            (keydown.enter)="send()"
+            [placeholder]="'employee.copilot.placeholder' | t"
+          />
+          <button type="button" class="copilot-btn copilot-btn--primary" [disabled]="loading || !draft.trim()" (click)="send()">
+            {{ loading ? ('employee.ai.thinking' | t) : ('employee.ai.send' | t) }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTEXT PANEL -->
+    <aside class="copilot-context">
+      <h3>{{ 'employee.copilot.contextTitle' | t }}</h3>
+
+      @if (contextLoading) {
+        <div class="copilot-skeleton">
+          <div class="copilot-skeleton__line"></div>
+          <div class="copilot-skeleton__line"></div>
+        </div>
+      } @else if (context) {
+        <section class="copilot-context__block">
+          <header>
+            <span>{{ 'employee.copilot.ctxClients' | t }}</span>
+          </header>
+          @for (c of context.recent_clients; track c.id) {
+            <a [routerLink]="['/employee/client', c.id]" class="copilot-context__item">
+              <span class="copilot-context__avatar">{{ c.avatar_initials }}</span>
+              <div>
+                <strong>{{ c.full_name }}</strong>
+                <small>{{ c.last_activity }}</small>
+              </div>
+            </a>
+          }
+        </section>
+
+        <section class="copilot-context__block">
+          <header><span>{{ 'employee.copilot.ctxTickets' | t }}</span></header>
+          @for (t of context.recent_tickets; track t.id) {
+            <a [routerLink]="['/employee/support', t.id]" class="copilot-context__item">
+              <div>
+                <strong>{{ t.subject }}</strong>
+                <small>{{ t.ticket_number }} · {{ t.status }}</small>
+              </div>
+            </a>
+          }
+        </section>
+
+        <section class="copilot-context__block">
+          <header><span>{{ 'employee.copilot.ctxExceptions' | t }}</span></header>
+          @for (e of context.tracking_exceptions; track e.tracking_number) {
+            <a [routerLink]="['/employee/tracking', e.tracking_number]" class="copilot-context__item copilot-context__item--warn">
+              <div>
+                <strong>{{ e.tracking_number }}</strong>
+                <small>{{ e.status }} · {{ e.client_name }}</small>
+              </div>
+            </a>
+          } @empty {
+            <p class="copilot-context__empty">{{ 'employee.copilot.noExceptions' | t }}</p>
+          }
+        </section>
+
+        <section class="copilot-context__block">
+          <header>
+            <span>{{ 'employee.copilot.ctxNotifs' | t }}</span>
+            @if (context.unread_notification_count > 0) {
+              <span class="copilot-badge">{{ context.unread_notification_count }}</span>
+            }
+          </header>
+          @for (n of context.unread_notifications; track n.id) {
+            <a [routerLink]="n.link" class="copilot-context__item" [class.copilot-context__item--unread]="!n.is_read">
+              <div>
+                <strong>{{ n.title }}</strong>
+                <small>{{ n.message }}</small>
+              </div>
+            </a>
+          }
+        </section>
+
+        <section class="copilot-context__block">
+          <header>
+            <span>{{ 'employee.copilot.ctxAdmin' | t }}</span>
+            @if (context.unread_admin_count > 0) {
+              <span class="copilot-badge copilot-badge--red">{{ context.unread_admin_count }}</span>
+            }
+          </header>
+          @for (m of context.admin_messages; track m.id) {
+            <div class="copilot-context__item">
+              <div>
+                <strong>{{ m.sender_name || m.sender_role }}</strong>
+                <small>{{ m.body }}</small>
+              </div>
+            </div>
+          }
+          <a routerLink="/employee/admin-chat" class="copilot-btn copilot-btn--ghost copilot-btn--block">{{ 'employee.ops.chatAdmin' | t }}</a>
+        </section>
+      }
+    </aside>
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<article class="client-ops-card">
+  <header class="client-ops-card__head">
+    <div class="client-ops-card__avatar">{{ client.avatar_initials }}</div>
+    <div class="client-ops-card__identity">
+      <strong>{{ client.full_name }}</strong>
+      <span>{{ client.email }}</span>
+      <small>{{ client.company }}</small>
+    </div>
+    <span class="client-ops-card__status" [class]="statusClass(client.status)">{{ client.status }}</span>
+  </header>
+
+  <div class="client-ops-card__stats">
+    <div class="client-ops-card__stat">
+      <span class="client-ops-icon" data-icon="package"></span>
+      <strong>{{ client.recent_trackings }}</strong>
+      <small>{{ 'employee.clientOps.trackings' | t }}</small>
+    </div>
+    <div class="client-ops-card__stat">
+      <span class="client-ops-icon" data-icon="ticket"></span>
+      <strong>{{ client.open_tickets }}</strong>
+      <small>{{ 'employee.clientOps.tickets' | t }}</small>
+    </div>
+  </div>
+
+  <p class="client-ops-card__activity">
+    <span class="client-ops-icon" data-icon="clock"></span>
+    {{ client.last_activity || ('employee.clientOps.noActivity' | t) }}
+  </p>
+
+  <footer class="client-ops-card__actions">
+    <a [routerLink]="['/employee/client', client.id]" class="client-ops-btn client-ops-btn--primary client-ops-btn--sm">
+      {{ 'employee.clientOps.openProfile' | t }}
+    </a>
+    <a [routerLink]="['/employee/client', client.id]" [queryParams]="{ tab: 'shipments' }" class="client-ops-btn client-ops-btn--ghost client-ops-btn--sm">
+      {{ 'employee.clientOps.viewShipments' | t }}
+    </a>
+    <a [routerLink]="['/employee/client', client.id]" [queryParams]="{ tab: 'tickets' }" class="client-ops-btn client-ops-btn--ghost client-ops-btn--sm">
+      {{ 'employee.clientOps.openTickets' | t }}
+    </a>
+  </footer>
+</article>

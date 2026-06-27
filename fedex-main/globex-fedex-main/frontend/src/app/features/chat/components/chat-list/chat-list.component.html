@@ -1,0 +1,24 @@
+@if (!hideWhenEmpty || conversations.length > 0) {
+  <section class="chat-list">
+    <header class="chat-list__head">
+      <h3>{{ sectionTitle }}</h3>
+    </header>
+
+    @if (conversations.length === 0 && emptyMessage) {
+      <p class="chat-list__empty">{{ emptyMessage }}</p>
+    } @else {
+      <div class="chat-list__items">
+        @for (conversation of conversations; track conversation.id) {
+          <app-chat-item
+            [conversation]="conversation"
+            (selectConversation)="selectConversation.emit($event)"
+            (renameConversation)="renameConversation.emit($event)"
+            (togglePinConversation)="togglePinConversation.emit($event)"
+            (moveConversation)="moveConversation.emit($event)"
+            (deleteConversation)="deleteConversation.emit($event)"
+          />
+        }
+      </div>
+    }
+  </section>
+}

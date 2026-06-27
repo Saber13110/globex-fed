@@ -1,0 +1,69 @@
+@if (open) {
+  <div class="asd-backdrop" (click)="close()" aria-hidden="true"></div>
+  <aside class="asd" role="dialog" aria-label="Support ticket">
+    @if (loading()) {
+      <p class="asd__loading">Chargement…</p>
+    } @else if (ticket()) {
+      @if (ticket(); as t) {
+        <header class="asd__head">
+          <div>
+            <span class="asd__eyebrow">Support Ticket #{{ t.ticket_number || ('SUP-2026-' + (1000 + t.id)) }}</span>
+            <h2>{{ t.user_name || 'Client' }}</h2>
+            <p class="asd__email">{{ t.user_email }}</p>
+          </div>
+          <button type="button" class="asd__close" (click)="close()" aria-label="Fermer">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </header>
+
+        <div class="asd__meta">
+          <span class="asd-badge" [ngClass]="priorityClass(t.priority)">{{ t.priority || 'medium' }}</span>
+          <span class="asd-badge" [ngClass]="statusClass(t.status)">{{ t.status }}</span>
+          <span class="asd__subject">{{ t.subject }}</span>
+        </div>
+
+        <div class="asd__thread">
+          @for (msg of t.messages; track msg.id) {
+            <article
+              class="asd-bubble"
+              [class.asd-bubble--admin]="msg.author_role === 'admin'"
+              [class.asd-bubble--user]="msg.author_role !== 'admin'"
+            >
+              <header>
+                <strong>{{ msg.author_role === 'admin' ? (msg.author_name || 'Admin') : (t.user_name || 'Client') }}</strong>
+                <time>{{ msg.created_at | date : 'short' }}</time>
+              </header>
+              <p>{{ msg.body }}</p>
+              @if (msg.attachment_url) {
+                <button type="button" class="asd-bubble__attach" (click)="openAttachment(msg.attachment_url, $event)">{{ displayAttachmentName(msg.attachment_url) }}</button>
+              }
+            </article>
+          }
+        </div>
+
+        @if (t.status !== 'closed') {
+          <footer class="asd__footer">
+            <textarea rows="4" [(ngModel)]="replyMessage" placeholder="Votre réponse au client…"></textarea>
+            <div class="asd__footer-actions">
+              <label class="asd__attach">
+                <input type="file" (change)="onFileSelected($event)" hidden />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                Joindre
+              </label>
+              @if (attachmentName) {
+                <span class="asd__attach-name">{{ attachmentName }}</span>
+                <button type="button" class="asd__attach-clear" (click)="clearAttachment()">Retirer</button>
+              } @else if (uploadingAttachment) {
+                <span class="asd__attach-name">Téléversement…</span>
+              }
+              <button type="button" class="asd-btn asd-btn--ghost" (click)="markResolved()">Marquer résolu</button>
+              <button type="button" class="asd-btn asd-btn--primary" [disabled]="submitting() || uploadingAttachment || (!replyMessage.trim() && !attachmentUrl)" (click)="sendReply()">
+                {{ submitting() ? 'Envoi…' : 'Envoyer réponse' }}
+              </button>
+            </div>
+          </footer>
+        }
+      }
+    }
+  </aside>
+}

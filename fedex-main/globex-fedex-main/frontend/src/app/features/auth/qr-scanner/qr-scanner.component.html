@@ -1,0 +1,43 @@
+<div class="qr-overlay" role="dialog" [attr.aria-label]="'auth.qr.title' | t">
+  <div class="qr-panel">
+    <header class="qr-panel__head">
+      <h2>{{ 'auth.qr.title' | t }}</h2>
+      <button type="button" class="qr-panel__close" (click)="close()" [attr.aria-label]="'common.close' | t">×</button>
+    </header>
+
+    <p class="qr-panel__hint">
+      {{ 'auth.qr.hintSamePc' | t }}<br />
+      {{ 'auth.qr.hintOtherDevice' | t }}
+    </p>
+
+    <div class="qr-panel__actions">
+      <label class="qr-panel__file-btn">
+        {{ 'auth.qr.importImage' | t }}
+        <input type="file" accept="image/*" hidden (change)="onImageSelected($event)" />
+      </label>
+      @if (error) {
+        <button type="button" class="qr-panel__retry" (click)="retryCamera()">{{ 'auth.qr.retryCamera' | t }}</button>
+      }
+    </div>
+
+    @if (cameras.length > 1 && mode === 'camera') {
+      <label class="qr-panel__camera-select">
+        <span>{{ 'auth.qr.webcam' | t }}</span>
+        <select [value]="selectedCameraId" (change)="onCameraChange($any($event.target).value)">
+          @for (cam of cameras; track cam.id) {
+            <option [value]="cam.id">{{ cam.label }}</option>
+          }
+        </select>
+      </label>
+    }
+
+    <div #readerHost [id]="elementId" class="qr-panel__reader"></div>
+
+    @if (starting) {
+      <p class="qr-panel__status">{{ (mode === 'file' ? 'auth.qr.analyzing' : 'auth.qr.activatingCamera') | t }}</p>
+    }
+    @if (error) {
+      <p class="qr-panel__error">{{ error }}</p>
+    }
+  </div>
+</div>

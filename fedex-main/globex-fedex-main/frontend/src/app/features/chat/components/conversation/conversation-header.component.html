@@ -1,0 +1,72 @@
+<header class="conv-header">
+  <div class="conv-header__main">
+    <h2 class="conv-header__title">{{ title }}</h2>
+    <p class="conv-header__meta">{{ metaLine() }}</p>
+    @if (activityLine()) {
+      <p class="conv-header__activity">{{ activityLine() }}</p>
+    }
+  </div>
+
+  <div class="conv-header__actions">
+    <button type="button" class="conv-header__btn" (click)="shareConversation.emit()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+        <polyline points="16 6 12 2 8 6"/>
+        <line x1="12" y1="2" x2="12" y2="15"/>
+      </svg>
+      <span>{{ 'chat.header.share' | t }}</span>
+    </button>
+
+    <button type="button" class="conv-header__btn" [disabled]="exportLoading" (click)="exportConversation.emit()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span>{{ (exportLoading ? 'conversation.header.exporting' : 'conversation.header.export') | t }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="conv-header__icon-btn"
+      (click)="toggleMenu($event)"
+      [attr.aria-label]="'chat.header.more' | t"
+      [attr.aria-expanded]="menuOpen"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+      </svg>
+    </button>
+
+    @if (menuOpen) {
+      <div class="conv-header__menu" role="menu" (click)="$event.stopPropagation()">
+        <button type="button" role="menuitem" (click)="menuOpen = false; renameConversation.emit()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          <span>{{ 'chat.header.rename' | t }}</span>
+        </button>
+        <button type="button" role="menuitem" (click)="menuOpen = false; togglePinConversation.emit()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 17v5M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 7 15.24V17h10v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 13 10.76V6h1a2 2 0 0 0 0-4H10a2 2 0 0 0 0 4h1v4.76z"/>
+          </svg>
+          <span>{{ (isPinned ? 'chat.header.unpin' : 'chat.header.pin') | t }}</span>
+        </button>
+        <button type="button" role="menuitem" (click)="menuOpen = false; moveConversation.emit()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span>{{ 'chat.header.move' | t }}</span>
+        </button>
+        <button type="button" class="danger" role="menuitem" (click)="menuOpen = false; deleteConversation.emit()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          <span>{{ 'chat.header.delete' | t }}</span>
+        </button>
+      </div>
+    }
+  </div>
+</header>
