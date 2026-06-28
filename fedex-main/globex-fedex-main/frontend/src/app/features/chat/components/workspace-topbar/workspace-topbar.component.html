@@ -1,0 +1,85 @@
+<header class="ux-topbar" aria-label="Barre utilisateur">
+  <div class="ux-topbar__spacer"></div>
+
+  <div class="ux-topbar__actions" (click)="$event.stopPropagation()">
+    <div class="ux-topbar__notif-wrap">
+      <button
+        type="button"
+        class="ux-topbar__icon-btn"
+        [class.ux-topbar__icon-btn--alert]="unreadCount > 0"
+        [class.ux-topbar__icon-btn--fresh]="hasFreshNotif"
+        (click)="toggleNotifications($event)"
+        [attr.aria-expanded]="notificationsOpen"
+        [attr.aria-label]="'sidebar.notifications' | t"
+      >
+        <span class="ux-topbar__icon" data-icon="bell"></span>
+        @if (unreadCount > 0) {
+          <span
+            class="ux-topbar__dot"
+            [class.ux-topbar__dot--pulse]="hasFreshNotif"
+            aria-hidden="true"
+          >
+            @if (unreadCount <= 9) {
+              <span class="ux-topbar__dot-count">{{ unreadCount }}</span>
+            } @else {
+              <span class="ux-topbar__dot-count">9+</span>
+            }
+          </span>
+        }
+      </button>
+
+      @if (notificationsOpen) {
+        <div class="ux-topbar__notif-panel" role="dialog" [attr.aria-label]="'sidebar.notifications' | t">
+          <div class="ux-topbar__notif-head">
+            <h2>{{ 'sidebar.notifications' | t }}</h2>
+            @if (unreadCount > 0) {
+              <span class="ux-topbar__notif-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+            }
+          </div>
+          @if (loadingNotifications) {
+            <p class="ux-topbar__notif-empty">{{ 'common.loading' | t }}</p>
+          } @else if (notifications.length === 0) {
+            <p class="ux-topbar__notif-empty">{{ 'topbar.notifEmpty' | t }}</p>
+          } @else {
+            <ul class="ux-topbar__notif-list">
+              @for (n of notifications; track n.id) {
+                <li>
+                  <button
+                    type="button"
+                    class="ux-topbar__notif-item"
+                    [class.ux-topbar__notif-item--unread]="!n.is_read"
+                    (click)="openNotificationItem(n, $event)"
+                  >
+                    <span class="ux-topbar__notif-title">{{ n.title }}</span>
+                    <span class="ux-topbar__notif-msg">{{ n.message }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+            <div class="ux-topbar__notif-foot">
+              <button type="button" class="ux-topbar__notif-link" (click)="viewAll($event)">{{ 'notif.viewAll' | t }}</button>
+              @if (unreadCount > 0) {
+                <button type="button" class="ux-topbar__notif-link" (click)="markAllRead($event)">{{ 'notif.markAll' | t }}</button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="ux-topbar__user">
+      <div class="ux-topbar__avatar" [ngClass]="avatarClass" aria-hidden="true">{{ avatarInitial }}</div>
+      <strong class="ux-topbar__name">{{ accountName }}</strong>
+    </div>
+
+    <button
+      type="button"
+      class="ux-topbar__icon-btn ux-topbar__icon-btn--logout"
+      (click)="onLogout($event)"
+      [attr.aria-label]="'sidebar.logout' | t"
+      [title]="'sidebar.logout' | t"
+    >
+      <span class="ux-topbar__icon" data-icon="logout"></span>
+    </button>
+  </div>
+</header>

@@ -1,0 +1,55 @@
+<section class="ast">
+  <header class="ast__head">
+    <div>
+      <h2>Tickets support clients</h2>
+      <p>Conversations utilisateur ↔ admin en temps réel</p>
+    </div>
+    <div class="ast__actions">
+      <select [(ngModel)]="statusFilter" (change)="loadTickets()">
+        <option value="all">Tous</option>
+        <option value="open">Ouverts</option>
+        <option value="pending">En cours</option>
+        <option value="resolved">Résolus</option>
+        <option value="closed">Fermés</option>
+      </select>
+      <button type="button" class="ast__refresh" (click)="loadTickets()">Rafraîchir</button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="ast__error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="ast__empty">Chargement…</p>
+  } @else if (tickets().length === 0) {
+    <div class="ast__empty-state">
+      <h3>Aucun ticket</h3>
+      <p>Les messages support apparaîtront ici.</p>
+    </div>
+  } @else {
+    <div class="ast__grid">
+      @for (ticket of tickets(); track ticket.id) {
+        <button type="button" class="ast-card" (click)="openTicket(ticket.id)">
+          <div class="ast-card__top">
+            <span class="ast-card__id">#{{ ticket.ticket_number || ticket.id }}</span>
+            <span class="ast-card__status">{{ ticket.status }}</span>
+          </div>
+          <h3>{{ ticket.subject }}</h3>
+          <p>{{ ticket.message }}</p>
+          <footer>
+            <span>{{ ticket.priority || 'medium' }}</span>
+            <time>{{ ticket.created_at | date : 'short' }}</time>
+          </footer>
+        </button>
+      }
+    </div>
+  }
+
+  <app-admin-support-drawer
+    [open]="drawerOpen()"
+    [ticketId]="activeTicketId()"
+    (closed)="closeDrawer()"
+    (updated)="onTicketUpdated()"
+  />
+</section>

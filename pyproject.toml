@@ -1,0 +1,264 @@
+[project]
+name = "jarvis-os"
+version = "0.2.0"
+description = "Jarvis — assistant personnel intelligent vocal temps réel"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    # Web framework
+    "fastapi>=0.115.0",
+    "python-multipart>=0.0.9",
+    "uvicorn[standard]>=0.32.0",
+    # Config
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "python-dotenv>=1.0.0",
+    # LLM providers
+    "anthropic>=0.40.0",
+    "google-genai>=1.0.0",
+    "ollama>=0.4.0",
+    # HTTP client (async only)
+    "httpx>=0.28.0",
+    # Logging
+    "loguru>=0.7.2",
+    # Tools
+    "pyyaml>=6.0.0",
+    "pymupdf>=1.24.0",
+    "openpyxl>=3.1.0",
+    "pytesseract>=0.3.10",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.0.0",
+    "opencv-python>=4.8.0",
+    "pillow>=10.0.0",
+    "ultralytics>=8.0.0",
+    "google-api-python-client>=2.0.0",
+    "google-auth-oauthlib>=1.0.0",
+    # Audio
+    "faster-whisper>=1.1.0",
+    "openai>=1.50.0",
+    "numpy>=1.26.0",
+    "piper-tts>=1.2.0",
+    "RealtimeSTT>=0.3.0",
+    "feedparser>=6.0.12",
+    "yt-dlp>=2026.3.17",
+    "livekit-agents[deepgram,silero,turn-detector]>=1.5.1",
+    "livekit-plugins-google>=1.5.1",
+    "livekit-plugins-elevenlabs>=1.5.1",
+    "livekit-plugins-openai>=1.5.1",
+    "livekit-plugins-anthropic>=1.5.1",
+    "livekit-api>=1.1.0",
+    "sounddevice>=0.5.5",
+    "bambulabs-api>=2.6.6",
+    "hidapi>=0.15.0",
+    "pyusb>=1.3.1",
+    "libusb-package>=1.0.26.3",
+    "python-telegram-bot>=21.0",
+    # Recherche sémantique (couche 3 mémoire) — ONNX offline, multilingue
+    "fastembed>=0.4.0",
+]
+
+[project.optional-dependencies]
+vision = [
+    "face-recognition>=1.3.0",
+]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (déjà activé pré-F — gardé)
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "ANN", # flake8-annotations
+    "ASYNC", # flake8-async
+    "TID", # flake8-tidy-imports (Phase F : interdit `from . import …`
+           # relatifs au-delà du package et bannit certains imports)
+]
+ignore = [
+    "ASYNC240",  # pathlib dans async OK — on est sur asyncio, pas trio/anyio
+]
+
+[tool.ruff.lint.flake8-tidy-imports]
+# Interdit les imports relatifs au-delà du package (RÈGLE 1 du CDC §2.2).
+ban-relative-imports = "all"
+
+[tool.ruff.lint.per-file-ignores]
+# src/jarvis/interfaces/voice/agent.py (ex-voice_agent.py) contient 13
+# __import__("jarvis.capabilities.tools.X") en lambdas (CDC §B.2 anticipation
+# des migrations tools). Le namespace allongé fait dépasser E501. Reformatage
+# propre prévu en F.1.3 (ruff TID + I).
+# E402 : `from jarvis.kernel.paths import PROJECT_ROOT` doit venir après
+# `load_dotenv` qui s'exécute au top — résolu en C avec une vraie composition root.
+"src/jarvis/interfaces/voice/agent.py" = ["E501", "E402"]
+# src/jarvis/app.py : le bloc qui force l'encodage UTF-8 de stdout/stderr DOIT
+# s'exécuter avant tout import (sinon une ligne de log non-cp1252 crashe le
+# démarrage sous Windows, cf. jarvis.ps1 run). Ce code-avant-imports volontaire
+# déclenche E402 sur tous les imports suivants.
+"src/jarvis/app.py" = ["E402"]
+# tests/test_settings_consumers.py utilise `Any` dans des Spy classes qui
+# capturent des kwargs arbitraires des constructeurs patchés (AsyncOpenAI,
+# AsyncAnthropic, httpx.AsyncClient). Typer ces kwargs précisément demanderait
+# de répliquer leur signature exacte — inutile pour un test gardien.
+"tests/test_settings_consumers.py" = ["ANN401"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "integration: tests qui exercent des composants lourds (HTTP middleware réel, Docker backend, vraies connexions réseau). Exclus par 'pytest -m \"not integration\"' — le gate par-commit des Phases B et C (CDC §A.1.5).",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jarvis"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src/jarvis" = "jarvis"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
+    "ruff>=0.15.11",
+    "import-linter>=2.0",
+    "mypy>=1.13",
+]
+
+[tool.importlinter]
+# `root_packages` (pluriel) — `config/` à la racine est un namespace DATA
+# (JSON/YAML) avec quelques modules Python loaders historiques. On le déclare
+# dans le graphe pour que la RÈGLE 4 puisse interdire son import depuis
+# `jarvis.*` — sinon `config` reste hors-graphe et la règle est invisible.
+# Cf. F.7 : closure du shim racine survivant à audit_imports + import-linter
+# (3e gate fantôme après C8 et B4a).
+root_packages = ["jarvis", "config"]
+
+# Le contrat de couches strict (`type = "layers"`) n'exprime pas correctement
+# la topologie du projet (cf. CDC §2.2) parce que :
+#   - `app.py` et `interfaces/voice/agent.py` doivent tous deux appeler
+#     `bootstrap.build()` (2 entry-points = 2 process) ; ils ne sont pas
+#     un layer unique au-dessus des autres ;
+#   - `app.py` doit importer les routers `interfaces.api.*` pour les
+#     monter, mais voice/agent n'a pas besoin de routers ;
+#   - les 4 sous-packages L1 (providers, capabilities, analytics, hardware)
+#     ne s'importent pas entre eux (RÈGLE 2).
+# Solution : 4 contrats `forbidden` qui encodent fidèlement les 3 RÈGLES
+# du CDC + la fermeture explicite du shim racine `config/` (RÈGLE 4).
+# Le "layering" implicite tombe directement de cette table d'interdictions.
+
+[[tool.importlinter.contracts]]
+name = "RÈGLE 1 — Kernel indépendant"
+type = "forbidden"
+source_modules = ["jarvis.kernel"]
+forbidden_modules = [
+    "jarvis.engine",
+    "jarvis.providers",
+    "jarvis.capabilities",
+    "jarvis.interfaces",
+    "jarvis.app",
+    "jarvis.bootstrap",
+    "jarvis.analytics",
+    "jarvis.hardware",
+]
+
+[[tool.importlinter.contracts]]
+name = "RÈGLE 2 — Providers/Capabilities/Analytics/Hardware n'importent que kernel"
+type = "forbidden"
+source_modules = [
+    "jarvis.providers",
+    "jarvis.capabilities",
+    "jarvis.analytics",
+    "jarvis.hardware",
+]
+forbidden_modules = [
+    "jarvis.engine",
+    "jarvis.interfaces",
+    "jarvis.app",
+    "jarvis.bootstrap",
+]
+# Résidus connus tolérés : tools plugin instanciés par skills utilisateur
+# sans DI possible, et un type Agent passé en signature. Voir BACKLOG
+# Phase G "fermer RÈGLE 2 strict".
+ignore_imports = [
+    "jarvis.capabilities.tools.subagent -> jarvis.engine.agent",
+    "jarvis.capabilities.tools.subagent -> jarvis.engine.mission.backends.rpc",
+    "jarvis.capabilities.tools.subagent -> jarvis.engine.mission.backend_factory",
+    "jarvis.capabilities.skills.lab -> jarvis.engine.mission.docker_executor",
+]
+
+[[tool.importlinter.contracts]]
+name = "RÈGLE 3 — Engine n'importe que kernel"
+type = "forbidden"
+source_modules = ["jarvis.engine"]
+forbidden_modules = [
+    "jarvis.providers",
+    "jarvis.capabilities",
+    "jarvis.interfaces",
+    "jarvis.app",
+    "jarvis.bootstrap",
+    "jarvis.analytics",
+    "jarvis.hardware",
+]
+# Plugin Fusion 360 instancié à la demande dans worker_agent quand un step
+# nomme `fusion_360` — l'import est lazy et annoté `# lazy: plugin`.
+ignore_imports = [
+    "jarvis.engine.mission.worker_agent -> jarvis.capabilities.tools.fusion",
+]
+
+[[tool.importlinter.contracts]]
+# Le shim racine `config/` est un namespace DATA — JSON/YAML qui restent à la
+# racine du repo (décision Q1). Les loaders Python associés vivent dans
+# `jarvis.kernel.*` et lisent les fichiers via `kernel.paths.CONFIG_DIR`
+# (absolu). Aucun module sous `jarvis.*` ne doit importer `config.*` :
+# le `from config.X import …` est l'ancien namespace pré-B.3 qui a survécu
+# trois gates (audit_imports lazy-only, import-linter root_package="jarvis"
+# uniquement). B9 cold-install l'a attrapé en juin : sur clone neuf, le
+# wheel n'embarque que `src/jarvis/` et l'app ne boote pas. F.7 ferme.
+name = "RÈGLE 4 — Aucun module sous jarvis.* n'importe le shim racine `config/`"
+type = "forbidden"
+source_modules = [
+    "jarvis.kernel",
+    "jarvis.providers",
+    "jarvis.capabilities",
+    "jarvis.analytics",
+    "jarvis.hardware",
+    "jarvis.engine",
+    "jarvis.interfaces",
+    "jarvis.app",
+    "jarvis.bootstrap",
+]
+forbidden_modules = ["config"]
+
+[tool.mypy]
+# Scope strict : kernel + test de conformité des Protocols (CDC §F.1.3bis).
+# Le reste du codebase (46k lignes) reste à typer en chantier séparé.
+files = [
+    "src/jarvis/kernel",
+    "tests/unit/kernel/test_contracts_conformance.py",
+]
+python_version = "3.11"
+strict_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_defs = false
+no_implicit_optional = true
+ignore_missing_imports = true

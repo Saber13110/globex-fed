@@ -1,0 +1,304 @@
+<div class="emp-sidebar-root">
+<aside class="emp-sidebar" [class.emp-sidebar--collapsed]="collapsed">
+
+  <header class="emp-sidebar__head">
+
+    <div class="emp-sidebar__brand">
+
+      @if (!collapsed) {
+
+        <div class="emp-sidebar__logo">
+
+          <span class="emp-sidebar__logo-fed">Fed</span><span class="emp-sidebar__logo-ex">Ex</span>
+
+        </div>
+
+        <span class="emp-sidebar__subtitle">{{ 'employee.sidebar.portal' | t }}</span>
+
+      }
+
+    </div>
+
+    <button type="button" class="emp-sidebar__collapse" (click)="toggleCollapse()" [attr.aria-label]="'sidebar.collapse' | t">
+
+      {{ collapsed ? '»' : '«' }}
+
+    </button>
+
+  </header>
+
+
+
+  @for (section of sections; track section.titleKey) {
+
+    <section class="emp-sidebar__section">
+
+      @if (!collapsed) {
+
+        <h3 class="emp-sidebar__section-title">{{ section.titleKey | t }}</h3>
+
+      }
+
+      <nav>
+
+        @for (item of section.items; track item.labelKey) {
+
+          @if (item.route) {
+
+            <a
+
+              [routerLink]="item.route"
+
+              routerLinkActive="emp-sidebar__link--active"
+
+              [routerLinkActiveOptions]="{ exact: item.route === '/employee' }"
+
+              class="emp-sidebar__link"
+
+              [title]="item.labelKey | t"
+
+            >
+
+              <span class="emp-sidebar__icon" [attr.data-icon]="item.icon"></span>
+
+              @if (!collapsed) {
+
+                <span class="emp-sidebar__label">{{ item.labelKey | t }}</span>
+
+              @if (badgeCount(item.badgeKey) > 0) {
+
+                <span class="emp-sidebar__badge" [class.emp-sidebar__badge--orange]="badgeTone(item.badgeKey) === 'orange'" [class.emp-sidebar__badge--red]="badgeTone(item.badgeKey) === 'red'" [class.emp-sidebar__badge--pulse]="item.badgeKey === 'notifications' && notifFreshPulse">{{ badgeCount(item.badgeKey) }}</span>
+
+              }
+
+              } @else if (badgeCount(item.badgeKey) > 0) {
+
+                <span class="emp-sidebar__dot"></span>
+
+              }
+
+            </a>
+
+          } @else if (item.action) {
+
+            <button
+
+              type="button"
+
+              class="emp-sidebar__link emp-sidebar__link--action"
+
+              [title]="item.labelKey | t"
+
+              (click)="onSidebarAction(item.action)"
+
+            >
+
+              <span class="emp-sidebar__icon" [attr.data-icon]="item.icon"></span>
+
+              @if (!collapsed) {
+
+                <span class="emp-sidebar__label">{{ item.labelKey | t }}</span>
+
+              }
+
+            </button>
+
+          }
+
+        }
+
+      </nav>
+
+    </section>
+
+  }
+
+
+
+  <footer class="emp-sidebar__foot">
+
+    <div class="emp-sidebar__account-wrap" [class.emp-sidebar__account-wrap--open]="accountMenuOpen">
+
+      <button
+
+        type="button"
+
+        class="emp-sidebar__account"
+
+        [class.emp-sidebar__account--collapsed]="collapsed"
+
+        (click)="toggleAccountMenu($event)"
+
+        [attr.aria-expanded]="accountMenuOpen"
+
+        [attr.aria-label]="'sidebar.accountMenu' | t"
+
+      >
+
+        <div class="emp-sidebar__avatar-wrap">
+
+          <div class="emp-sidebar__avatar">{{ avatarInitial }}</div>
+
+        </div>
+
+        @if (!collapsed) {
+
+          <div class="emp-sidebar__meta">
+
+            <strong>{{ accountName }}</strong>
+
+            <span class="emp-sidebar__meta-email">{{ accountEmail }}</span>
+
+            <span class="emp-sidebar__meta-status">
+              <span class="emp-sidebar__online-dot" aria-hidden="true"></span>
+              {{ 'sidebar.online' | t }}
+            </span>
+
+          </div>
+
+          <span class="emp-sidebar__chevron" [class.emp-sidebar__chevron--open]="accountMenuOpen" aria-hidden="true">
+
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+
+          </span>
+
+        }
+
+      </button>
+
+
+
+      @if (accountMenuOpen) {
+
+        <div
+
+          class="emp-sidebar__account-menu"
+
+          [class.emp-sidebar__account-menu--flyout]="collapsed"
+
+          role="menu"
+
+          [attr.aria-label]="'sidebar.accountMenu' | t"
+
+          (click)="$event.stopPropagation()"
+
+        >
+
+          @if (!collapsed) {
+
+            <div class="emp-sidebar__account-menu-head">
+
+              <strong>{{ accountName }}</strong>
+
+              <span>{{ accountEmail }}</span>
+
+            </div>
+
+          }
+
+
+
+          <button type="button" class="emp-sidebar__menu-item" role="menuitem" (click)="onOpenProfile($event)">
+
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+
+            <span>{{ 'sidebar.profile' | t }}</span>
+
+          </button>
+
+
+
+          <button type="button" class="emp-sidebar__menu-item" role="menuitem" (click)="onOpenSettings($event)">
+
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+
+            <span>{{ 'sidebar.settings' | t }}</span>
+
+          </button>
+
+          <button type="button" class="emp-sidebar__menu-item" role="menuitem" (click)="onOpenHelp($event)">
+
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+
+            <span>{{ 'employee.sidebar.help' | t }}</span>
+
+          </button>
+
+          <div class="emp-sidebar__menu-divider" role="separator"></div>
+
+          <div
+            class="emp-sidebar__menu-section emp-sidebar__menu-section--lang"
+            (mouseenter)="openLangFlyout()"
+            (mouseleave)="scheduleCloseLangFlyout()"
+          >
+            <button
+              #langTrigger
+              type="button"
+              class="emp-sidebar__menu-item emp-sidebar__menu-item--submenu"
+              [class.emp-sidebar__menu-item--submenu-open]="langFlyoutOpen"
+              role="menuitem"
+              [attr.aria-expanded]="langFlyoutOpen"
+              (click)="toggleLangFlyout($event)"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              <span class="emp-sidebar__menu-item-label">{{ 'sidebar.language' | t }}</span>
+              <svg class="emp-sidebar__menu-chevron-right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="emp-sidebar__menu-divider" role="separator"></div>
+
+          <div class="emp-sidebar__menu-footer">
+            <button type="button" class="emp-sidebar__menu-item emp-sidebar__menu-item--danger" role="menuitem" (click)="onLogout($event)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+              </svg>
+              <span>{{ 'sidebar.logout' | t }}</span>
+            </button>
+          </div>
+
+        </div>
+
+      }
+
+    </div>
+
+  </footer>
+
+</aside>
+
+@if (accountMenuOpen && langFlyoutOpen) {
+  <div
+    class="emp-sidebar__lang-flyout emp-sidebar__lang-flyout--fixed"
+    role="menu"
+    [attr.aria-label]="'lang.choose' | t"
+    [style.top.px]="langFlyoutTop"
+    [style.left.px]="langFlyoutLeft"
+    (mouseenter)="cancelCloseLangFlyout()"
+    (mouseleave)="scheduleCloseLangFlyout()"
+    (click)="$event.stopPropagation()"
+  >
+    @for (opt of i18n.languageOptions; track opt.code) {
+      <button
+        type="button"
+        class="emp-sidebar__lang-flyout-item"
+        role="menuitemradio"
+        [attr.aria-checked]="isActiveLang(opt.code)"
+        (click)="selectLanguage(opt.code, $event)"
+      >
+        <span>{{ opt.menuLabelKey | t }}</span>
+        @if (isActiveLang(opt.code)) {
+          <svg class="emp-sidebar__lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        }
+      </button>
+    }
+  </div>
+}
+</div>
+

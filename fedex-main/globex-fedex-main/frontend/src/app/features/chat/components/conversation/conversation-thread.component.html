@@ -1,0 +1,45 @@
+<section class="conv-thread" [attr.aria-label]="title">
+  <app-conversation-header
+    [title]="title"
+    [sessionUpdatedAt]="sessionUpdatedAt"
+    [isPinned]="isPinned"
+    [exportLoading]="exportLoading()"
+    (shareConversation)="shareConversation.emit()"
+    (exportConversation)="onExport()"
+    (renameConversation)="renameConversation.emit()"
+    (togglePinConversation)="togglePinConversation.emit()"
+    (moveConversation)="moveConversation.emit()"
+    (deleteConversation)="deleteConversation.emit()"
+  />
+
+  <div class="conv-thread__body">
+    @if (loading) {
+      <p class="conv-thread__loading">{{ 'conversation.loading' | t }}</p>
+    } @else {
+      <app-conversation-messages
+        [messages]="messages"
+        [thinking]="thinking"
+        [userInitial]="avatarInitial()"
+        [inputDisabled]="inputDisabled"
+        (agentAnswers)="agentAnswers.emit($event)"
+        (agentSuggestionActivate)="agentSuggestionActivate.emit($event)"
+      />
+    }
+
+    @if (error) {
+      <p class="conv-thread__error" role="alert">{{ error }}</p>
+    }
+  </div>
+
+  <footer class="conv-thread__dock">
+    <div class="conv-input-shell">
+      <app-chat-input
+        layout="dock"
+        variant="premium"
+        [placeholderText]="'conversation.inputPlaceholder' | t"
+        [disabled]="inputDisabled"
+        (send)="send.emit($event)"
+      />
+    </div>
+  </footer>
+</section>

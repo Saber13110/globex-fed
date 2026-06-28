@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 360" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="cpPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6D4AFF"/>
+      <stop offset="100%" stop-color="#8B73FF"/>
+    </linearGradient>
+    <radialGradient id="cpGlow" cx="50%" cy="42%" r="50%">
+      <stop offset="0%" stop-color="#8B73FF" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#6D4AFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="cpSoft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <ellipse cx="160" cy="180" rx="130" ry="150" fill="url(#cpGlow)"/>
+
+  <!-- Global network ring -->
+  <circle cx="160" cy="155" r="108" stroke="url(#cpPurple)" stroke-width="1.2" opacity="0.22"/>
+  <circle cx="160" cy="155" r="88" stroke="#8B73FF" stroke-width="1" opacity="0.16" stroke-dasharray="4 8"/>
+
+  <!-- Connection lines -->
+  <g stroke="#8B73FF" stroke-width="1" opacity="0.35">
+    <line x1="160" y1="155" x2="72" y2="110"/>
+    <line x1="160" y1="155" x2="248" y2="110"/>
+    <line x1="160" y1="155" x2="88" y2="220"/>
+    <line x1="160" y1="155" x2="232" y2="220"/>
+    <line x1="160" y1="155" x2="160" y2="58"/>
+  </g>
+
+  <!-- Tracking nodes -->
+  <g filter="url(#cpSoft)">
+    <circle cx="72" cy="110" r="7" fill="#6D4AFF" opacity="0.7"/>
+    <circle cx="248" cy="110" r="7" fill="#8B73FF" opacity="0.7"/>
+    <circle cx="88" cy="220" r="6" fill="#FF7A1A" opacity="0.75"/>
+    <circle cx="232" cy="220" r="6" fill="#6D4AFF" opacity="0.65"/>
+    <circle cx="160" cy="58" r="6" fill="#8B73FF" opacity="0.7"/>
+  </g>
+
+  <!-- Holographic brain -->
+  <g transform="translate(160 155)">
+    <path d="M-42 -8 C-48 -32 -18 -48 0 -44 C18 -48 48 -32 42 -8 C48 12 28 36 0 40 C-28 36 -48 12 -42 -8Z" fill="rgba(109,74,255,0.08)" stroke="url(#cpPurple)" stroke-width="1.5"/>
+    <path d="M-28 -4 C-32 -22 -10 -34 0 -30 C10 -34 32 -22 28 -4 C32 10 18 26 0 28 C-18 26 -32 10 -28 -4Z" fill="rgba(139,115,255,0.12)" stroke="#8B73FF" stroke-width="1" opacity="0.8"/>
+    <g stroke="#6D4AFF" stroke-width="1" opacity="0.45">
+      <path d="M-18 -12 L0 0 L18 -12"/>
+      <path d="M-22 4 L0 14 L22 4"/>
+      <path d="M-12 18 L0 24 L12 18"/>
+      <line x1="-18" y1="-12" x2="-22" y2="4"/>
+      <line x1="18" y1="-12" x2="22" y2="4"/>
+      <line x1="-22" y1="4" x2="-12" y2="18"/>
+      <line x1="22" y1="4" x2="12" y2="18"/>
+      <line x1="0" y1="0" x2="0" y2="24"/>
+    </g>
+    <circle cx="0" cy="0" r="5" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="0" cy="0" r="9" fill="#6D4AFF" opacity="0.2"/>
+  </g>
+
+  <!-- Analytics card -->
+  <g transform="translate(52 248)">
+    <rect width="72" height="52" rx="10" fill="#FFFFFF" stroke="#E8E4FF" stroke-width="1.2"/>
+    <rect x="12" y="14" width="10" height="24" rx="3" fill="#6D4AFF" opacity="0.35"/>
+    <rect x="28" y="22" width="10" height="16" rx="3" fill="#8B73FF" opacity="0.4"/>
+    <rect x="44" y="10" width="10" height="28" rx="3" fill="#FF7A1A" opacity="0.35"/>
+  </g>
+
+  <!-- Package node -->
+  <g transform="translate(210 255)">
+    <rect width="48" height="44" rx="9" fill="#FFFFFF" stroke="#E8E4FF" stroke-width="1.2"/>
+    <path d="M8 14 H40 V22 H8Z" fill="url(#cpPurple)" opacity="0.25"/>
+    <path d="M24 14 L8 22 L24 30 L40 22 Z" fill="none" stroke="#6D4AFF" stroke-width="1.2" opacity="0.5"/>
+  </g>
+
+  <!-- Tracking pin card -->
+  <g transform="translate(118 68)">
+    <rect width="84" height="48" rx="10" fill="#FFFFFF" stroke="#E8E4FF" stroke-width="1.2"/>
+    <circle cx="28" cy="24" r="10" fill="rgba(109,74,255,0.12)"/>
+    <circle cx="28" cy="24" r="4" fill="#6D4AFF"/>
+    <rect x="44" y="16" width="28" height="6" rx="3" fill="#E8E4FF"/>
+    <rect x="44" y="28" width="20" height="5" rx="2.5" fill="#F0EDFF"/>
+  </g>
+
+  <!-- Globe arc -->
+  <ellipse cx="160" cy="300" rx="72" ry="18" stroke="url(#cpPurple)" stroke-width="1" opacity="0.25"/>
+  <path d="M100 300 C120 286 200 286 220 300" stroke="#8B73FF" stroke-width="1" opacity="0.3"/>
+</svg>

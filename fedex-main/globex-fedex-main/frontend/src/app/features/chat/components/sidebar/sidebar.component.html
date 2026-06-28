@@ -1,0 +1,432 @@
+<div class="ux-sidebar-root">
+<div class="ux-sidebar" [class.ux-sidebar--collapsed]="collapsed">
+  <div class="ux-sidebar__scroll">
+
+    <header class="ux-sidebar__top">
+      <div class="ux-sidebar__brand">
+        @if (!collapsed) {
+          <div class="ux-sidebar__brand-block">
+            <div class="ux-sidebar__logo" aria-label="FedEx Globex">
+              <span class="ux-sidebar__logo-fed">Fed</span><span class="ux-sidebar__logo-ex">Ex</span>
+            </div>
+            <span class="ux-sidebar__brand-sub">{{ 'sidebar.brandSubtitle' | t }}</span>
+          </div>
+        }
+        <button type="button" class="ux-sidebar__collapse-btn" (click)="collapseToggle.emit()" [attr.aria-label]="'sidebar.collapse' | t">
+          {{ collapsed ? '»' : '«' }}
+        </button>
+      </div>
+
+      <button type="button" class="ux-sidebar__new-chat" (click)="navigateNewChat($event)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        @if (!collapsed) {
+          <span>{{ 'sidebar.newChat' | t }}</span>
+          <span class="ux-sidebar__new-icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 0l2 8 8 2-8 2-2 8-2-8-8-2 8-2z"/>
+            </svg>
+          </span>
+        }
+      </button>
+
+      @if (!collapsed) {
+        <button type="button" class="ux-sidebar__search-btn" (click)="navigateSearch($event)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <span>{{ 'sidebar.searchInChats' | t }}</span>
+          <kbd class="ux-sidebar__kbd">⌘K</kbd>
+        </button>
+      }
+    </header>
+
+    @if (!collapsed) {
+      <nav class="ux-sidebar__nav" [attr.aria-label]="'sidebar.mainNav' | t">
+        <button
+          type="button"
+          class="ux-sidebar__nav-item"
+          [class.ux-sidebar__nav-item--active]="activeNav === 'home'"
+          (click)="navigateHome($event)"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>{{ 'sidebar.home' | t }}</span>
+        </button>
+        <button
+          type="button"
+          class="ux-sidebar__nav-item"
+          [class.ux-sidebar__nav-item--active]="activeNav === 'history'"
+          (click)="navigateHistory($event)"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span>{{ 'sidebar.trackingHistory' | t }}</span>
+        </button>
+      </nav>
+
+      <section class="ux-sidebar__block" [attr.aria-label]="'sidebar.recents' | t">
+        <header class="ux-sidebar__block-head">
+          <button
+            type="button"
+            class="ux-sidebar__block-toggle"
+            (click)="toggleRecentsSection($event)"
+            [attr.aria-expanded]="recentsExpanded"
+          >
+            <svg
+              class="ux-sidebar__block-chevron"
+              [class.ux-sidebar__block-chevron--open]="recentsExpanded"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              aria-hidden="true"
+            >
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            <svg class="ux-sidebar__block-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="ux-sidebar__block-label ux-sidebar__block-label--caps">{{ 'sidebar.recents' | t }}</span>
+          </button>
+        </header>
+
+        @if (recentsExpanded) {
+          <div class="ux-sidebar__block-body">
+            @if (recentGroups.length > 0) {
+              @for (group of recentGroups; track group.label) {
+                <p class="ux-sidebar__group-label">{{ group.label }}</p>
+                <ul class="ux-sidebar__recents-list">
+                  @for (conv of group.conversations; track conv.id) {
+                    <li
+                      class="ux-sidebar__rich-row"
+                      [class.ux-sidebar__rich-row--active]="conv.isActive"
+                      [class.ux-sidebar__rich-row--menu-open]="isConversationMenuOpen(conv.id)"
+                      [class.ux-sidebar__rich-row--hover]="isRowHovered(conv.id)"
+                      (mouseenter)="setRowHover(conv.id)"
+                      (mouseleave)="clearRowHover(conv.id)"
+                    >
+                      <button type="button" class="ux-sidebar__rich-main" [attr.title]="conv.title" (click)="selectConversationItem(conv.id, $event)">
+                        <span class="ux-sidebar__rich-icon ux-sidebar__rich-icon--{{ conversationVisual(conv).tone }}">
+                          @switch (conversationVisual(conv).icon) {
+                            @case ('doc') {
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            }
+                            @case ('chart') {
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16V9M12 16V5M17 16v-6"/></svg>
+                            }
+                            @case ('alert') {
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            }
+                            @default {
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                            }
+                          }
+                        </span>
+                        <span class="ux-sidebar__rich-text">
+                          <strong>{{ conv.title }}</strong>
+                          <small>{{ recentStatusLabel(conv) }}</small>
+                        </span>
+                        <time class="ux-sidebar__rich-time">{{ formatRecentTime(conv.updatedAt) }}</time>
+                      </button>
+                      <div class="ux-sidebar__recent-actions">
+                        <button type="button" class="ux-sidebar__menu-btn" [class.ux-sidebar__menu-btn--show]="showConversationMenuBtn(conv)" [attr.aria-label]="'chat.header.more' | t" (click)="toggleConversationMenu($event, conv.id)">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.75"/><circle cx="12" cy="12" r="1.75"/><circle cx="19" cy="12" r="1.75"/></svg>
+                        </button>
+                        @if (isConversationMenuOpen(conv.id)) {
+                          <div class="ux-sidebar__conv-menu" role="menu" (click)="$event.stopPropagation()">
+                            <button type="button" role="menuitem" (click)="onRenameRequest($event, conv.id)"><span>{{ 'chat.header.rename' | t }}</span></button>
+                            <button type="button" role="menuitem" (click)="onMenuPin($event, conv.id)"><span>{{ (conv.isPinned ? 'chat.header.unpin' : 'chat.header.pin') | t }}</span></button>
+                            <button type="button" role="menuitem" (click)="onMenuMove($event, conv.id)"><span>{{ 'chat.header.move' | t }}</span></button>
+                            <button type="button" class="ux-sidebar__conv-menu-danger" role="menuitem" (click)="onMenuDelete($event, conv.id)"><span>{{ 'chat.header.delete' | t }}</span></button>
+                          </div>
+                        }
+                      </div>
+                    </li>
+                  }
+                </ul>
+              }
+              <button type="button" class="ux-sidebar__see-all" (click)="openHistory.emit()">
+                {{ 'sidebar.seeAllHistory' | t }}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            } @else if (displayRecentsList.length > 0) {
+              <ul class="ux-sidebar__recents-list">
+                @for (conv of displayRecentsList; track conv.id) {
+                  <li
+                    class="ux-sidebar__rich-row"
+                    [class.ux-sidebar__rich-row--active]="conv.isActive"
+                    [class.ux-sidebar__rich-row--menu-open]="isConversationMenuOpen(conv.id)"
+                    [class.ux-sidebar__rich-row--hover]="isRowHovered(conv.id)"
+                    (mouseenter)="setRowHover(conv.id)"
+                    (mouseleave)="clearRowHover(conv.id)"
+                  >
+                    <button type="button" class="ux-sidebar__rich-main" [attr.title]="conv.title" (click)="selectConversationItem(conv.id, $event)">
+                      <span class="ux-sidebar__rich-icon ux-sidebar__rich-icon--{{ conversationVisual(conv).tone }}">
+                        @switch (conversationVisual(conv).icon) {
+                          @case ('doc') {
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                          }
+                          @case ('chart') {
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16V9M12 16V5M17 16v-6"/></svg>
+                          }
+                          @case ('alert') {
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                          }
+                          @default {
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                          }
+                        }
+                      </span>
+                      <span class="ux-sidebar__rich-text">
+                        <strong>{{ conv.title }}</strong>
+                        <small>{{ recentStatusLabel(conv) }}</small>
+                      </span>
+                      <time class="ux-sidebar__rich-time">{{ formatRecentTime(conv.updatedAt) }}</time>
+                    </button>
+                    <div class="ux-sidebar__recent-actions">
+                      <button type="button" class="ux-sidebar__menu-btn" [class.ux-sidebar__menu-btn--show]="showConversationMenuBtn(conv)" [attr.aria-label]="'chat.header.more' | t" (click)="toggleConversationMenu($event, conv.id)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.75"/><circle cx="12" cy="12" r="1.75"/><circle cx="19" cy="12" r="1.75"/></svg>
+                      </button>
+                      @if (isConversationMenuOpen(conv.id)) {
+                        <div class="ux-sidebar__conv-menu" role="menu" (click)="$event.stopPropagation()">
+                          <button type="button" role="menuitem" (click)="onRenameRequest($event, conv.id)"><span>{{ 'chat.header.rename' | t }}</span></button>
+                          <button type="button" role="menuitem" (click)="onMenuPin($event, conv.id)"><span>{{ (conv.isPinned ? 'chat.header.unpin' : 'chat.header.pin') | t }}</span></button>
+                          <button type="button" role="menuitem" (click)="onMenuMove($event, conv.id)"><span>{{ 'chat.header.move' | t }}</span></button>
+                          <button type="button" class="ux-sidebar__conv-menu-danger" role="menuitem" (click)="onMenuDelete($event, conv.id)"><span>{{ 'chat.header.delete' | t }}</span></button>
+                        </div>
+                      }
+                    </div>
+                  </li>
+                }
+              </ul>
+              <button type="button" class="ux-sidebar__see-all" (click)="openHistory.emit()">
+                {{ 'sidebar.seeAllHistory' | t }}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            } @else {
+              <p class="ux-sidebar__block-empty">{{ 'sidebar.recentsEmpty' | t }}</p>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="ux-sidebar__block" [attr.aria-label]="'sidebar.folders' | t">
+        <header class="ux-sidebar__block-head">
+          <button
+            type="button"
+            class="ux-sidebar__block-toggle"
+            (click)="toggleFoldersSection($event)"
+            [attr.aria-expanded]="foldersExpanded"
+          >
+            <svg
+              class="ux-sidebar__block-chevron"
+              [class.ux-sidebar__block-chevron--open]="foldersExpanded"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              aria-hidden="true"
+            >
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            <svg class="ux-sidebar__block-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span class="ux-sidebar__block-label ux-sidebar__block-label--caps">{{ 'sidebar.folders' | t }}</span>
+          </button>
+          <button
+            type="button"
+            class="ux-sidebar__block-action"
+            (click)="createProject.emit(); $event.stopPropagation()"
+            [attr.aria-label]="'sidebar.newFolder' | t"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </header>
+
+        @if (foldersExpanded) {
+          <div class="ux-sidebar__block-body">
+            @for (folder of folderShortcuts; track folder.id) {
+              <button type="button" class="ux-sidebar__folder-item" (click)="onFolderShortcutClick(folder.id, $event)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                <span class="ux-sidebar__folder-name">{{ folder.labelKey | t }}</span>
+                <span class="ux-sidebar__badge ux-sidebar__badge--muted">{{ folder.count }}</span>
+              </button>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="ux-sidebar__block ux-sidebar__block--library" [attr.aria-label]="'sidebar.library' | t">
+        <div class="ux-sidebar__block-body ux-sidebar__block-body--flush">
+          <button
+            type="button"
+            class="ux-sidebar__folder-item"
+            [class.ux-sidebar__folder-item--active]="activeNav === 'documents'"
+            (click)="openDocumentsSidebar($event)"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <span class="ux-sidebar__folder-name">{{ 'sidebar.myDocuments' | t }}</span>
+          </button>
+          <button type="button" class="ux-sidebar__folder-item" [class.ux-sidebar__folder-item--active]="activeNav === 'notifications'" (click)="openNotificationsSidebar($event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span class="ux-sidebar__folder-name">{{ 'sidebar.myNotifications' | t }}</span>
+            @if (unreadCount > 0) {
+              <span class="ux-sidebar__notif-dot" aria-hidden="true"></span>
+            }
+          </button>
+        </div>
+      </section>
+    }
+  </div>
+
+  <footer class="ux-sidebar__bottom">
+    <div class="ux-sidebar__account-wrap" [class.ux-sidebar__account-wrap--open]="accountMenuOpen">
+      <button
+        type="button"
+        class="ux-sidebar__account"
+        [class.ux-sidebar__account--collapsed]="collapsed"
+        (click)="toggleAccountMenu($event)"
+        [attr.aria-expanded]="accountMenuOpen"
+        [attr.aria-label]="'sidebar.accountMenu' | t"
+      >
+        <div class="ux-sidebar__avatar-wrap">
+          @if (avatarUrl) {
+            <img class="ux-sidebar__avatar-img" [src]="avatarUrl" alt="" width="36" height="36" />
+          } @else {
+            <div class="ux-sidebar__avatar" [ngClass]="avatarClass">{{ avatarInitial }}</div>
+          }
+          <span class="ux-sidebar__online" aria-hidden="true"></span>
+        </div>
+        @if (!collapsed) {
+          <div class="ux-sidebar__meta">
+            <strong>{{ accountName }}</strong>
+            <span class="ux-sidebar__meta-email">{{ accountEmail }}</span>
+            <span class="ux-sidebar__meta-status">{{ 'sidebar.online' | t }}</span>
+          </div>
+          <span class="ux-sidebar__chevron" [class.ux-sidebar__chevron--open]="accountMenuOpen" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        }
+      </button>
+
+      @if (accountMenuOpen) {
+        <div
+          class="ux-sidebar__account-menu"
+          [class.ux-sidebar__account-menu--flyout]="collapsed"
+          role="menu"
+          [attr.aria-label]="'sidebar.accountMenu' | t"
+          (click)="$event.stopPropagation()"
+        >
+          @if (!collapsed) {
+            <div class="ux-sidebar__account-menu-head">
+              <strong>{{ accountName }}</strong>
+              <span>{{ accountEmail || 'compte@globex.ai' }}</span>
+            </div>
+          }
+
+          <button type="button" class="ux-sidebar__menu-item" role="menuitem" (click)="openProfileFromMenu($event)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <span>{{ 'sidebar.profile' | t }}</span>
+          </button>
+
+          <button type="button" class="ux-sidebar__menu-item" role="menuitem" (click)="openSettingsFromMenu($event)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <span>{{ 'sidebar.settings' | t }}</span>
+          </button>
+
+          <div class="ux-sidebar__menu-divider" role="separator"></div>
+
+          <div
+            class="ux-sidebar__menu-section ux-sidebar__menu-section--lang"
+            (mouseenter)="openLangFlyout()"
+            (mouseleave)="scheduleCloseLangFlyout()"
+          >
+            <button
+              #langTrigger
+              type="button"
+              class="ux-sidebar__menu-item ux-sidebar__menu-item--submenu"
+              [class.ux-sidebar__menu-item--submenu-open]="langFlyoutOpen"
+              role="menuitem"
+              [attr.aria-expanded]="langFlyoutOpen"
+              (click)="toggleLangFlyout($event)"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              <span class="ux-sidebar__menu-item-label">{{ 'sidebar.language' | t }}</span>
+              <svg class="ux-sidebar__menu-chevron-right" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="ux-sidebar__menu-divider" role="separator"></div>
+
+          <button type="button" class="ux-sidebar__menu-item" role="menuitem" (click)="openHelpFromMenu($event)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+            </svg>
+            <span>{{ 'sidebar.helpCenter' | t }}</span>
+          </button>
+
+          @if (showAdminLink) {
+            <button type="button" class="ux-sidebar__menu-item" role="menuitem" (click)="openAdminFromMenu($event)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/>
+                <rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>
+              </svg>
+              <span>{{ 'sidebar.admin' | t }}</span>
+            </button>
+          }
+
+          <div class="ux-sidebar__menu-footer">
+            <button type="button" class="ux-sidebar__menu-item ux-sidebar__menu-item--danger" role="menuitem" (click)="logoutFromMenu($event)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+              </svg>
+              <span>{{ 'sidebar.logout' | t }}</span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </footer>
+</div>
+
+@if (accountMenuOpen && langFlyoutOpen) {
+  <div
+    class="ux-sidebar__lang-flyout ux-sidebar__lang-flyout--fixed"
+    role="menu"
+    [attr.aria-label]="'lang.choose' | t"
+    [style.top.px]="langFlyoutTop"
+    [style.left.px]="langFlyoutLeft"
+    (mouseenter)="cancelCloseLangFlyout()"
+    (mouseleave)="scheduleCloseLangFlyout()"
+    (click)="$event.stopPropagation()"
+  >
+    @for (opt of i18n.languageOptions; track opt.code) {
+      <button
+        type="button"
+        class="ux-sidebar__lang-flyout-item"
+        role="menuitemradio"
+        [attr.aria-checked]="isActiveLang(opt.code)"
+        (click)="selectLanguage(opt.code, $event)"
+      >
+        <span>{{ opt.menuLabelKey | t }}</span>
+        @if (isActiveLang(opt.code)) {
+          <svg class="ux-sidebar__lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        }
+      </button>
+    }
+  </div>
+}
+</div>

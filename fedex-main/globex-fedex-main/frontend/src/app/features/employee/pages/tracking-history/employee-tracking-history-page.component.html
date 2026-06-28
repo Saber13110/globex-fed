@@ -1,0 +1,80 @@
+<div class="th">
+  <header class="th-hero">
+    <a routerLink="/employee/tracking" class="th-back">
+      <svg lucideArrowLeft [size]="16" />
+      {{ 'employee.shipOps.backToTracking' | t }}
+    </a>
+    <div class="th-hero__content">
+      <span class="th-hero__badge">{{ 'employee.tracking.historyBadge' | t }}</span>
+      <h1>{{ 'employee.tracking.historyTitle' | t }}</h1>
+      <p>{{ 'employee.tracking.historySubtitle' | t }}</p>
+    </div>
+    <div class="th-hero__stat">
+      <svg lucideClock [size]="18" />
+      <div>
+        <strong>{{ filtered.length }}</strong>
+        <span>{{ 'employee.tracking.historyCount' | t }}</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="th-toolbar">
+    <div class="th-search">
+      <svg lucideSearch [size]="16" />
+      <input type="search" [(ngModel)]="q" (input)="applyFilters()" [placeholder]="'employee.shipOps.searchPlaceholder' | t" />
+    </div>
+    <div class="th-filters">
+      <svg lucideFilter [size]="16" />
+      <select [(ngModel)]="statusFilter" (change)="applyFilters()">
+        <option value="all">{{ 'employee.filters.all' | t }}</option>
+        <option value="active">{{ 'employee.tracking.filterActive' | t }}</option>
+        <option value="delivered">{{ 'employee.tracking.filterDelivered' | t }}</option>
+        <option value="exception">{{ 'employee.tracking.filterException' | t }}</option>
+      </select>
+    </div>
+  </section>
+
+  @if (loading) {
+    <div class="th__loading"><div class="th__spinner"></div></div>
+  } @else if (filtered.length === 0) {
+    <div class="th-empty">{{ 'employee.tracking.historyEmpty' | t }}</div>
+  } @else {
+    <section class="th-table-wrap">
+      <table class="th-table">
+        <thead>
+          <tr>
+            <th>{{ 'employee.shipOps.trackingNumber' | t }}</th>
+            <th>{{ 'employee.shipOps.client' | t }}</th>
+            <th>{{ 'employee.clientOps.status' | t }}</th>
+            <th>{{ 'employee.shipOps.location' | t }}</th>
+            <th>ETA</th>
+            <th>{{ 'employee.shipOps.colDate' | t }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of filtered; track item.id) {
+            <tr (click)="openShipment(item)" class="th-table__row">
+              <td>
+                <span class="th-table__tracking">
+                  <svg lucidePackage [size]="14" />
+                  {{ item.tracking_number }}
+                </span>
+              </td>
+              <td>{{ item.client_name || '—' }}</td>
+              <td><span class="th-badge" [class]="statusClass(item.status_category)">{{ item.status }}</span></td>
+              <td>{{ item.current_location || '—' }}</td>
+              <td>{{ item.estimated_delivery || '—' }}</td>
+              <td>{{ item.created_at | date:'short' }}</td>
+              <td>
+                <button type="button" class="th-btn" (click)="openShipment(item); $event.stopPropagation()">
+                  {{ 'employee.shipOps.openShipment' | t }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+</div>

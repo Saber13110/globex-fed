@@ -1,0 +1,118 @@
+@import '../login/login.component.scss';
+
+.glx-card__body--register {
+  gap: 0.55rem;
+  padding: clamp(1.25rem, 2.5vh, 2rem) clamp(1.35rem, 2.8vw, 2.75rem);
+  max-height: calc(100dvh - 2rem);
+}
+
+.glx-form--register {
+  gap: 0.55rem;
+
+  .glx-field label {
+    margin-bottom: 0.28rem;
+    font-size: 0.75rem;
+  }
+
+  .glx-field__wrap {
+    display: flex;
+    align-items: center;
+  }
+
+  .glx-field__icon {
+    left: 0.9rem;
+    z-index: 1;
+
+    svg {
+      width: 17px;
+      height: 17px;
+    }
+  }
+
+  .glx-field__toggle {
+    right: 0.4rem;
+    z-index: 2;
+  }
+
+  .glx-input {
+    min-height: 44px;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+
+    &.glx-input--icon-left {
+      padding-left: 2.7rem;
+    }
+
+    &.glx-input--icon-right {
+      padding-right: 2.7rem;
+    }
+
+    &.glx-input--icon-left.glx-input--icon-right {
+      padding-left: 2.7rem;
+      padding-right: 2.7rem;
+    }
+  }
+}
+
+.glx-card__body--register .glx-divider {
+  margin: 0.15rem 0;
+}
+
+.glx-card__body--register .glx-footer {
+  padding-top: 0.5rem;
+
+  a {
+    color: $purple;
+    font-weight: 700;
+  }
+}
+
+.glx-card__body--register .glx-btn--primary:not(:disabled) {
+  background: linear-gradient(135deg, $purple 0%, $purple-light 100%);
+  box-shadow: 0 8px 24px rgba(109, 40, 255, 0.28);
+}
+
+@media (max-height: 860px) {
+  .glx-card__body--register {
+    padding: 1.15rem 1.5rem;
+    gap: 0.45rem;
+  }
+
+  .glx-card__head h2 {
+    font-size: 1.35rem;
+  }
+
+  .glx-card__head p {
+    font-size: 0.8125rem;
+  }
+
+  .glx-form--register {
+    gap: 0.45rem;
+  }
+
+  .glx-form--register .glx-input {
+    min-height: 40px;
+    padding: 0.58rem 0.75rem;
+
+    &.glx-input--icon-left {
+      padding-left: 2.55rem;
+    }
+
+    &.glx-input--icon-right {
+      padding-right: 2.55rem;
+    }
+
+    &.glx-input--icon-left.glx-input--icon-right {
+      padding-left: 2.55rem;
+      padding-right: 2.55rem;
+    }
+  }
+
+  .glx-btn--primary,
+  .glx-btn--google {
+    padding-top: 0.58rem;
+    padding-bottom: 0.58rem;
+    font-size: 0.875rem;
+  }
+}

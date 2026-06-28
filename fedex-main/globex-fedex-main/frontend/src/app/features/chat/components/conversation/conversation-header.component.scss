@@ -1,0 +1,149 @@
+.conv-header {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 56px;
+  padding: 0.55rem 0 0.65rem;
+  background: transparent;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.conv-header__main {
+  min-width: 0;
+  flex: 1;
+}
+
+.conv-header__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  color: #0f172a;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conv-header__meta {
+  margin: 0.12rem 0 0;
+  padding-left: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.conv-header__activity {
+  margin: 0.08rem 0 0;
+  padding-left: 0;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+.conv-header__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.conv-header__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #475569;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(15, 23, 42, 0.05);
+    color: #1e293b;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: wait;
+  }
+}
+
+.conv-header__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: rgba(15, 23, 42, 0.05);
+    color: #334155;
+  }
+}
+
+.conv-header__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 12;
+  min-width: 240px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+  padding: 5px;
+  display: grid;
+  gap: 1px;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    border: none;
+    background: transparent;
+    color: #1e293b;
+    text-align: left;
+    border-radius: 9px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    transition: background 0.12s ease;
+
+    &:hover {
+      background: rgba(15, 23, 42, 0.04);
+    }
+  }
+
+  .danger {
+    color: #dc2626;
+  }
+}
+
+@media (max-width: 768px) {
+  .conv-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .conv-header__btn span {
+    display: none;
+  }
+}

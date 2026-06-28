@@ -1,0 +1,24 @@
+@if (userId) {
+  @if (userStatus === 'suspended') {
+    <button
+      type="button"
+      class="adm-suspend-btn"
+      [class.adm-suspend-btn--compact]="compact"
+      [class.adm-suspend-btn--ok]="true"
+      [disabled]="busy()"
+      (click)="reactivate()"
+    >
+      {{ reactivateLabel }}
+    </button>
+  } @else {
+    <button
+      type="button"
+      class="adm-suspend-btn adm-suspend-btn--danger"
+      [class.adm-suspend-btn--compact]="compact"
+      [disabled]="busy()"
+      (click)="suspend()"
+    >
+      {{ suspendLabel }}
+    </button>
+  }
+}

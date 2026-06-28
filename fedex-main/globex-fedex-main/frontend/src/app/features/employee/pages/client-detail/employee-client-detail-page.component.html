@@ -1,0 +1,255 @@
+<div class="c360">
+  @if (loading && !client) {
+    <div class="c360__loading"><div class="c360__spinner"></div></div>
+  } @else if (client) {
+    <a routerLink="/employee/clients" class="c360-back">
+      <svg lucideArrowLeft [size]="iconSize" />
+      {{ 'employee.client.back' | t }}
+    </a>
+
+    <header class="c360-hero">
+      <div class="c360-hero__left">
+        <div class="c360-hero__avatar">{{ client.avatar_initials }}</div>
+        <div class="c360-hero__info">
+          <span class="c360-hero__eyebrow">{{ 'employee.clientOps.workspaceBadge' | t }}</span>
+          <h1>{{ client.full_name }}</h1>
+          <p class="c360-hero__email"><svg lucideMail [size]="14" /> {{ client.email }}</p>
+          <div class="c360-hero__badges">
+            <span class="c360-badge" [class]="statusClass(client.status)">{{ client.status }}</span>
+            <span class="c360-badge c360-badge--muted">{{ client.preferred_language | uppercase }}</span>
+            <span class="c360-badge c360-badge--muted">{{ 'employee.clientOps.since' | t }} {{ clientSince() }}</span>
+            <span class="c360-badge c360-badge--muted">{{ 'employee.clientOps.assignedTo' | t }} {{ client.assigned_employee || '—' }}</span>
+            <span class="c360-badge c360-badge--muted">ID #{{ client.id }}</span>
+            @if (client.organization_id) {
+              <span class="c360-badge c360-badge--muted"><svg lucideBuilding2 [size]="12" /> {{ client.organization_id }}</span>
+            }
+            @if (client.company) {
+              <span class="c360-badge c360-badge--muted"><svg lucideGlobe [size]="12" /> {{ client.company }}</span>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="c360-hero__kpis">
+        <article class="c360-kpi">
+          <svg lucidePackage [size]="16" />
+          <div>
+            <span>{{ 'employee.clientOps.activeShipments' | t }}</span>
+            <strong>{{ client.active_shipments }}</strong>
+          </div>
+        </article>
+        <article class="c360-kpi">
+          <svg lucideTicket [size]="16" />
+          <div>
+            <span>{{ 'employee.client.openTickets' | t }}</span>
+            <strong>{{ client.open_tickets }}</strong>
+          </div>
+        </article>
+        <article class="c360-kpi">
+          <svg lucideClock [size]="16" />
+          <div>
+            <span>{{ 'employee.clientOps.lastActivity' | t }}</span>
+            <strong class="c360-kpi__sm">{{ lastActivityRelative() }}</strong>
+          </div>
+        </article>
+      </div>
+    </header>
+
+    <nav class="c360-tabs">
+      <button type="button" [class.active]="tab === 'overview'" (click)="setTab('overview')">
+        <svg lucideLayoutDashboard [size]="iconSize" /> {{ 'employee.client.overview' | t }}
+      </button>
+      <button type="button" [class.active]="tab === 'shipments'" (click)="setTab('shipments')">
+        <svg lucidePackage [size]="iconSize" /> {{ 'employee.client.shipments' | t }}
+      </button>
+      <button type="button" [class.active]="tab === 'tickets'" (click)="setTab('tickets')">
+        <svg lucideTicket [size]="iconSize" /> {{ 'employee.client.tickets' | t }}
+      </button>
+      <button type="button" [class.active]="tab === 'notifications'" (click)="setTab('notifications')">
+        <svg lucideBell [size]="iconSize" /> {{ 'employee.client.notifications' | t }}
+      </button>
+      <button type="button" [class.active]="tab === 'activity'" (click)="setTab('activity')">
+        <svg lucideTimeline [size]="iconSize" /> {{ 'employee.client.activity' | t }}
+      </button>
+    </nav>
+
+    @if (actionSuccess) { <div class="c360-toast c360-toast--ok">{{ actionSuccess | t }}</div> }
+    @if (actionError) { <div class="c360-toast c360-toast--err">{{ actionError | t }}</div> }
+    @if (tabLoading) { <div class="c360__loading c360__loading--inline"><div class="c360__spinner"></div></div> }
+
+    @if (tab === 'overview' && !tabLoading) {
+      <section class="c360-panel c360-fade">
+        <div class="c360-overview">
+          <article class="c360-card">
+            <header class="c360-card__head"><svg lucideUser [size]="iconSize" /><h3>{{ 'employee.clientOps.clientProfile' | t }}</h3></header>
+            <dl class="c360-dl">
+              <div><dt>{{ 'employee.clients.email' | t }}</dt><dd>{{ client.email }}</dd></div>
+              <div><dt>{{ 'employee.client.language' | t }}</dt><dd>{{ client.preferred_language }}</dd></div>
+              <div><dt>{{ 'employee.clientOps.status' | t }}</dt><dd>{{ client.status }}</dd></div>
+              <div><dt>{{ 'employee.client.org' | t }}</dt><dd>{{ client.organization_id || '—' }}</dd></div>
+              <div><dt>{{ 'employee.clientOps.country' | t }}</dt><dd>{{ client.company || '—' }}</dd></div>
+              <div><dt>{{ 'employee.clientOps.createdAt' | t }}</dt><dd>{{ client.created_at | date:'mediumDate' }}</dd></div>
+            </dl>
+          </article>
+          <article class="c360-card">
+            <header class="c360-card__head"><svg lucideActivity [size]="iconSize" /><h3>{{ 'employee.clientOps.accountActivity' | t }}</h3></header>
+            <dl class="c360-dl">
+              <div><dt>{{ 'employee.clientOps.lastLogin' | t }}</dt><dd>{{ client.last_login ? (client.last_login | date:'short') : ('employee.clientOps.never' | t) }}</dd></div>
+              <div><dt>{{ 'employee.clientOps.lastActivity' | t }}</dt><dd>{{ client.last_activity || '—' }}</dd></div>
+              <div><dt>{{ 'employee.clientOps.assignedEmployee' | t }}</dt><dd>{{ client.assigned_employee || '—' }}</dd></div>
+              <div><dt>{{ 'employee.clientOps.recentShipment' | t }}</dt><dd>{{ recentShipmentLabel() }}</dd></div>
+              <div><dt>{{ 'employee.clientOps.recentTicket' | t }}</dt><dd>{{ recentTicketLabel() }}</dd></div>
+            </dl>
+          </article>
+        </div>
+        <article class="c360-card c360-card--wide">
+          <header class="c360-card__head"><svg lucideTimeline [size]="iconSize" /><h3>{{ 'employee.clientOps.recentActivityPreview' | t }}</h3></header>
+          <ul class="c360-feed">
+            @for (ev of activity.slice(0, 8); track ev.id) {
+              <li class="c360-feed__item" [class]="'c360-feed__item--' + activityColor(ev.kind)">
+                <span class="c360-feed__icon">
+                  @if (activityColor(ev.kind) === 'shipment') { <svg lucidePackage [size]="16" /> }
+                  @else if (activityColor(ev.kind) === 'ticket') { <svg lucideTicket [size]="16" /> }
+                  @else if (activityColor(ev.kind) === 'document') { <svg lucideFileText [size]="16" /> }
+                  @else { <svg lucideBell [size]="16" /> }
+                </span>
+                <div>
+                  <strong>{{ ev.title }}</strong>
+                  <p>{{ ev.description }}</p>
+                  <small>{{ ev.created_at | date:'short' }}</small>
+                </div>
+              </li>
+            } @empty {
+              <li class="c360-empty">{{ 'employee.clientOps.noActivity' | t }}</li>
+            }
+          </ul>
+        </article>
+      </section>
+    }
+
+    @if (tab === 'shipments' && !tabLoading) {
+      <section class="c360-panel c360-fade">
+        @if (trackings.length === 0) {
+          <p class="c360-empty">{{ 'employee.clientOps.noShipments' | t }}</p>
+        } @else {
+          <div class="c360-ship-grid">
+            @for (t of trackings; track t.id) {
+              <article class="c360-ship" [class.c360-ship--exc]="isException(t.status)">
+                <header>
+                  <strong>{{ t.tracking_number }}</strong>
+                  <span class="c360-badge" [class]="statusClass(t.status)">{{ t.status }}</span>
+                </header>
+                <div class="c360-ship__meta">
+                  <span><svg lucideMapPin [size]="14" /> {{ t.current_location || '—' }}</span>
+                  <span><svg lucideClock [size]="14" /> ETA: {{ t.estimated_delivery || '—' }}</span>
+                </div>
+                <div class="c360-mini-timeline">
+                  <span class="c360-mini-timeline__dot"></span>
+                  <span class="c360-mini-timeline__line"></span>
+                  <span class="c360-mini-timeline__dot c360-mini-timeline__dot--active"></span>
+                </div>
+                <div class="c360-ship__actions">
+                  <a [routerLink]="['/employee/tracking', t.tracking_number]" class="c360-btn c360-btn--primary c360-btn--sm">{{ 'employee.clientOps.trackLive' | t }}</a>
+                  <a [routerLink]="['/employee/tracking', t.tracking_number]" [queryParams]="{ view: 'timeline' }" class="c360-btn c360-btn--ghost c360-btn--sm">{{ 'employee.clientOps.viewTimeline' | t }}</a>
+                  <button type="button" class="c360-btn c360-btn--ghost c360-btn--sm" (click)="downloadDocument({ id: 'tracking-' + t.id, title: 'POD', doc_type: 'proof', tracking_number: t.tracking_number, client_name: client.full_name, client_id: clientId, created_at: t.created_at })">
+                    <svg lucideDownload [size]="14" /> {{ 'employee.clientOps.downloadPod' | t }}
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    @if (tab === 'tickets' && !tabLoading) {
+      <section class="c360-panel c360-fade">
+        <div class="c360-kanban">
+          @for (col of kanbanStatuses; track col) {
+            <div class="c360-kanban__col">
+              <header class="c360-kanban__head">
+                <span>{{ kanbanLabel(col) | t }}</span>
+                <em>{{ ticketsByStatus(col).length }}</em>
+              </header>
+              @for (tk of ticketsByStatus(col); track tk.id) {
+                <article class="c360-kanban__card">
+                  <div class="c360-kanban__badges">
+                    <span class="c360-badge" [class]="priorityClass(tk.priority)">{{ tk.priority }}</span>
+                    <span class="c360-badge" [class]="statusClass(tk.status)">{{ tk.status }}</span>
+                  </div>
+                  <button type="button" class="c360-kanban__title" (click)="openTicketDetail(tk.id)">{{ tk.subject }}</button>
+                  <small>{{ tk.created_at | date:'short' }}</small>
+                  <div class="c360-kanban__actions">
+                    <button type="button" class="c360-btn c360-btn--ghost c360-btn--xs" (click)="openTicketDetail(tk.id)">{{ 'employee.clientOps.ticketOpen' | t }}</button>
+                    @if (col !== 'resolved') {
+                      <button type="button" class="c360-btn c360-btn--ghost c360-btn--xs" (click)="updateTicketStatus(tk.id, 'resolved')">{{ 'employee.clientOps.ticketResolve' | t }}</button>
+                    }
+                    @if (col === 'open' || col === 'pending') {
+                      <button type="button" class="c360-btn c360-btn--ghost c360-btn--xs" (click)="updateTicketStatus(tk.id, 'escalated')">{{ 'employee.clientOps.ticketEscalate' | t }}</button>
+                    }
+                  </div>
+                </article>
+              } @empty {
+                <p class="c360-kanban__empty">—</p>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    @if (tab === 'notifications' && !tabLoading) {
+      <section class="c360-panel c360-fade">
+        @if (notifications.length === 0) {
+          <p class="c360-empty">{{ 'employee.clientOps.noNotifications' | t }}</p>
+        } @else {
+          <div class="c360-inbox">
+            @for (n of notifications; track n.id) {
+              <article class="c360-inbox__item" [class.c360-inbox__item--unread]="!n.is_read">
+                <span class="c360-inbox__icon" [class]="'c360-inbox__icon--' + notifIconKind(n.kind)">
+                  @if (notifIconKind(n.kind) === 'shipment') { <svg lucideTruck [size]="16" /> }
+                  @else if (notifIconKind(n.kind) === 'ticket') { <svg lucideTicket [size]="16" /> }
+                  @else if (notifIconKind(n.kind) === 'document') { <svg lucideFileText [size]="16" /> }
+                  @else { <svg lucideBell [size]="16" /> }
+                </span>
+                <div>
+                  <span class="c360-inbox__cat">{{ notifCategory(n.kind) | t }}</span>
+                  <strong>{{ n.title }}</strong>
+                  <p>{{ n.message }}</p>
+                  <small>{{ n.created_at | date:'short' }}</small>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    @if (tab === 'activity' && !tabLoading) {
+      <section class="c360-panel c360-fade">
+        @if (activity.length === 0) {
+          <p class="c360-empty">{{ 'employee.clientOps.noActivity' | t }}</p>
+        } @else {
+          @for (group of activityGroups(); track group.key) {
+            <div class="c360-activity-group">
+              <h3 class="c360-activity-group__title">{{ group.labelKey | t }}</h3>
+              <ul class="c360-vtimeline">
+                @for (ev of group.items; track ev.id) {
+                  <li [class]="'c360-vtimeline__item--' + activityColor(ev.kind)">
+                    <span class="c360-vtimeline__dot"></span>
+                    <div class="c360-vtimeline__body">
+                      <div class="c360-vtimeline__head">
+                        <strong>{{ ev.title }}</strong>
+                        <small>{{ ev.created_at | date:'short' }}</small>
+                      </div>
+                      <p>{{ ev.description }}</p>
+                    </div>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        }
+      </section>
+    }
+  }
+</div>

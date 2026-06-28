@@ -1,0 +1,92 @@
+<section class="am-form">
+  <header class="am-form__hero">
+    <div>
+      <a routerLink="/admin/agent-missions" class="am-form__back">← Retour aux missions</a>
+      <h1>Nouvelle mission agent</h1>
+      <p>Choisissez un agent, décrivez la tâche, puis lancez : l'agent exécute directement ou vous informe si ce n'est pas son rôle.</p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="am-form__error">{{ error() }}</p>
+  }
+
+  <form class="am-form__grid" (ngSubmit)="save()">
+    <label class="am-form__field">
+      <span>Agent</span>
+      <select [(ngModel)]="agentType" name="agentType">
+        @for (opt of agentOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="am-form__field am-form__field--full">
+      <span>Tâche</span>
+      <textarea
+        [(ngModel)]="taskDescription"
+        name="taskDescription"
+        rows="5"
+        placeholder="Exemple : Analyse les tickets support urgents non traités depuis 24h et prépare des réponses."
+      ></textarea>
+    </label>
+
+    <fieldset class="am-form__fieldset am-form__field--full">
+      <legend>Quand exécuter</legend>
+      <div class="am-form__radios">
+        @for (opt of scheduleOptions; track opt.value) {
+          <label class="am-form__radio">
+            <input type="radio" name="scheduleType" [value]="opt.value" [(ngModel)]="scheduleType" />
+            <span>{{ opt.label }}</span>
+          </label>
+        }
+      </div>
+      @if (showDatetime) {
+        <label class="am-form__field">
+          <span>Date et heure</span>
+          <input type="datetime-local" [(ngModel)]="scheduledAt" name="scheduledAt" />
+        </label>
+      }
+      @if (showScheduleTime) {
+        <label class="am-form__field">
+          <span>Heure d'exécution</span>
+          <input type="time" [(ngModel)]="scheduleTime" name="scheduleTime" />
+        </label>
+      }
+    </fieldset>
+
+    <fieldset class="am-form__fieldset am-form__field--full">
+      <legend>Limites</legend>
+      <div class="am-form__limits">
+        <label class="am-form__field">
+          <span>Nombre maximum d'éléments</span>
+          <input type="number" min="1" max="500" [(ngModel)]="maxItems" name="maxItems" />
+        </label>
+        <label class="am-form__field">
+          <span>Durée maximum (minutes)</span>
+          <input type="number" min="1" max="120" [(ngModel)]="maxDurationMinutes" name="maxDurationMinutes" />
+        </label>
+        <label class="am-form__checkbox">
+          <input type="checkbox" [(ngModel)]="requireApprovalSensitive" name="requireApprovalSensitive" />
+          <span>Demander validation avant chaque action sensible</span>
+        </label>
+        <label class="am-form__checkbox">
+          <input type="checkbox" [(ngModel)]="notifyOnStart" name="notifyOnStart" />
+          <span>Notifier au démarrage de la mission</span>
+        </label>
+        <label class="am-form__checkbox">
+          <input type="checkbox" [(ngModel)]="notifyOnComplete" name="notifyOnComplete" />
+          <span>Notifier à la fin de la mission</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="am-form__actions am-form__field--full">
+      <button type="button" class="am-form__btn am-form__btn--ghost" routerLink="/admin/agent-missions">Annuler</button>
+      <button type="submit" class="am-form__btn" [disabled]="saving()">Enregistrer</button>
+      <button type="button" class="am-form__btn am-form__btn--primary" [disabled]="saving()" (click)="createAndRun()">
+        {{ saving() ? 'En cours…' : 'Créer et lancer' }}
+      </button>
+    </div>
+  </form>
+</section>

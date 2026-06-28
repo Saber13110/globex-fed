@@ -1,0 +1,109 @@
+.uspace {
+  min-height: 100dvh;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  background: linear-gradient(165deg, #fafaff 0%, #f8f7ff 50%, #f3f0ff 100%);
+  box-sizing: border-box;
+}
+
+.uspace__head {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  max-width: 960px;
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+    font-size: 0.9375rem;
+  }
+}
+
+.uspace__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6d28ff;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.uspace__loading {
+  color: #64748b;
+}
+
+.uspace__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  max-width: 960px;
+}
+
+.uspace__card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(109, 40, 255, 0.08);
+  border-radius: 24px;
+  padding: 1.25rem 1.35rem;
+  box-shadow: 0 12px 40px rgba(109, 40, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  &--accent {
+    border-color: rgba(255, 102, 0, 0.2);
+    background: linear-gradient(145deg, #fff 0%, #fff8f5 100%);
+  }
+}
+
+.uspace__card-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+}
+
+.uspace__card-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.uspace__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  max-width: 960px;
+}
+
+.uspace__link {
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #6d28ff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    background: rgba(109, 40, 255, 0.06);
+    box-shadow: 0 4px 16px rgba(109, 40, 255, 0.1);
+  }
+}

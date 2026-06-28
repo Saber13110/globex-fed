@@ -1,0 +1,137 @@
+.ast {
+  padding: 0.5rem 0 2rem;
+}
+
+.ast__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #2e1065;
+  }
+
+  p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+  }
+}
+
+.ast__actions {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+
+  select {
+    padding: 0.45rem 0.75rem;
+    border-radius: 12px;
+    border: 1px solid #ece8f4;
+    background: #fff;
+    font-size: 0.85rem;
+  }
+}
+
+.ast__refresh {
+  padding: 0.45rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid #ece8f4;
+  background: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ast__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.85rem;
+}
+
+.ast-card {
+  text-align: left;
+  padding: 1rem 1.1rem;
+  border-radius: 20px;
+  border: 1px solid #ece8f4;
+  background: #fff;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 40px rgba(94, 23, 235, 0.08);
+    border-color: rgba(94, 23, 235, 0.15);
+  }
+
+  h3 {
+    margin: 0.5rem 0 0.35rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+  }
+}
+
+.ast-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ast-card__id {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #5e17eb;
+}
+
+.ast-card__status {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #f3f0ff;
+  color: #5e17eb;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ast__error {
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.ast__empty,
+.ast__empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+  background: #fff;
+  border: 1px dashed #ece8f4;
+  border-radius: 20px;
+}
+
+.ast__empty-state h3 {
+  margin: 0 0 0.35rem;
+  color: #111827;
+}

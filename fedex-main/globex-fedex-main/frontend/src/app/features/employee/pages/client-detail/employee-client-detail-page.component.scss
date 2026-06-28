@@ -1,0 +1,652 @@
+$primary: #6d4aff;
+$primary-hover: #5b3df5;
+$bg: #f8f7fc;
+$card: #ffffff;
+$border: #ece8f4;
+$text: #111827;
+$muted: #64748b;
+$success: #22c55e;
+$danger: #ef4444;
+$orange: #ff7a1a;
+$radius: 20px;
+$shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+
+:host { display: block; background: $bg; }
+
+.c360 {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-bottom: 1.5rem;
+}
+
+.c360-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  color: $muted;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: color 0.2s;
+  &:hover { color: $primary; }
+}
+
+.c360-hero {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 1rem;
+  max-height: 220px;
+  padding: 1rem 1.25rem;
+  background: $card;
+  border: 1px solid $border;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+
+  &__left {
+    display: flex;
+    gap: 1rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__avatar {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    border-radius: 16px;
+    background: linear-gradient(135deg, $primary, #8b73ff);
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__eyebrow {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $primary;
+    margin-bottom: 0.2rem;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    color: $text;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  &__email {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0.2rem 0 0.5rem;
+    font-size: 1rem;
+    color: $muted;
+  }
+
+  &__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  &__kpis {
+    display: grid;
+    grid-template-columns: repeat(2, 170px);
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+}
+
+.c360-kpi {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 170px;
+  height: 90px;
+  padding: 0.65rem 0.75rem;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 14px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  color: $primary;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow;
+  }
+
+  span {
+    display: block;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $muted;
+    line-height: 1.2;
+  }
+
+  strong {
+    display: block;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: $text;
+    line-height: 1.1;
+  }
+
+  &__sm { font-size: 0.95rem !important; }
+}
+
+.c360-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(109, 74, 255, 0.1);
+  color: $primary;
+
+  &--muted {
+    background: $bg;
+    color: $muted;
+    text-transform: none;
+    font-weight: 600;
+  }
+}
+
+.c360-status--active { background: rgba(34, 197, 94, 0.12); color: $success; }
+.c360-status--invited { background: rgba(255, 122, 26, 0.12); color: $orange; }
+.c360-status--open, .c360-status--pending { background: rgba(109, 74, 255, 0.1); color: $primary; }
+.c360-status--resolved { background: rgba(34, 197, 94, 0.12); color: $success; }
+.c360-status--escalated { background: rgba(239, 68, 68, 0.1); color: $danger; }
+
+.c360-priority--high { background: rgba(239, 68, 68, 0.1); color: $danger; }
+.c360-priority--medium { background: rgba(109, 74, 255, 0.1); color: $primary; }
+.c360-priority--low { background: $bg; color: $muted; }
+
+.c360-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  padding: 0.35rem;
+  background: $card;
+  border: 1px solid $border;
+  border-radius: 14px;
+  box-shadow: $shadow;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 48px;
+    padding: 0 24px;
+    border: none;
+    background: transparent;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: $muted;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+
+    &.active {
+      background: rgba(109, 74, 255, 0.1);
+      color: $primary;
+    }
+
+    &:hover:not(.active) {
+      background: rgba(109, 74, 255, 0.05);
+      color: $text;
+    }
+  }
+}
+
+.c360-panel { animation: c360Fade 0.2s ease; }
+
+@keyframes c360Fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.c360-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
+}
+
+.c360-card {
+  background: $card;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 1rem 1.15rem;
+  box-shadow: $shadow;
+  transition: box-shadow 0.2s;
+
+  &:hover { box-shadow: 0 12px 36px rgba(109, 74, 255, 0.08); }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: $primary;
+
+    h3 {
+      margin: 0;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: $text;
+    }
+  }
+
+  &--wide { margin-top: 0; }
+}
+
+.c360-dl {
+  margin: 0;
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid $border;
+    font-size: 0.82rem;
+    &:last-child { border-bottom: none; }
+  }
+  dt { color: $muted; }
+  dd { margin: 0; font-weight: 600; color: $text; text-align: right; }
+}
+
+.c360-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  &__item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid $border;
+    &:last-child { border-bottom: none; }
+  }
+
+  &__icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__item--shipment .c360-feed__icon { background: rgba(109, 74, 255, 0.1); color: $primary; }
+  &__item--ticket .c360-feed__icon { background: rgba(255, 122, 26, 0.12); color: $orange; }
+  &__item--document .c360-feed__icon { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+  &__item--notification .c360-feed__icon { background: rgba(34, 197, 94, 0.1); color: $success; }
+
+  strong { font-size: 0.88rem; color: $text; }
+  p { margin: 0.1rem 0; font-size: 0.8rem; color: $muted; }
+  small { font-size: 0.72rem; color: $muted; }
+}
+
+.c360-ship-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.75rem;
+}
+
+.c360-ship {
+  padding: 1rem;
+  background: $card;
+  border: 1px solid $border;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 36px rgba(109, 74, 255, 0.1);
+  }
+
+  &--exc { border-color: rgba(239, 68, 68, 0.3); }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    strong { font-size: 0.95rem; color: $text; letter-spacing: 0.02em; }
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.78rem;
+    color: $muted;
+    margin-bottom: 0.65rem;
+
+    span { display: flex; align-items: center; gap: 0.3rem; }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+  }
+}
+
+.c360-mini-timeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $border;
+    flex-shrink: 0;
+
+    &--active { background: $primary; box-shadow: 0 0 0 3px rgba(109, 74, 255, 0.2); }
+  }
+
+  &__line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, $border, $primary);
+    margin: 0 4px;
+  }
+}
+
+.c360-doc-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.c360-doc {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  background: $card;
+  border: 1px solid $border;
+  border-radius: 14px;
+  transition: box-shadow 0.2s;
+
+  &:hover { box-shadow: $shadow; }
+
+  &__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.08);
+    color: $danger;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__body strong { font-size: 0.88rem; color: $text; }
+
+  &__meta {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.15rem;
+    font-size: 0.72rem;
+    color: $muted;
+  }
+
+  &__actions { display: flex; gap: 0.35rem; }
+}
+
+.c360-kanban {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+  overflow-x: auto;
+
+  @media (max-width: 1024px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 640px) { grid-template-columns: 1fr; }
+
+  &__col {
+    background: $bg;
+    border: 1px solid $border;
+    border-radius: 14px;
+    padding: 0.65rem;
+    min-height: 200px;
+  }
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $muted;
+
+    em {
+      font-style: normal;
+      background: $card;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.68rem;
+    }
+  }
+
+  &__card {
+    background: $card;
+    border: 1px solid $border;
+    border-radius: 12px;
+    padding: 0.65rem;
+    margin-bottom: 0.5rem;
+    transition: box-shadow 0.2s;
+
+    &:hover { box-shadow: $shadow; }
+  }
+
+  &__badges { display: flex; gap: 0.3rem; margin-bottom: 0.35rem; }
+
+  &__title {
+    border: none;
+    background: none;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: $text;
+    &:hover { color: $primary; }
+  }
+
+  small { display: block; font-size: 0.68rem; color: $muted; margin: 0.2rem 0; }
+
+  &__actions { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+
+  &__empty { color: $muted; font-size: 0.78rem; text-align: center; padding: 1rem; }
+}
+
+.c360-inbox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  &__item {
+    display: flex;
+    gap: 0.65rem;
+    padding: 0.65rem 0.85rem;
+    background: $card;
+    border: 1px solid $border;
+    border-radius: 12px;
+    transition: background 0.2s;
+
+    &:hover { background: rgba(109, 74, 255, 0.03); }
+    &--unread { border-left: 3px solid $primary; }
+  }
+
+  &__icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &--shipment { background: rgba(109, 74, 255, 0.1); color: $primary; }
+    &--ticket { background: rgba(255, 122, 26, 0.12); color: $orange; }
+    &--document { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    &--notification { background: rgba(34, 197, 94, 0.1); color: $success; }
+  }
+
+  &__cat {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: $primary;
+    letter-spacing: 0.05em;
+  }
+
+  strong { display: block; font-size: 0.85rem; color: $text; }
+  p { margin: 0.1rem 0; font-size: 0.78rem; color: $muted; }
+  small { font-size: 0.68rem; color: $muted; }
+}
+
+.c360-activity-group {
+  margin-bottom: 1rem;
+
+  &__title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $muted;
+    margin: 0 0 0.5rem;
+    padding-left: 1.25rem;
+  }
+}
+
+.c360-vtimeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1rem;
+  border-left: 2px solid $border;
+
+  li {
+    position: relative;
+    padding: 0 0 0.85rem 1rem;
+  }
+
+  &__dot {
+    position: absolute;
+    left: -1.35rem;
+    top: 0.35rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: $primary;
+    border: 2px solid $card;
+  }
+
+  &__item--ticket .c360-vtimeline__dot { background: $orange; }
+  &__item--document .c360-vtimeline__dot { background: #3b82f6; }
+  &__item--notification .c360-vtimeline__dot { background: $success; }
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    strong { font-size: 0.85rem; color: $text; }
+    small { font-size: 0.68rem; color: $muted; white-space: nowrap; }
+  }
+
+  p { margin: 0.15rem 0 0; font-size: 0.78rem; color: $muted; }
+}
+
+.c360-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid $border;
+  background: $card;
+  color: $text;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+
+  &--xs { padding: 0.3rem 0.5rem; font-size: 0.68rem; }
+  &--sm { padding: 0.38rem 0.65rem; }
+  &--primary {
+    background: $primary;
+    border-color: $primary;
+    color: #fff;
+    &:hover { background: $primary-hover; transform: translateY(-1px); }
+  }
+  &--ghost:hover { border-color: rgba(109, 74, 255, 0.35); color: $primary; }
+}
+
+.c360-toast {
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+  margin-bottom: 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  &--ok { background: rgba(34, 197, 94, 0.12); color: #15803d; }
+  &--err { background: rgba(239, 68, 68, 0.1); color: #b91c1c; }
+}
+
+.c360-empty { color: $muted; text-align: center; padding: 1.5rem; font-size: 0.88rem; }
+
+.c360__loading {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+  &--inline { padding: 1.5rem; }
+}
+
+.c360__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid $border;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: c360Spin 0.7s linear infinite;
+}
+
+@keyframes c360Spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 900px) {
+  .c360-hero {
+    flex-direction: column;
+    max-height: none;
+    &__kpis { grid-template-columns: repeat(2, 1fr); width: 100%; }
+    .c360-kpi { width: 100%; height: auto; min-height: 72px; }
+    h1 { font-size: 1.5rem; }
+  }
+}

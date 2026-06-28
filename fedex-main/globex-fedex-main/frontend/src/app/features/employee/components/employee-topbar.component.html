@@ -1,0 +1,82 @@
+<header class="emp-topbar" aria-label="Barre employé">
+  <div class="emp-topbar__spacer"></div>
+
+  <div class="emp-topbar__actions" (click)="$event.stopPropagation()">
+    <div class="emp-topbar__notif-wrap">
+      <button
+        #notifBtn
+        type="button"
+        class="emp-topbar__icon-btn"
+        [class.emp-topbar__icon-btn--alert]="totalBellCount() > 0"
+        (click)="toggleNotifications($event)"
+        [attr.aria-expanded]="notificationsOpen"
+        [attr.aria-label]="'sidebar.notifications' | t"
+      >
+        <span class="emp-topbar__icon" data-icon="bell"></span>
+        @if (totalBellCount() > 0) {
+          <span class="emp-topbar__dot" aria-hidden="true">
+            <span class="emp-topbar__dot-count">{{ totalBellCount() > 9 ? '9+' : totalBellCount() }}</span>
+          </span>
+        }
+      </button>
+
+      @if (notificationsOpen) {
+        <div
+          class="emp-topbar__notif-panel"
+          role="dialog"
+          [ngStyle]="notifPanelStyle"
+          [attr.aria-label]="'sidebar.notifications' | t"
+        >
+          <div class="emp-topbar__notif-head">
+            <h2>{{ 'sidebar.notifications' | t }}</h2>
+            @if (unreadCount > 0) {
+              <span class="emp-topbar__notif-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+            }
+          </div>
+          @if (loadingNotifications) {
+            <p class="emp-topbar__notif-empty">{{ 'common.loading' | t }}</p>
+          } @else if (notifications.length === 0) {
+            <p class="emp-topbar__notif-empty">{{ 'topbar.notifEmpty' | t }}</p>
+          } @else {
+            <ul class="emp-topbar__notif-list">
+              @for (n of notifications; track n.id) {
+                <li>
+                  <button
+                    type="button"
+                    class="emp-topbar__notif-item"
+                    [class.emp-topbar__notif-item--unread]="!n.is_read"
+                    (click)="openNotificationItem(n, $event)"
+                  >
+                    <span class="emp-topbar__notif-title">{{ n.title }}</span>
+                    <span class="emp-topbar__notif-msg">{{ n.message }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+            <div class="emp-topbar__notif-foot">
+              <button type="button" class="emp-topbar__notif-link" (click)="viewAll($event)">{{ 'notif.viewAll' | t }}</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="emp-topbar__user">
+      <div class="emp-topbar__avatar" aria-hidden="true">{{ avatarInitial }}</div>
+      <div class="emp-topbar__user-meta">
+        <strong class="emp-topbar__name">{{ accountName }}</strong>
+        <span class="emp-topbar__role">{{ 'employee.topbar.role' | t }}</span>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="emp-topbar__icon-btn emp-topbar__icon-btn--logout"
+      (click)="onLogout($event)"
+      [attr.aria-label]="'sidebar.logout' | t"
+      [title]="'sidebar.logout' | t"
+    >
+      <span class="emp-topbar__icon" data-icon="logout"></span>
+    </button>
+  </div>
+</header>

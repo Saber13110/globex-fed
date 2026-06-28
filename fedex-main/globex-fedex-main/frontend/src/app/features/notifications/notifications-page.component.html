@@ -1,0 +1,341 @@
+<div class="workspace" [class.workspace--collapsed]="sidebarCollapsed">
+
+  <div class="ambient" aria-hidden="true">
+    <span class="ambient__orb ambient__orb--purple"></span>
+    <span class="ambient__orb ambient__orb--violet"></span>
+    <span class="ambient__orb ambient__orb--orange"></span>
+    <span class="ambient__mesh"></span>
+  </div>
+
+  <aside class="sidebar" [class.sidebar--collapsed]="sidebarCollapsed" aria-label="Navigation">
+    <app-sidebar
+      [collapsed]="sidebarCollapsed"
+      [showAdminLink]="false"
+      [activeNav]="'notifications'"
+      [language]="accountLanguage"
+      [accountName]="accountName"
+      [accountEmail]="accountEmail"
+      [avatarInitial]="accountAvatarInitial"
+      [avatarClass]="accountAvatarClass"
+      [colorMode]="colorMode"
+      [unreadCount]="unreadCount"
+      [searchQuery]="search"
+      [pinnedConversations]="pinnedConversations"
+      [recentConversations]="recentConversations"
+      [loading]="loadingSessions"
+      (collapseToggle)="toggleSidebar()"
+      (createChat)="newChat()"
+      (goHome)="goToChat()"
+      (openTrackingHistory)="goToHistory()"
+      (openSearch)="goToChat()"
+      (selectConversation)="goToChat($event)"
+      (openHistory)="goToHistory()"
+      (openDocuments)="goToDocuments()"
+      (openNotifications)="openNotifications()"
+      (openHelp)="openHelp()"
+      (openProfile)="openProfile()"
+      (openSettings)="openSettings()"
+      (logout)="logout()"
+      (renameConversationRequest)="onSidebarRenameConversation($event)"
+      (togglePinConversation)="onSidebarTogglePinConversation($event)"
+      (moveConversation)="onSidebarMoveConversation($event)"
+      (deleteConversation)="onSidebarDeleteConversation($event)"
+    />
+  </aside>
+
+  <main class="canvas canvas--scrollable">
+    <app-workspace-topbar
+      [accountName]="accountName"
+      [avatarInitial]="accountAvatarInitial"
+      [avatarClass]="accountAvatarClass"
+      (logout)="logout()"
+    />
+
+    <div class="np-workspace" [class.np-workspace--split]="!!activeNotification || !!activeTicket">
+      <div class="np-main">
+        <div class="np">
+          <header class="np-head">
+            <div class="np-head__intro">
+              <h1>{{ 'notif.title' | t }}</h1>
+              <p>{{ 'notif.subtitle' | t }}</p>
+            </div>
+          </header>
+
+          <section class="np-stats" aria-label="Statistics">
+            <button type="button" class="np-stat-card" (click)="setSection('unread')">
+              <span class="np-stat-card__value">{{ unreadCount }}</span>
+              <span class="np-stat-card__label">{{ 'notif.section.unread' | t }}</span>
+            </button>
+            <button type="button" class="np-stat-card np-stat-card--support" (click)="setSection('support')">
+              <span class="np-stat-card__value">{{ statSupport }}</span>
+              <span class="np-stat-card__label">{{ 'notif.section.support' | t }}</span>
+            </button>
+            <button type="button" class="np-stat-card np-stat-card--tracking" (click)="setSection('tracking')">
+              <span class="np-stat-card__value">{{ statTracking }}</span>
+              <span class="np-stat-card__label">{{ 'notif.section.tracking' | t }}</span>
+            </button>
+            <button type="button" class="np-stat-card np-stat-card--documents" (click)="setSection('documents')">
+              <span class="np-stat-card__value">{{ statDocuments }}</span>
+              <span class="np-stat-card__label">{{ 'notif.section.documents' | t }}</span>
+            </button>
+            <button type="button" class="np-stat-card np-stat-card--security" (click)="setSection('security')">
+              <span class="np-stat-card__value">{{ statSecurity }}</span>
+              <span class="np-stat-card__label">{{ 'notif.section.security' | t }}</span>
+            </button>
+          </section>
+
+          <section class="np-toolbar">
+            <label class="np-search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+              <input
+                type="search"
+                [(ngModel)]="search"
+                (keyup.enter)="loadNotifications()"
+                [placeholder]="'notif.search' | t"
+              />
+            </label>
+            <div class="np-toolbar__actions">
+              <div class="np-filter-wrap" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="np-action np-action--ghost"
+                  [class.np-action--filter-open]="filterMenuOpen"
+                  (click)="toggleFilterMenu($event)"
+                  [attr.aria-expanded]="filterMenuOpen"
+                  [attr.aria-haspopup]="true"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                  {{ 'notif.filter' | t }}
+                  @if (activeSection !== 'all') {
+                    <span class="np-filter-wrap__badge">{{ activeSectionLabel() }}</span>
+                  }
+                  <svg class="np-filter-wrap__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                @if (filterMenuOpen) {
+                  <div class="np-filter-menu" role="menu" [attr.aria-label]="'notif.sections' | t">
+                    @for (sec of sections; track sec.id) {
+                      <button
+                        type="button"
+                        class="np-filter-menu__item"
+                        role="menuitem"
+                        [class.np-filter-menu__item--active]="activeSection === sec.id"
+                        (click)="setSection(sec.id)"
+                      >
+                        {{ sec.labelKey | t }}
+                        @if (activeSection === sec.id) {
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        }
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+              <button type="button" class="np-action np-action--ghost" (click)="markAllRead()" [disabled]="unreadCount === 0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                {{ 'notif.markAll' | t }}
+              </button>
+              <button type="button" class="np-action np-action--ghost" (click)="openSettings()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                {{ 'notif.settings' | t }}
+              </button>
+            </div>
+          </section>
+
+          @if (error) {
+            <p class="np-error" role="alert">{{ error }}</p>
+          }
+
+          @if (loading) {
+            <div class="np-skeleton-list">
+              @for (i of [1, 2, 3, 4]; track i) {
+                <div class="np-skeleton"></div>
+              }
+            </div>
+          } @else if (notifications.length === 0) {
+            <div class="np-zero">
+              <div class="np-zero__illus" aria-hidden="true">
+                <img src="assets/notifications/notification-hub-empty.svg" alt="" width="520" height="360" loading="lazy" decoding="async" />
+              </div>
+              <h2>{{ 'notif.emptyTitle' | t }}</h2>
+              <p>{{ 'notif.emptyDesc' | t }}</p>
+              <button type="button" class="np-action np-action--primary" (click)="returnToAssistant()">
+                {{ 'notif.returnAssistant' | t }}
+              </button>
+            </div>
+          } @else {
+            <div class="np-feed">
+              @for (group of groupedNotifications; track group.key) {
+                <section class="np-group">
+                  <h2 class="np-group__title">{{ group.labelKey | t }}</h2>
+                  <div class="np-group__list">
+                    @for (n of group.items; track n.id) {
+                      <article
+                        class="np-item"
+                        [class.np-item--unread]="!n.is_read"
+                        [class.np-item--active]="activeNotification?.id === n.id"
+                        [ngClass]="'np-item--' + accentClass(n.type)"
+                        (click)="openDetails(n)"
+                        (keydown.enter)="openDetails(n)"
+                        tabindex="0"
+                        role="button"
+                        [attr.aria-pressed]="activeNotification?.id === n.id"
+                      >
+                        <div class="np-item__accent" aria-hidden="true"></div>
+                        <div class="np-item__icon" [attr.data-icon]="iconFor(n.type)"></div>
+                        <div class="np-item__body">
+                          <div class="np-item__row">
+                            <span class="np-item__type">{{ typeLabel(n.type) }}</span>
+                            <time>{{ relativeTime(n.created_at) }}</time>
+                          </div>
+                          <h3>{{ n.title }}</h3>
+                          <p>{{ n.message }}</p>
+                          <div class="np-item__foot">
+                            @if (n.related_ticket_id) {
+                              <span class="np-item__ref">#{{ ticketLabel(n) }}</span>
+                            } @else if (n.related_tracking_number) {
+                              <span class="np-item__ref">#{{ n.related_tracking_number }}</span>
+                            }
+                            @if (!n.is_read) {
+                              <span class="np-item__badge">{{ 'notif.newBadge' | t }}</span>
+                            }
+                          </div>
+                        </div>
+                      </article>
+                    }
+                  </div>
+                </section>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (activeNotification || activeTicket) {
+        <aside class="np-panel" aria-label="Notification detail">
+          <header class="np-panel__head">
+            <button type="button" class="np-panel__back" (click)="closePanel()" [attr.aria-label]="'notif.backToList' | t">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <div class="np-panel__head-text">
+              @if (activeNotification) {
+                <span class="np-panel__type">{{ typeLabel(activeNotification.type) }}</span>
+              }
+              <h2>{{ activeNotification?.title || activeTicket?.subject }}</h2>
+              <div class="np-panel__meta">
+                @if (activeNotification?.related_ticket_id || activeTicket) {
+                  <span>{{ 'notif.ticketId' | t }} #{{ activeTicket?.ticket_number || activeNotification?.related_ticket_id }}</span>
+                }
+                @if (activeNotification) {
+                  <time>{{ formatDate(activeNotification.created_at) }}</time>
+                }
+              </div>
+            </div>
+            <div class="np-panel__head-actions">
+              @if (activeNotification && !activeNotification.is_read) {
+                <span class="np-panel__new">{{ 'notif.newBadge' | t }}</span>
+              }
+              <button type="button" class="np-panel__close" (click)="closePanel()" [attr.aria-label]="'common.close' | t">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </header>
+
+          <div class="np-panel__scroll">
+            @if (activeTicket && latestAdminMessage(); as adminMsg) {
+              <div class="np-admin-card">
+                <div class="np-admin-card__head">
+                  <div class="np-admin-card__avatar" aria-hidden="true">{{ adminInitial(adminMsg) }}</div>
+                  <div>
+                    <strong>{{ adminMsg.author_name || 'Admin Globex' }}</strong>
+                    <span>{{ 'notif.supportTeam' | t }}</span>
+                  </div>
+                </div>
+                <p class="np-admin-card__body">{{ adminMsg.body }}</p>
+                @if (adminMsg.attachment_url) {
+                  <div class="np-attach">
+                    <div class="np-attach__icon" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </div>
+                    <div class="np-attach__info">
+                      <strong>{{ attachmentName(adminMsg.attachment_url) }}</strong>
+                      <span>{{ 'notif.attachment' | t }}</span>
+                    </div>
+                    <a class="np-attach__btn" href="#" (click)="openAttachment(adminMsg.attachment_url, $event)">
+                      {{ 'notif.download' | t }}
+                    </a>
+                  </div>
+                }
+              </div>
+            } @else if (!activeTicket && activeNotification) {
+              <div class="np-detail-card">
+                <p>{{ activeNotification.message }}</p>
+                @if (activeNotification.related_tracking_number) {
+                  <span class="np-detail-card__ref">#{{ activeNotification.related_tracking_number }}</span>
+                }
+              </div>
+            }
+
+            @if (loadingTicket) {
+              <p class="np-panel__loading">{{ 'common.loading' | t }}</p>
+            } @else if (activeTicket) {
+              <div class="np-thread">
+                @for (msg of activeTicket.messages; track msg.id) {
+                  <div
+                    class="np-bubble"
+                    [class.np-bubble--admin]="msg.author_role === 'admin'"
+                    [class.np-bubble--user]="msg.author_role !== 'admin'"
+                  >
+                    <header>
+                      <strong>{{ msg.author_role === 'admin' ? (msg.author_name || 'Support') : ('notif.you' | t) }}</strong>
+                      <time>{{ relativeTime(msg.created_at) }}</time>
+                    </header>
+                    <p>{{ msg.body }}</p>
+                    @if (msg.attachment_url) {
+                      <button type="button" class="np-bubble__attach" (click)="openAttachment(msg.attachment_url, $event)">
+                        {{ attachmentName(msg.attachment_url) }}
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          @if (activeTicket && activeTicket.status !== 'closed') {
+            <footer class="np-reply">
+              <div class="np-reply__box">
+                <textarea
+                  rows="2"
+                  [(ngModel)]="replyMessage"
+                  [placeholder]="'notif.typeYourReply' | t"
+                ></textarea>
+              <div class="np-reply__tools">
+                <label class="np-reply__tool np-reply__tool--file" [attr.aria-label]="'notif.attachment' | t">
+                  <input type="file" hidden (change)="onReplyAttachmentSelected($event)" />
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                </label>
+                @if (replyAttachmentName) {
+                  <span class="np-reply__attach-name">{{ replyAttachmentName }}</span>
+                  <button type="button" class="np-reply__attach-clear" (click)="clearReplyAttachment()">×</button>
+                } @else if (uploadingAttachment) {
+                  <span class="np-reply__attach-name">{{ 'support.attachmentUploading' | t }}</span>
+                }
+                <button
+                  type="button"
+                  class="np-reply__send"
+                  [disabled]="submitting || uploadingAttachment || (!replyMessage.trim() && !replyAttachmentUrl)"
+                  (click)="sendReply()"
+                >
+                    {{ submitting ? ('common.loading' | t) : ('notif.sendReply' | t) }}
+                  </button>
+                </div>
+              </div>
+            </footer>
+          }
+        </aside>
+      }
+    </div>
+  </main>
+</div>

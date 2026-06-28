@@ -1,0 +1,109 @@
+<section class="amh">
+  <header class="amh__head">
+    <div>
+      <h2>Messagerie</h2>
+      <p>Contacter un employé ou répondre à un client via ticket support.</p>
+    </div>
+    <div class="amh__mode" role="tablist" aria-label="Destinataire">
+      <button type="button" class="amh__mode-btn" [class.amh__mode-btn--active]="mode() === 'employee'" (click)="setMode('employee')">
+        Employé
+      </button>
+      <button type="button" class="amh__mode-btn" [class.amh__mode-btn--active]="mode() === 'user'" (click)="setMode('user')">
+        Client
+      </button>
+    </div>
+  </header>
+
+  <div class="amh__search">
+    <input type="search" [(ngModel)]="searchQ" (keyup.enter)="reload()" [placeholder]="mode() === 'employee' ? 'Rechercher un employé…' : 'Rechercher un ticket client…'" />
+    <button type="button" class="amh__search-btn" (click)="reload()">Rechercher</button>
+  </div>
+
+  @if (mode() === 'employee') {
+    <div class="amh__workspace">
+      <aside class="amh__list">
+        @if (loading()) {
+          <p class="amh__empty">Chargement…</p>
+        } @else if (employees().length === 0) {
+          <p class="amh__empty">Aucun employé actif.</p>
+        } @else {
+          @for (emp of employees(); track emp.id) {
+            <button type="button" class="amh__item" [class.amh__item--active]="selectedEmployeeId() === emp.id" (click)="selectEmployee(emp.id)">
+              <span class="amh__avatar">{{ emp.avatar_initial }}</span>
+              <span class="amh__item-body">
+                <strong>{{ emp.full_name }}</strong>
+                <small>{{ emp.last_message || emp.email }}</small>
+              </span>
+              @if (emp.unread_count > 0) {
+                <span class="amh__badge">{{ emp.unread_count }}</span>
+              }
+            </button>
+          }
+        }
+      </aside>
+
+      <div class="amh__chat">
+        @if (!selectedEmployeeId()) {
+          <p class="amh__empty">Sélectionnez un employé.</p>
+        } @else if (messagesLoading()) {
+          <p class="amh__empty">Chargement des messages…</p>
+        } @else {
+          <header class="amh__chat-head">
+            <strong>{{ selectedEmployee()?.full_name }}</strong>
+            <span>{{ selectedEmployee()?.email }}</span>
+          </header>
+          <div class="amh__thread">
+            @for (msg of messages(); track msg.id) {
+              <article class="amh-bubble" [class.amh-bubble--admin]="isAdmin(msg)">
+                <header>
+                  <strong>{{ isAdmin(msg) ? 'Admin' : (selectedEmployee()?.full_name || 'Employé') }}</strong>
+                  <time>{{ msg.created_at | date : 'short' }}</time>
+                </header>
+                <p>{{ msg.body }}</p>
+                @if (msg.attachment_url) {
+                  <button type="button" class="amh-bubble__attach" (click)="openAttachment(msg.attachment_url!, $event)">
+                    {{ displayAttachmentName(msg.attachment_url!) }}
+                  </button>
+                }
+              </article>
+            }
+          </div>
+          <footer class="amh__composer">
+            <textarea rows="3" [(ngModel)]="draft" placeholder="Message à l'employé…"></textarea>
+            <div class="amh__composer-actions">
+              <label class="amh__attach">
+                <input type="file" (change)="onFileSelected($event)" hidden />
+                Joindre
+              </label>
+              @if (attachmentName) {
+                <span>{{ attachmentName }}</span>
+                <button type="button" (click)="clearAttachment()">Retirer</button>
+              }
+              <button type="button" class="amh__send" [disabled]="submitting() || (!draft.trim() && !attachmentUrl)" (click)="sendToEmployee()">
+                {{ submitting() ? 'Envoi…' : 'Envoyer' }}
+              </button>
+            </div>
+          </footer>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="amh__tickets">
+      @if (loading()) {
+        <p class="amh__empty">Chargement…</p>
+      } @else if (tickets().length === 0) {
+        <p class="amh__empty">Aucun ticket client ouvert.</p>
+      } @else {
+        @for (t of tickets(); track t.id) {
+          <button type="button" class="amh__ticket" (click)="openTicket(t.id)">
+            <div>
+              <strong>#{{ t.ticket_number || t.id }} — {{ t.subject }}</strong>
+              <small>{{ t.message }}</small>
+            </div>
+            <span class="amh__ticket-status">{{ t.status }}</span>
+          </button>
+        }
+      }
+    </div>
+  }
+</section>

@@ -1,0 +1,136 @@
+<div class="knowledge">
+  <section class="knowledge-hero">
+    <div class="knowledge-hero__content">
+      <span class="knowledge-hero__badge">{{ 'employee.knowledge.badge' | t }}</span>
+      <h1>{{ 'employee.knowledge.title' | t }}</h1>
+      <p class="knowledge-hero__subtitle">{{ 'employee.knowledge.subtitle' | t }}</p>
+      <div class="knowledge-hero__actions">
+        <a routerLink="/employee/ai-assistant" class="knowledge-btn knowledge-btn--primary">
+          {{ 'employee.knowledge.action.askAi' | t }}
+        </a>
+        <button type="button" class="knowledge-btn knowledge-btn--ghost" (click)="scrollTo('knowledge-procedures')">
+          {{ 'employee.knowledge.action.browse' | t }}
+        </button>
+        <a routerLink="/employee/support" class="knowledge-btn knowledge-btn--accent">
+          {{ 'employee.knowledge.action.support' | t }}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="knowledge-search-panel">
+    <div class="knowledge-search">
+      <span class="knowledge-icon knowledge-icon--search" data-icon="search"></span>
+      <input
+        type="search"
+        [(ngModel)]="q"
+        (input)="onSearchInput()"
+        [placeholder]="'employee.knowledge.searchPlaceholder' | t"
+      />
+      @if (q) {
+        <button type="button" class="knowledge-search__clear" (click)="clearSearch()">×</button>
+      }
+    </div>
+
+    @if (showSearchResults) {
+      <div class="knowledge-search-results">
+        @if (searching) {
+          <p class="knowledge-search-results__hint">{{ 'employee.knowledge.searching' | t }}</p>
+        } @else if (!hasSearchResults()) {
+          <p class="knowledge-search-results__hint">{{ 'employee.knowledge.noResults' | t }}</p>
+        } @else {
+          @if (localHits.length) {
+            <p class="knowledge-search-results__label">{{ 'employee.knowledge.resultsGuides' | t }}</p>
+            @for (hit of localHits; track hit.id) {
+              <button type="button" class="knowledge-search-hit" (click)="openLocalHit(hit)">
+                <span class="knowledge-search-hit__kind">{{ searchKindLabel(hit.kind) | t }}</span>
+                <strong>{{ hit.titleKey | t }}</strong>
+                <small>{{ hit.subtitleKey | t }}</small>
+              </button>
+            }
+          }
+          @if (apiHits.length) {
+            <p class="knowledge-search-results__label">{{ 'employee.knowledge.resultsLive' | t }}</p>
+            @for (hit of apiHits; track hit.kind + hit.id) {
+              <button type="button" class="knowledge-search-hit" (click)="openApiHit(hit)">
+                <span class="knowledge-search-hit__kind">{{ searchKindLabel(hit.kind) | t }}</span>
+                <strong>{{ hit.title }}</strong>
+                <small>{{ hit.subtitle }}</small>
+              </button>
+            }
+          }
+        }
+      </div>
+    }
+  </section>
+
+  <section class="knowledge-ai" id="knowledge-ai">
+    <div class="knowledge-ai__content">
+      <div>
+        <span class="knowledge-ai__eyebrow">{{ 'employee.knowledge.ai.eyebrow' | t }}</span>
+        <h2>{{ 'employee.knowledge.ai.title' | t }}</h2>
+        <p>{{ 'employee.knowledge.ai.desc' | t }}</p>
+      </div>
+      <a routerLink="/employee/ai-assistant" class="knowledge-btn knowledge-btn--primary knowledge-btn--lg">
+        {{ 'employee.knowledge.ai.cta' | t }}
+      </a>
+    </div>
+  </section>
+
+  <section class="knowledge-section" id="knowledge-categories">
+    <header class="knowledge-section__head">
+      <h2>{{ 'employee.knowledge.categoriesTitle' | t }}</h2>
+      <p>{{ 'employee.knowledge.categoriesHint' | t }}</p>
+    </header>
+    <div class="knowledge-categories">
+      @for (cat of categories; track cat.id) {
+        <a [routerLink]="cat.route" class="knowledge-category-card">
+          <span class="knowledge-icon knowledge-icon--lg" [attr.data-icon]="cat.icon"></span>
+          <h3>{{ cat.titleKey | t }}</h3>
+          <p>{{ cat.descKey | t }}</p>
+          <span class="knowledge-category-card__link">{{ 'employee.knowledge.explore' | t }} →</span>
+        </a>
+      }
+    </div>
+  </section>
+
+  <section class="knowledge-section" id="knowledge-procedures">
+    <header class="knowledge-section__head">
+      <h2>{{ 'employee.knowledge.proceduresTitle' | t }}</h2>
+      <p>{{ 'employee.knowledge.proceduresHint' | t }}</p>
+    </header>
+    <div class="knowledge-procedures">
+      @for (proc of procedures; track proc.id) {
+        <a [routerLink]="proc.route" class="knowledge-procedure-card">
+          <span class="knowledge-icon" [attr.data-icon]="proc.icon"></span>
+          <div>
+            <h3>{{ proc.titleKey | t }}</h3>
+            <p>{{ proc.descKey | t }}</p>
+          </div>
+        </a>
+      }
+    </div>
+  </section>
+
+  <section class="knowledge-section" id="knowledge-faq">
+    <header class="knowledge-section__head">
+      <h2>{{ 'employee.knowledge.faqTitle' | t }}</h2>
+      <p>{{ 'employee.knowledge.faqHint' | t }}</p>
+    </header>
+    <div class="knowledge-faq">
+      @for (item of faqItems; track item.id) {
+        <article class="knowledge-faq__item" [class.knowledge-faq__item--open]="expandedFaq === item.id">
+          <button type="button" class="knowledge-faq__question" (click)="toggleFaq(item.id)">
+            <span>{{ item.questionKey | t }}</span>
+            <span class="knowledge-faq__chevron" aria-hidden="true"></span>
+          </button>
+          @if (expandedFaq === item.id) {
+            <div class="knowledge-faq__answer">
+              <p>{{ item.answerKey | t }}</p>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  </section>
+</div>

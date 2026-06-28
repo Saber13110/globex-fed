@@ -1,0 +1,162 @@
+<div class="history-drawer__backdrop" (click)="onBackdropClick($event)" role="presentation">
+  <aside class="history-drawer" role="dialog" [attr.aria-label]="'history.drawerTitle' | t" (click)="$event.stopPropagation()">
+    <button type="button" class="history-drawer__close" (click)="close.emit()" [attr.aria-label]="'common.close' | t">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <div class="history-drawer__scroll">
+      @if (loading) {
+        <div class="history-drawer__loading">
+          <p>{{ 'history.timelineLoading' | t }}</p>
+        </div>
+      } @else if (error) {
+        <div class="history-drawer__error" role="alert">{{ error }}</div>
+      } @else {
+        <section class="history-drawer__header-card">
+          <div class="history-drawer__header-top">
+            <div class="history-drawer__header-id">
+              <span class="history-drawer__header-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                  <polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/>
+                </svg>
+              </span>
+              <h2 class="history-drawer__tn">{{ 'history.trackingNumber' | t }}{{ item.tracking_number }}</h2>
+            </div>
+            @if (item.session_id) {
+              <button type="button" class="history-drawer__conv-link" (click)="openConversation.emit()">
+                {{ 'history.openDiscussion' | t }}
+              </button>
+            }
+          </div>
+
+          <span class="history-drawer__badge history-drawer__badge--{{ statusBadge }}">
+            <span class="history-drawer__badge-dot" aria-hidden="true"></span>
+            {{ statusBadgeLabel }}
+          </span>
+
+          <p class="history-drawer__last-update">
+            <span>{{ 'history.lastUpdate' | t }}</span>
+            {{ formatLastUpdate(item.created_at) }}
+          </p>
+        </section>
+
+        <section class="history-drawer__section" [attr.aria-label]="'history.overview' | t">
+          <h3 class="history-drawer__section-title">{{ 'history.overview' | t }}</h3>
+        <div class="history-drawer__kpis">
+          <article class="history-drawer__kpi">
+            <span class="history-drawer__kpi-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+              {{ 'history.location' | t }}
+            </span>
+            <strong>{{ displayLocation }}</strong>
+          </article>
+          <article class="history-drawer__kpi">
+            <span class="history-drawer__kpi-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              {{ 'history.eta' | t }}
+            </span>
+            <strong>{{ displayEta }}</strong>
+          </article>
+          <article class="history-drawer__kpi">
+            <span class="history-drawer__kpi-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              </svg>
+              {{ 'history.status' | t }}
+            </span>
+            <strong>{{ displayStatus }}</strong>
+          </article>
+        </div>
+        </section>
+
+        @if (shipment && !shipment.sandbox_whitelist_denied) {
+          <app-shipment-card [shipment]="shipment" />
+        } @else {
+        <section class="history-drawer__section" [attr.aria-label]="'tracking.timeline' | t">
+          <h3 class="history-drawer__section-title">{{ 'tracking.timeline' | t }}</h3>
+
+          @if (events.length === 0) {
+            <p class="history-drawer__empty">{{ 'tracking.noEvents' | t }}</p>
+          } @else {
+            <ol class="history-drawer__timeline">
+              @for (ev of visibleTimelineEvents; track $index; let first = $first) {
+                <li class="history-drawer__timeline-item" [class.history-drawer__timeline-item--latest]="first">
+                  <span class="history-drawer__timeline-dot" aria-hidden="true"></span>
+                  <div class="history-drawer__timeline-body">
+                    <strong>{{ eventTitle(ev.description) }}</strong>
+                    <time class="history-drawer__timeline-when">{{ formatEventLine(ev.at) }}</time>
+                    <span class="history-drawer__timeline-loc">{{ eventLocation(ev.location) }}</span>
+                  </div>
+                </li>
+              }
+            </ol>
+            @if (hasMoreTimelineEvents) {
+              <button type="button" class="history-drawer__link-btn" (click)="showAllTimelineEvents()">
+                {{ 'history.viewAllEvents' | t }}
+              </button>
+            }
+          }
+        </section>
+
+        <section class="history-drawer__accordion">
+          <button type="button" class="history-drawer__accordion-trigger" (click)="toggleEvents()" [attr.aria-expanded]="eventsOpen">
+            <svg
+              class="history-drawer__accordion-chevron"
+              [class.history-drawer__accordion-chevron--open]="eventsOpen"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              aria-hidden="true"
+            >
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+            {{ eventsDetailsLabel }}
+          </button>
+
+          @if (eventsOpen) {
+            <div class="history-drawer__table-wrap">
+              @if (events.length === 0) {
+                <p class="history-drawer__empty">{{ 'tracking.noEvents' | t }}</p>
+              } @else {
+                <table class="history-drawer__table">
+                  <thead>
+                    <tr>
+                      <th>{{ 'tracking.colDate' | t }}</th>
+                      <th>{{ 'tracking.colEvent' | t }}</th>
+                      <th>{{ 'history.location' | t }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (ev of tableEventRows; track $index) {
+                      <tr>
+                        <td>
+                          <span class="history-drawer__table-date">{{ ev.dateLabel }}</span>
+                          @if (ev.timeLabel) {
+                            <span class="history-drawer__table-time">{{ ev.timeLabel }}</span>
+                          }
+                        </td>
+                        <td>{{ eventTitle(ev.description) }}</td>
+                        <td>{{ eventLocation(ev.location) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+          }
+        </section>
+        }
+      }
+    </div>
+  </aside>
+</div>

@@ -1,0 +1,14 @@
+.emp-help-dialog {
+  height: min(92vh, 900px);
+}
+
+.emp-help-dialog__body {
+  height: 100%;
+  overflow: auto;
+  border-radius: 20px;
+  background: #f8f7fc;
+}
+
+.emp-help-dialog__body ::ng-deep .emp-page {
+  min-height: auto;
+}

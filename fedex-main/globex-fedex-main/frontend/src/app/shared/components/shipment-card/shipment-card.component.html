@@ -1,0 +1,268 @@
+<article class="card" [class.card--compact]="compact">
+  <header class="card__header">
+    @if (compact) {
+      <span class="card__icon" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+      </span>
+      <h3 class="card__title">{{ 'conversation.trackingInformation' | t }}</h3>
+    } @else {
+      <span class="badge">{{ 'tracking.sourceFedex' | t }}</span>
+      <h3 class="card__title">{{ shipment.tracking_number }}</h3>
+      @if (shipment.status_code) {
+        <span class="card__status-code">{{ shipment.status_code }}</span>
+      }
+    }
+  </header>
+
+  @if (isSandboxDenied) {
+    <div class="card__alert" role="alert">
+      <strong>{{ 'tracking.sandboxDeniedTitle' | t }}</strong>
+      <p>{{ 'tracking.sandboxDeniedMessage' | t }}</p>
+    </div>
+  } @else {
+    @if (compact && shipment.tracking_number) {
+      <p class="card__tracking">{{ shipment.tracking_number }}</p>
+    }
+
+    @if (compact) {
+      <div class="card__compact-body">
+        <p class="card__compact-status">{{ shipment.status ?? '—' }}</p>
+        @if (shipment.current_location) {
+          <p class="card__compact-loc">{{ shipment.current_location }}</p>
+        }
+        @if (hasEstimatedDelivery) {
+          <p class="card__compact-eta">
+            <span class="card__compact-eta-label">{{ 'tracking.eta' | t }}</span>
+            {{ shipment.estimated_delivery }}
+          </p>
+        }
+      </div>
+
+      @if (showTimelineSection) {
+        <section class="card__compact-timeline" [attr.aria-label]="'tracking.timeline' | t">
+          <h4 class="card__compact-timeline-title">{{ 'tracking.timeline' | t }}</h4>
+          <ol class="card__compact-timeline-list">
+            @for (ev of events; track ev.at + ev.description; let first = $first) {
+              <li class="card__compact-timeline-item" [class.card__compact-timeline-item--latest]="first">
+                <time>{{ formatEventDate(ev.at) }}</time>
+                <span>{{ ev.description }}</span>
+                @if (ev.location) {
+                  <small>{{ ev.location }}</small>
+                }
+              </li>
+            }
+          </ol>
+          @if (timelineHasMore) {
+            <p class="card__compact-timeline-more">{{ 'conversation.viewFullHistory' | t }}</p>
+          }
+        </section>
+      }
+    } @else {
+      <section class="card__summary" [attr.aria-label]="'tracking.summary' | t">
+        <p class="card__status-line">{{ shipment.status ?? '—' }}</p>
+        @if (shipment.service_description) {
+          <p class="card__service">{{ shipment.service_description }}</p>
+        }
+      </section>
+
+      <section class="card__section" [attr.aria-label]="'tracking.status' | t">
+        <h4 class="card__section-title">{{ 'tracking.status' | t }}</h4>
+        <dl class="grid">
+          <div>
+            <dt>{{ 'tracking.status' | t }}</dt>
+            <dd>{{ shipment.status ?? '—' }}</dd>
+          </div>
+          @if (shipment.status_description) {
+            <div>
+              <dt>{{ 'tracking.statusDescription' | t }}</dt>
+              <dd>{{ shipment.status_description }}</dd>
+            </div>
+          }
+          <div>
+            <dt>{{ 'tracking.eta' | t }}</dt>
+            <dd>{{ shipment.estimated_delivery ?? '—' }}</dd>
+          </div>
+          @if (shipment.actual_delivery) {
+            <div>
+              <dt>{{ 'tracking.actualDelivery' | t }}</dt>
+              <dd>{{ formatEventDate(shipment.actual_delivery) }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+
+      <section class="card__section" [attr.aria-label]="'tracking.location' | t">
+        <h4 class="card__section-title">{{ 'tracking.location' | t }}</h4>
+        <dl class="grid">
+          <div>
+            <dt>{{ 'tracking.location' | t }}</dt>
+            <dd>{{ shipment.current_location ?? '—' }}</dd>
+          </div>
+          @if (shipment.city) {
+            <div><dt>{{ 'tracking.city' | t }}</dt><dd>{{ shipment.city }}</dd></div>
+          }
+          @if (shipment.state_or_province) {
+            <div><dt>{{ 'tracking.region' | t }}</dt><dd>{{ shipment.state_or_province }}</dd></div>
+          }
+          @if (shipment.country) {
+            <div><dt>{{ 'tracking.country' | t }}</dt><dd>{{ shipment.country }}</dd></div>
+          }
+          @if (shipment.origin_location) {
+            <div><dt>{{ 'tracking.origin' | t }}</dt><dd>{{ shipment.origin_location }}</dd></div>
+          }
+          @if (shipment.destination_location) {
+            <div><dt>{{ 'tracking.destination' | t }}</dt><dd>{{ shipment.destination_location }}</dd></div>
+          }
+        </dl>
+      </section>
+
+      @if (shipment.weight || shipment.dimensions || shipment.package_type) {
+        <section class="card__section" [attr.aria-label]="'tracking.packageSection' | t">
+          <h4 class="card__section-title">{{ 'tracking.packageSection' | t }}</h4>
+          <dl class="grid">
+            @if (shipment.weight) {
+              <div><dt>{{ 'tracking.weight' | t }}</dt><dd>{{ shipment.weight }}</dd></div>
+            }
+            @if (shipment.dimensions) {
+              <div><dt>{{ 'tracking.dimensions' | t }}</dt><dd>{{ shipment.dimensions }}</dd></div>
+            }
+            @if (shipment.package_type) {
+              <div><dt>{{ 'tracking.packageType' | t }}</dt><dd>{{ shipment.package_type }}</dd></div>
+            }
+            @if (shipment.package_count) {
+              <div><dt>{{ 'tracking.packageCount' | t }}</dt><dd>{{ shipment.package_count }}</dd></div>
+            }
+          </dl>
+        </section>
+      }
+
+      @if (shipment.shipper || shipment.recipient) {
+        <section class="card__section" [attr.aria-label]="'tracking.partiesSection' | t">
+          <h4 class="card__section-title">{{ 'tracking.partiesSection' | t }}</h4>
+          <dl class="grid">
+            @if (shipment.shipper) {
+              <div><dt>{{ 'tracking.shipper' | t }}</dt><dd>{{ shipment.shipper }}</dd></div>
+            }
+            @if (shipment.recipient) {
+              <div><dt>{{ 'tracking.recipient' | t }}</dt><dd>{{ shipment.recipient }}</dd></div>
+            }
+            @if (shipment.received_by_name) {
+              <div><dt>{{ 'tracking.podRecipient' | t }}</dt><dd>{{ shipment.received_by_name }}</dd></div>
+            }
+          </dl>
+        </section>
+      }
+
+      @if (specialHandlings.length > 0) {
+        <section class="card__section">
+          <h4 class="card__section-title">{{ 'tracking.specialHandlings' | t }}</h4>
+          <ul class="card__tags">
+            @for (h of specialHandlings; track h.type) {
+              <li>{{ h.description || h.type }}</li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (shipment.service_commit_message) {
+        <p class="card__commit-msg">{{ shipment.service_commit_message }}</p>
+      }
+    }
+
+    @if (podInfo && shipment.pod_available) {
+      <section class="pod-info" [attr.aria-label]="'tracking.podDetails' | t">
+        <h4 class="pod-info__title">{{ 'tracking.podDetails' | t }}</h4>
+        <dl class="grid grid--pod">
+          @if (podInfo.received_by_name) {
+            <div>
+              <dt>{{ 'tracking.podRecipient' | t }}</dt>
+              <dd>{{ podInfo.received_by_name }}</dd>
+            </div>
+          }
+          @if (podInfo.delivery_address) {
+            <div>
+              <dt>{{ 'tracking.podAddress' | t }}</dt>
+              <dd>{{ podInfo.delivery_address }}</dd>
+            </div>
+          }
+          @if (podInfo.delivered_at) {
+            <div>
+              <dt>{{ 'tracking.podDeliveredAt' | t }}</dt>
+              <dd>{{ formatEventDate(podInfo.delivered_at) }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+    }
+
+    <div class="card__actions">
+      @if (shipment.pod_available) {
+        <button type="button" class="card__pod-btn" [disabled]="podLoading" (click)="downloadProof()">
+          {{ (podLoading ? 'tracking.podDownloading' : 'tracking.downloadPod') | t }}
+        </button>
+      } @else if (!compact) {
+        <p class="card__pod-hint">{{ 'tracking.podUnavailable' | t }}</p>
+      }
+      @if (podError) {
+        <p class="card__pod-error">{{ podError }}</p>
+      }
+    </div>
+
+    @if (showTrackingMap && mapPoints.length) {
+      <section class="route-map-section" [attr.aria-label]="'tracking.routeMap' | t">
+        <h4 class="timeline__title">{{ 'tracking.routeMap' | t }}</h4>
+        <app-tracking-map
+          [mapPoints]="mapPoints"
+          [events]="events"
+          [delivered]="isDelivered"
+          [mapAvailable]="mapAvailable"
+          [trackingNumber]="shipment.tracking_number"
+          [showTimeline]="showTimelineSection"
+        />
+      </section>
+    } @else if (!compact && showTimelineSection) {
+      <section class="timeline" [attr.aria-label]="'tracking.timeline' | t">
+        <h4 class="timeline__title">{{ 'tracking.timeline' | t }}</h4>
+        <ol class="timeline__list">
+          @for (ev of events; track ev.at + ev.description; let first = $first) {
+            <li class="timeline__item" [class.timeline__item--latest]="first">
+              <span class="timeline__dot" aria-hidden="true"></span>
+              <div class="timeline__body">
+                <time class="timeline__time">{{ formatEventDate(ev.at) }}</time>
+                <p class="timeline__desc">{{ ev.description }}</p>
+                @if (ev.location) {
+                  <p class="timeline__loc">{{ ev.location }}</p>
+                }
+              </div>
+            </li>
+          }
+        </ol>
+      </section>
+    }
+
+    @if (!compact) {
+      @if (visibilityEvents.length > 0) {
+        <section class="timeline timeline--visibility" [attr.aria-label]="'tracking.visibilityTimeline' | t">
+          <h4 class="timeline__title">{{ 'tracking.visibilityTimeline' | t }}</h4>
+          <ol class="timeline__list">
+            @for (ev of visibilityEvents; track ev.id ?? ev.occurred_at; let first = $first) {
+              <li class="timeline__item" [class.timeline__item--latest]="first">
+                <span class="timeline__dot timeline__dot--fedex" aria-hidden="true"></span>
+                <div class="timeline__body">
+                  <span class="timeline__badge">{{ ev.event_type_label || ev.event_type }}</span>
+                  <time class="timeline__time">{{ formatEventDate(ev.occurred_at || '') }}</time>
+                  <p class="timeline__desc">{{ ev.description }}</p>
+                  @if (ev.location) {
+                    <p class="timeline__loc">{{ ev.location }}</p>
+                  }
+                </div>
+              </li>
+            }
+          </ol>
+        </section>
+      }
+    }
+  }
+</article>

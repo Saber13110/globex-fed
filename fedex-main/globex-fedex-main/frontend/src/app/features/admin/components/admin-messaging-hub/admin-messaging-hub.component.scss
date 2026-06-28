@@ -1,0 +1,291 @@
+.amh {
+  margin-bottom: 0;
+  padding: 1.25rem;
+  border: 1px solid #ece8f4;
+  border-radius: 20px;
+  background: #fff;
+}
+
+.amh__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.amh__head h2 {
+  margin: 0 0 0.25rem;
+}
+
+.amh__head p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.amh__mode {
+  display: inline-flex;
+  padding: 0.2rem;
+  border-radius: 999px;
+  background: #f3f0ff;
+  border: 1px solid #ece8f4;
+}
+
+.amh__mode-btn {
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.amh__mode-btn--active {
+  background: #6d4aff;
+  color: #fff;
+}
+
+.amh__search {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.amh__search input {
+  flex: 1;
+  border: 1px solid #ece8f4;
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+}
+
+.amh__search-btn,
+.amh__send {
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  background: #6d4aff;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.amh__workspace {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1rem;
+  min-height: 420px;
+}
+
+.amh__list,
+.amh__chat,
+.amh__tickets {
+  border: 1px solid #ece8f4;
+  border-radius: 16px;
+  background: #faf9fd;
+}
+
+.amh__list {
+  overflow: auto;
+  padding: 0.5rem;
+}
+
+.amh__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  padding: 0.65rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.amh__item--active {
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(109, 74, 255, 0.08);
+}
+
+.amh__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #6d4aff;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.amh__item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.amh__item-body strong,
+.amh__item-body small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amh__item-body small {
+  color: #64748b;
+}
+
+.amh__badge {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.72rem;
+  display: grid;
+  place-items: center;
+}
+
+.amh__chat {
+  display: flex;
+  flex-direction: column;
+}
+
+.amh__chat-head {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #ece8f4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.amh__chat-head span {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.amh__thread {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.amh-bubble {
+  max-width: 85%;
+  padding: 0.7rem 0.85rem;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #ece8f4;
+  align-self: flex-start;
+}
+
+.amh-bubble--admin {
+  align-self: flex-end;
+  background: #f3f0ff;
+}
+
+.amh-bubble header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.76rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.amh-bubble p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.amh-bubble__attach {
+  margin-top: 0.4rem;
+  border: none;
+  background: transparent;
+  color: #6d4aff;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.amh__composer {
+  border-top: 1px solid #ece8f4;
+  padding: 0.85rem 1rem;
+}
+
+.amh__composer textarea {
+  width: 100%;
+  border: 1px solid #ece8f4;
+  border-radius: 12px;
+  padding: 0.65rem;
+  resize: vertical;
+}
+
+.amh__composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.6rem;
+}
+
+.amh__attach {
+  cursor: pointer;
+  color: #64748b;
+}
+
+.amh__send {
+  margin-left: auto;
+}
+
+.amh__send:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.amh__tickets {
+  padding: 0.5rem;
+}
+
+.amh__ticket {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  border: none;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.amh__ticket small {
+  display: block;
+  color: #64748b;
+  margin-top: 0.2rem;
+}
+
+.amh__ticket-status {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  color: #6d4aff;
+  font-weight: 700;
+}
+
+.amh__empty {
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .amh__workspace {
+    grid-template-columns: 1fr;
+  }
+}

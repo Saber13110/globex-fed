@@ -1,0 +1,27 @@
+[
+  {
+    "id": "track",
+    "question": "How do I track my parcel?",
+    "answer": "Enter your FedEx tracking number (12 or 14 digits) in the chat. You will see status, timeline, and can export history to Excel."
+  },
+  {
+    "id": "pod",
+    "question": "How do I get proof of delivery?",
+    "answer": "After delivery, use the « Download proof of delivery (PDF) » button under the shipment summary. In demo mode (FedEx disabled), a sample PDF is provided."
+  },
+  {
+    "id": "export",
+    "question": "How do I export my tracking history?",
+    "answer": "Go to History and click « Export Excel », or ask for export in the chat. Daily quotas may apply depending on your account."
+  },
+  {
+    "id": "prefs",
+    "question": "How do I customize chatbot responses?",
+    "answer": "Settings → style preferences (tone, options). Your request must be approved by an administrator before it is applied."
+  },
+  {
+    "id": "account",
+    "question": "Login or account issues?",
+    "answer": "Check your email and password. Employees must be approved by an admin. Use the form below to contact support."
+  }
+]

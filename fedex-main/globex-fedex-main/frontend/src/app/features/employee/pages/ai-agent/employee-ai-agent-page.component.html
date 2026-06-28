@@ -1,0 +1,321 @@
+<div class="copilot">
+  <!-- HERO — image pleine largeur fusionnée avec le fond -->
+  <section class="agent-hero">
+    <img class="agent-hero__cover" [src]="heroBanner" alt="" width="1024" height="448" loading="eager" />
+    <div class="agent-hero__scrim" aria-hidden="true"></div>
+    <div class="agent-hero__content">
+      <span class="agent-hero__badge">{{ 'employee.agent.badge' | t }}</span>
+      <div class="agent-hero__title-row">
+        <h1>{{ 'employee.agent.title' | t }}</h1>
+        <span class="agent-hero__online">{{ 'employee.ops.aiOnline' | t }}</span>
+      </div>
+      <p class="agent-hero__subtitle">{{ 'employee.agent.subtitle' | t }}</p>
+    </div>
+  </section>
+
+  <!-- QUICK ACTIONS — 6 cartes premium -->
+  <section class="copilot-actions">
+    @for (action of quickActions; track action.titleKey) {
+      <button type="button" class="copilot-actions__card" (click)="runQuickAction(action)">
+        <span class="copilot-actions__icon-wrap">
+          <span class="copilot-icon" [attr.data-icon]="action.icon"></span>
+        </span>
+        <span class="copilot-actions__body">
+          <strong>{{ action.titleKey | t }}</strong>
+          <span>{{ action.descKey | t }}</span>
+        </span>
+        <span class="copilot-actions__chevron" aria-hidden="true">›</span>
+      </button>
+    }
+  </section>
+
+  <!-- MAIN WORKSPACE — 3 colonnes -->
+  <div class="copilot-workspace">
+    <!-- Conversations -->
+    <aside class="copilot-history">
+      <button type="button" class="copilot-history__new" (click)="newChat()">
+        <span aria-hidden="true">+</span>
+        {{ 'employee.assistant.newConversation' | t }}
+      </button>
+      <div class="copilot-history__head">
+        <h2>{{ 'employee.assistant.conversationHistory' | t }}</h2>
+      </div>
+      <input
+        type="search"
+        class="copilot-history__search"
+        [(ngModel)]="historyQuery"
+        (input)="loadConversations()"
+        [placeholder]="'employee.agent.searchConversations' | t"
+      />
+      <div class="copilot-history__list">
+        @for (group of conversationGroups; track group.label) {
+          <p class="copilot-history__group">{{ group.label }}</p>
+          @for (c of group.items; track c.id) {
+            <button
+              type="button"
+              class="copilot-history__item"
+              [class.copilot-history__item--active]="conversationId === c.id"
+              (click)="selectConversation(c.id)"
+            >
+              <strong>{{ c.title }}</strong>
+              <small>{{ c.preview }}</small>
+              <span class="copilot-history__time">{{ formatTime(c.updated_at) }}</span>
+              <button type="button" class="copilot-history__delete" (click)="deleteConversation(c.id, $event)">×</button>
+            </button>
+          }
+        } @empty {
+          <p class="copilot-history__empty">{{ 'employee.assistant.noHistory' | t }}</p>
+        }
+      </div>
+    </aside>
+
+    <!-- Chat -->
+    <div class="copilot-main">
+      <div class="copilot-chat">
+        <div class="copilot-chat__thread" #threadEl>
+          @if (messages.length === 0 && !loading) {
+            <div class="copilot-welcome">
+              <div class="copilot-welcome__avatar copilot-welcome__avatar--ai">AI</div>
+              <h2>{{ 'employee.copilot.welcomeTitle' | t }}</h2>
+              <p>{{ 'employee.copilot.welcomeDesc' | t }}</p>
+              <ul>
+                <li>{{ 'employee.copilot.welcomeItem1' | t }}</li>
+                <li>{{ 'employee.copilot.welcomeItem2' | t }}</li>
+                <li>{{ 'employee.copilot.welcomeItem3' | t }}</li>
+              </ul>
+            </div>
+          }
+
+          @for (msg of messages; track $index) {
+            <div class="copilot-msg" [class.copilot-msg--user]="msg.role === 'user'" [class.copilot-msg--ai]="msg.role === 'assistant'">
+              <div class="copilot-msg__avatar" [class.copilot-msg__avatar--ai]="msg.role === 'assistant'">
+                {{ msg.role === 'user' ? employeeInitials : 'AI' }}
+              </div>
+              <div class="copilot-msg__body">
+                @if (msg.role === 'user') {
+                  <p class="copilot-msg__text">{{ msg.text }}</p>
+                  @if (msg.attachments?.length) {
+                    <div class="copilot-msg__attachments">
+                      @for (att of msg.attachments; track att.url) {
+                        <a href="#" class="copilot-msg__attachment" (click)="openAttachment(att.url, $event)">
+                          {{ att.name }}
+                        </a>
+                      }
+                    </div>
+                  }
+                } @else {
+                  <div class="copilot-msg__markdown" [innerHTML]="msg.html"></div>
+
+                  @if (msg.cards?.length) {
+                    <div class="copilot-results">
+                      @for (card of msg.cards; track card.title + card.type) {
+                        <article class="copilot-result-card">
+                          <header>
+                            <span class="copilot-result-card__type">{{ cardTypeLabel(card.type) | t }}</span>
+                            <strong>{{ card.title }}</strong>
+                            @if (card.subtitle) { <p>{{ card.subtitle }}</p> }
+                          </header>
+                          @if (card.meta['draft']) {
+                            <pre class="copilot-result-card__draft">{{ card.meta['draft'] }}</pre>
+                          }
+                          @if (card.actions.length) {
+                            <div class="copilot-result-card__actions">
+                              @for (a of card.actions; track a.route + a.label) {
+                                @if (card.type === 'admin_draft' && a.label.toLowerCase().includes('send')) {
+                                  <button type="button" class="copilot-btn copilot-btn--primary" (click)="sendAdminDraft(card.meta['draft'] + '')">{{ a.label }}</button>
+                                } @else {
+                                  <a [routerLink]="routePath(a.route)" [queryParams]="routeQuery(a.route)" class="copilot-btn copilot-btn--ghost">{{ a.label }}</a>
+                                }
+                              }
+                            </div>
+                          }
+                        </article>
+                      }
+                    </div>
+                  }
+
+                  @if (msg.actions?.length) {
+                    <div class="copilot-result-card__actions">
+                      @for (a of msg.actions; track a.route) {
+                        <a [routerLink]="routePath(a.route)" class="copilot-btn copilot-btn--ghost">{{ a.label }}</a>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+
+          @if (loading) {
+            <div class="copilot-msg copilot-msg--ai">
+              <div class="copilot-msg__avatar copilot-msg__avatar--ai">AI</div>
+              <div class="copilot-msg__body">
+                <div class="copilot-typing">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="copilot-chat__composer">
+          @if (pendingAttachments.length) {
+            <div class="copilot-composer__pending">
+              @for (att of pendingAttachments; track att.localId; let i = $index) {
+                <span class="copilot-composer__pending-item" [class.copilot-composer__pending-item--loading]="att.uploading">
+                  {{ att.name }}
+                  @if (att.uploading) {
+                    <small>{{ 'support.attachmentUploading' | t }}</small>
+                  }
+                  <button type="button" (click)="removeAttachment(i)" [attr.aria-label]="'support.attachmentRemove' | t">×</button>
+                </span>
+              }
+            </div>
+          }
+          <div class="copilot-composer__row">
+            <button
+              type="button"
+              class="copilot-composer__icon-btn"
+              (click)="triggerAttachment()"
+              [disabled]="loading"
+              [attr.aria-label]="'employee.agent.attach' | t"
+            >
+              <span class="copilot-icon copilot-icon--sm" data-icon="attach"></span>
+            </button>
+            <input
+              #fileInput
+              type="file"
+              hidden
+              multiple
+              [accept]="attachmentAccept"
+              (change)="onFilesSelected($event)"
+            />
+            <input
+              type="text"
+              [(ngModel)]="draft"
+              (keydown)="onComposerKeydown($event)"
+              [placeholder]="'employee.copilot.placeholder' | t"
+              [disabled]="loading"
+            />
+            <button
+              type="button"
+              class="copilot-composer__icon-btn"
+              [class.copilot-composer__icon-btn--active]="voiceListening"
+              (click)="toggleVoice()"
+              [disabled]="loading"
+              [attr.aria-label]="voiceListening ? ('employee.agent.voiceListening' | t) : ('employee.agent.voice' | t)"
+            >
+              <span class="copilot-icon copilot-icon--sm" data-icon="mic"></span>
+            </button>
+            <button
+              type="button"
+              class="copilot-composer__send"
+              [disabled]="!canSend"
+              (click)="bootstrapAndSend()"
+              [attr.aria-label]="'employee.ai.send' | t"
+            >
+              @if (loading) {
+                <span class="copilot-composer__spinner"></span>
+              } @else {
+                <span class="copilot-icon copilot-icon--sm copilot-icon--white" data-icon="send"></span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Context -->
+    <aside class="copilot-context">
+      <h3>{{ 'employee.copilot.contextTitle' | t }}</h3>
+      <nav class="copilot-context__tabs">
+        @for (tab of contextTabs; track tab.id) {
+          <button
+            type="button"
+            class="copilot-context__tab"
+            [class.copilot-context__tab--active]="contextTab === tab.id"
+            (click)="contextTab = tab.id"
+          >
+            {{ tab.labelKey | t }}
+          </button>
+        }
+      </nav>
+
+      @if (contextLoading) {
+        <div class="copilot-skeleton">
+          <div class="copilot-skeleton__line"></div>
+          <div class="copilot-skeleton__line"></div>
+        </div>
+      } @else if (liveContext) {
+        @if (contextTab === 'clients') {
+          <section class="copilot-context__block">
+            @for (c of liveContext.recent_clients; track c.id) {
+              <a [routerLink]="['/employee/client', c.id]" class="copilot-context__item">
+                <span class="copilot-context__avatar">{{ c.avatar_initials }}</span>
+                <div>
+                  <strong>{{ c.full_name }}</strong>
+                  <small>{{ c.last_activity }}</small>
+                </div>
+                <span class="copilot-context__dot copilot-context__dot--green"></span>
+              </a>
+            } @empty {
+              <p class="copilot-context__empty">{{ 'employee.clients.empty' | t }}</p>
+            }
+          </section>
+        }
+
+        @if (contextTab === 'shipments') {
+          <section class="copilot-context__block">
+            @for (s of liveContext.recent_shipments; track s.tracking_number) {
+              <a [routerLink]="['/employee/tracking', s.tracking_number]" class="copilot-context__item">
+                <div>
+                  <strong>{{ s.tracking_number }}</strong>
+                  <small>{{ s.status }} · {{ s.client_name }}</small>
+                </div>
+              </a>
+            } @empty {
+              <p class="copilot-context__empty">{{ 'employee.shipOps.empty' | t }}</p>
+            }
+          </section>
+        }
+
+        @if (contextTab === 'tickets') {
+          <section class="copilot-context__block">
+            @for (t of liveContext.recent_tickets; track t.id) {
+              <a [routerLink]="['/employee/support', t.id]" class="copilot-context__item">
+                <div>
+                  <strong>{{ t.subject }}</strong>
+                  <small>{{ t.ticket_number }} · {{ t.status }}</small>
+                </div>
+                @if (t.priority) {
+                  <span class="copilot-priority" [class]="'copilot-priority--' + (t.priority | lowercase)">{{ t.priority }}</span>
+                }
+              </a>
+            } @empty {
+              <p class="copilot-context__empty">{{ 'support.noTickets' | t }}</p>
+            }
+          </section>
+        }
+
+        @if (contextTab === 'documents') {
+          <section class="copilot-context__block">
+            @for (d of liveContext.pending_documents; track d.id) {
+              <a [routerLink]="['/employee/documents']" class="copilot-context__item">
+                <div>
+                  <strong>{{ d.title }}</strong>
+                  <small>{{ d.doc_type }} · {{ d.client_name }}</small>
+                </div>
+              </a>
+            } @empty {
+              <p class="copilot-context__empty">{{ 'employee.clientOps.noDocuments' | t }}</p>
+            }
+          </section>
+        }
+      }
+    </aside>
+  </div>
+
+  @if (errorToast) {
+    <div class="copilot-toast" role="alert">{{ errorToast }}</div>
+  }
+</div>

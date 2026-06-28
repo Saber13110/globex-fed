@@ -1,0 +1,97 @@
+@if (schema) {
+  <div class="am-schema" role="img" aria-label="Schéma workflow agent">
+    <div class="am-schema__flow">
+      <article class="am-schema__node am-schema__node--trigger">
+        <span class="am-schema__node-icon" aria-hidden="true">▶</span>
+        <div>
+          <small>Déclencheur</small>
+          <strong>{{ schema.trigger.label }}</strong>
+          <p>{{ schema.trigger.description }}</p>
+        </div>
+      </article>
+
+      <div class="am-schema__arrow" aria-hidden="true">→</div>
+
+      <article class="am-schema__node am-schema__node--agent">
+        <span class="am-schema__node-icon" aria-hidden="true">🤖</span>
+        <div>
+          <small>Agent IA</small>
+          <strong>{{ schema.agent.label }}</strong>
+          <p>{{ schema.agent.description }}</p>
+        </div>
+      </article>
+
+      <div class="am-schema__arrow" aria-hidden="true">→</div>
+
+      <article class="am-schema__node am-schema__node--tools">
+        <span class="am-schema__node-icon" aria-hidden="true">⚙</span>
+        <div>
+          <small>Outils / données</small>
+          <ul>
+            @for (tool of schema.tools; track tool.id) {
+              <li>{{ tool.label }}</li>
+            }
+          </ul>
+        </div>
+      </article>
+
+      <div class="am-schema__arrow" aria-hidden="true">→</div>
+
+      <article
+        class="am-schema__node am-schema__node--decision"
+        [class.am-schema__node--ok]="schema.decision.matches === true"
+        [class.am-schema__node--ko]="schema.decision.matches === false"
+      >
+        <span class="am-schema__node-icon" aria-hidden="true">?</span>
+        <div>
+          <small>Décision</small>
+          <strong>{{ schema.decision.label }}</strong>
+          @if (schema.decision.matches === true) {
+            <p class="am-schema__verdict am-schema__verdict--ok">{{ schema.decision.yes_label }}</p>
+          } @else if (schema.decision.matches === false) {
+            <p class="am-schema__verdict am-schema__verdict--ko">{{ schema.decision.no_label }}</p>
+            @if (schema.decision.reason) {
+              <p class="am-schema__reason">{{ schema.decision.reason }}</p>
+            }
+          } @else {
+            <p>Vérification au lancement</p>
+          }
+        </div>
+      </article>
+
+      <div class="am-schema__branch" aria-hidden="true">
+        <span class="am-schema__branch-yes">✓</span>
+        <span class="am-schema__branch-no">✗</span>
+      </div>
+
+      <div class="am-schema__outcomes">
+        <article class="am-schema__node am-schema__node--success">
+          <span class="am-schema__node-icon" aria-hidden="true">✓</span>
+          <div>
+            <small>Si oui</small>
+            <strong>{{ schema.outcomes.success.label }}</strong>
+            <p>{{ schema.outcomes.success.description }}</p>
+          </div>
+        </article>
+
+        <article class="am-schema__node am-schema__node--rejected">
+          <span class="am-schema__node-icon" aria-hidden="true">!</span>
+          <div>
+            <small>Si non</small>
+            <strong>{{ schema.outcomes.rejected.label }}</strong>
+            <p>{{ schema.outcomes.rejected.description }}</p>
+            @if (schema.decision.suggested_agent) {
+              <p class="am-schema__suggest">Agent recommandé : <strong>{{ suggestedAgentLabel() }}</strong></p>
+            }
+          </div>
+        </article>
+      </div>
+    </div>
+
+    @if (schema.task) {
+      <p class="am-schema__task"><strong>Tâche :</strong> {{ schema.task }}</p>
+    }
+  </div>
+} @else {
+  <p class="am-schema__empty">Schéma non disponible — le workflow sera généré à la création.</p>
+}

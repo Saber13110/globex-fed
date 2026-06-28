@@ -1,0 +1,254 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4000 1600" width="4000" height="1600" fill="none" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6D4AFF"/>
+      <stop offset="100%" stop-color="#8B73FF"/>
+    </linearGradient>
+    <linearGradient id="routeGrad" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#6D4AFF" stop-opacity="0"/>
+      <stop offset="35%" stop-color="#8B73FF" stop-opacity="0.55"/>
+      <stop offset="65%" stop-color="#6D4AFF" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#8B73FF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="holoGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6D4AFF" stop-opacity="0.15"/>
+      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#8B73FF" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="skyGlow" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#6D4AFF" stop-opacity="0.12"/>
+      <stop offset="55%" stop-color="#8B73FF" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#6D4AFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fuselageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="45%" stop-color="#F4F2FF"/>
+      <stop offset="100%" stop-color="#E8E4FF"/>
+    </linearGradient>
+    <linearGradient id="orangeAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF7A1A"/>
+      <stop offset="100%" stop-color="#FF9A4D"/>
+    </linearGradient>
+    <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8B73FF" stop-opacity="0.95"/>
+      <stop offset="55%" stop-color="#6D4AFF" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#6D4AFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="planeAura" cx="65%" cy="35%" r="45%">
+      <stop offset="0%" stop-color="#6D4AFF" stop-opacity="0.22"/>
+      <stop offset="60%" stop-color="#8B73FF" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#6D4AFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="nodeBlur" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+    <filter id="depthShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="28" stdDeviation="32" flood-color="#6D4AFF" flood-opacity="0.18"/>
+    </filter>
+    <filter id="truckShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#14142B" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient sky glow (right side) -->
+  <ellipse cx="2900" cy="520" rx="980" ry="620" fill="url(#skyGlow)"/>
+  <ellipse cx="3100" cy="480" rx="720" ry="480" fill="url(#planeAura)"/>
+
+  <!-- World map (simplified continents) -->
+  <g opacity="0.14" fill="#6D4AFF">
+    <!-- North America -->
+    <path d="M1680 520 C1760 460 1880 430 1980 450 C2050 470 2100 520 2080 580 C2040 640 1920 660 1820 630 C1740 600 1660 560 1680 520Z"/>
+    <!-- South America -->
+    <path d="M1960 720 C2020 700 2080 740 2100 820 C2110 900 2060 980 2000 1000 C1940 990 1900 900 1920 800 C1930 750 1940 730 1960 720Z"/>
+    <!-- Europe -->
+    <path d="M2280 480 C2340 460 2420 470 2460 510 C2480 550 2440 590 2380 600 C2320 590 2260 540 2280 480Z"/>
+    <!-- Africa -->
+    <path d="M2340 620 C2400 600 2460 640 2480 720 C2490 820 2440 920 2380 940 C2320 930 2280 840 2300 720 C2310 660 2320 630 2340 620Z"/>
+    <!-- Asia -->
+    <path d="M2520 420 C2680 390 2860 410 2980 480 C3060 540 3040 620 2940 660 C2800 700 2620 680 2520 600 C2460 540 2480 460 2520 420Z"/>
+    <!-- Australia -->
+    <path d="M2920 860 C2980 850 3040 880 3060 920 C3040 960 2980 980 2920 970 C2860 950 2880 880 2920 860Z"/>
+  </g>
+
+  <!-- Map grid lines -->
+  <g stroke="#8B73FF" stroke-opacity="0.08" stroke-width="1.5">
+    <line x1="1600" y1="380" x2="3600" y2="380"/>
+    <line x1="1600" y1="520" x2="3600" y2="520"/>
+    <line x1="1600" y1="660" x2="3600" y2="660"/>
+    <line x1="1600" y1="800" x2="3600" y2="800"/>
+    <line x1="1600" y1="940" x2="3600" y2="940"/>
+    <line x1="1800" y1="340" x2="1800" y2="1020"/>
+    <line x1="2200" y1="340" x2="2200" y2="1020"/>
+    <line x1="2600" y1="340" x2="2600" y2="1020"/>
+    <line x1="3000" y1="340" x2="3000" y2="1020"/>
+    <line x1="3400" y1="340" x2="3400" y2="1020"/>
+  </g>
+
+  <!-- Logistics routes -->
+  <g stroke="url(#routeGrad)" stroke-width="3" fill="none" opacity="0.75">
+    <path d="M1820 560 C2100 480 2480 440 2860 500" stroke-dasharray="0"/>
+    <path d="M1980 620 C2280 580 2580 560 2920 620" opacity="0.7"/>
+    <path d="M2100 760 C2360 700 2640 680 2980 740" opacity="0.55"/>
+    <path d="M2400 520 C2620 500 2840 520 3100 580" opacity="0.65"/>
+    <path d="M2200 680 C2460 640 2720 660 3040 720" opacity="0.5"/>
+  </g>
+
+  <!-- Holographic route overlay -->
+  <g stroke="url(#holoGrad)" stroke-width="1.5" fill="none" opacity="0.5">
+    <path d="M1820 560 C2100 480 2480 440 2860 500"/>
+    <path d="M2400 520 C2620 500 2840 520 3100 580"/>
+  </g>
+
+  <!-- Network nodes -->
+  <g filter="url(#nodeBlur)">
+    <circle cx="1820" cy="560" r="28" fill="url(#nodeGlow)" opacity="0.55"/>
+    <circle cx="2280" cy="500" r="24" fill="url(#nodeGlow)" opacity="0.5"/>
+    <circle cx="2580" cy="560" r="30" fill="url(#nodeGlow)" opacity="0.55"/>
+    <circle cx="2860" cy="500" r="26" fill="url(#nodeGlow)" opacity="0.5"/>
+    <circle cx="2980" cy="740" r="22" fill="url(#nodeGlow)" opacity="0.45"/>
+    <circle cx="3040" cy="620" r="20" fill="url(#nodeGlow)" opacity="0.4"/>
+  </g>
+  <g>
+    <circle cx="1820" cy="560" r="10" fill="#FFFFFF" opacity="0.95"/>
+    <circle cx="1820" cy="560" r="18" fill="#8B73FF" opacity="0.35"/>
+    <circle cx="2280" cy="500" r="9" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="2280" cy="500" r="16" fill="#6D4AFF" opacity="0.3"/>
+    <circle cx="2580" cy="560" r="11" fill="#FFFFFF"/>
+    <circle cx="2580" cy="560" r="20" fill="#8B73FF" opacity="0.35"/>
+    <circle cx="2860" cy="500" r="10" fill="#FFFFFF" opacity="0.92"/>
+    <circle cx="2860" cy="500" r="18" fill="#6D4AFF" opacity="0.32"/>
+    <circle cx="2980" cy="740" r="8" fill="#FFFFFF" opacity="0.88"/>
+    <circle cx="3040" cy="620" r="8" fill="#FFFFFF" opacity="0.85"/>
+  </g>
+
+  <!-- Ground platform -->
+  <ellipse cx="2680" cy="1180" rx="920" ry="90" fill="#6D4AFF" opacity="0.06"/>
+  <ellipse cx="2680" cy="1170" rx="680" ry="55" fill="#8B73FF" opacity="0.08"/>
+
+  <!-- Pallets & packages (bottom) -->
+  <g filter="url(#truckShadow)">
+  <g transform="translate(2180 1080)">
+    <rect x="0" y="40" width="120" height="80" rx="8" fill="#FFFFFF" stroke="#EAEAF4" stroke-width="2"/>
+    <rect x="12" y="52" width="96" height="14" rx="4" fill="#6D4AFF" opacity="0.12"/>
+    <rect x="12" y="72" width="96" height="14" rx="4" fill="#8B73FF" opacity="0.1"/>
+    <rect x="0" y="120" width="120" height="12" rx="4" fill="#6D4AFF" opacity="0.18"/>
+  </g>
+  <g transform="translate(2340 1060)">
+    <rect x="0" y="60" width="90" height="70" rx="8" fill="#FFFFFF" stroke="#EAEAF4" stroke-width="2"/>
+    <rect x="0" y="130" width="90" height="10" rx="3" fill="#FF7A1A" opacity="0.35"/>
+    <rect x="10" y="72" width="70" height="12" rx="3" fill="#FF7A1A" opacity="0.2"/>
+  </g>
+  <g transform="translate(2480 1090)">
+    <rect x="0" y="30" width="100" height="90" rx="8" fill="#F8F7FF" stroke="#E8E4FF" stroke-width="2"/>
+    <path d="M0 30 H100 V55 H0Z" fill="url(#purpleGrad)" opacity="0.25"/>
+    <rect x="0" y="120" width="100" height="12" rx="4" fill="#6D4AFF" opacity="0.15"/>
+  </g>
+  <g transform="translate(3120 1070)">
+    <rect x="0" y="50" width="110" height="75" rx="8" fill="#FFFFFF" stroke="#EAEAF4" stroke-width="2"/>
+    <rect x="10" y="62" width="90" height="10" rx="3" fill="#6D4AFF" opacity="0.15"/>
+    <rect x="10" y="80" width="90" height="10" rx="3" fill="#8B73FF" opacity="0.12"/>
+    <rect x="0" y="125" width="110" height="12" rx="4" fill="#6D4AFF" opacity="0.16"/>
+  </g>
+  <g transform="translate(3280 1095)">
+    <rect x="0" y="25" width="85" height="85" rx="8" fill="#FFFFFF" stroke="#EAEAF4" stroke-width="2"/>
+    <rect x="0" y="110" width="85" height="10" rx="3" fill="#FF7A1A" opacity="0.3"/>
+  </g>
+  </g>
+
+  <!-- Delivery truck -->
+  <g transform="translate(2620 1020)" filter="url(#truckShadow)">
+    <rect x="0" y="70" width="280" height="90" rx="14" fill="url(#orangeAccent)"/>
+    <rect x="20" y="85" width="120" height="55" rx="8" fill="#FFFFFF" opacity="0.92"/>
+    <rect x="155" y="85" width="100" height="55" rx="8" fill="#FFFFFF" opacity="0.18"/>
+    <path d="M280 95 H360 L390 125 V160 H280Z" fill="url(#orangeAccent)"/>
+    <rect x="330" y="108" width="48" height="38" rx="6" fill="#FFFFFF" opacity="0.85"/>
+    <rect x="0" y="155" width="390" height="10" rx="4" fill="#14142B" opacity="0.08"/>
+    <circle cx="90" cy="168" r="28" fill="#2D2D3A"/>
+    <circle cx="90" cy="168" r="14" fill="#FFFFFF" opacity="0.35"/>
+    <circle cx="330" cy="168" r="28" fill="#2D2D3A"/>
+    <circle cx="330" cy="168" r="14" fill="#FFFFFF" opacity="0.35"/>
+    <rect x="36" y="98" width="88" height="8" rx="4" fill="#6D4AFF" opacity="0.35"/>
+  </g>
+
+  <!-- Cargo aircraft -->
+  <g transform="translate(2480 280) rotate(-4)" filter="url(#depthShadow)">
+  <g transform="scale(1.15)">
+    <!-- Contrail / motion glow -->
+    <path d="M-120 180 C80 160 280 150 520 140" stroke="#8B73FF" stroke-width="6" stroke-linecap="round" opacity="0.15"/>
+    <path d="M-80 200 C120 185 320 175 560 168" stroke="#6D4AFF" stroke-width="3" stroke-linecap="round" opacity="0.22"/>
+
+    <!-- Wings -->
+    <path d="M280 220 L120 310 L180 330 L340 250 Z" fill="#E8E4FF" stroke="#C9C0FF" stroke-width="2"/>
+    <path d="M280 220 L440 310 L380 330 L220 250 Z" fill="#F0EDFF" stroke="#C9C0FF" stroke-width="2"/>
+    <path d="M300 235 L160 305 L190 318 L320 255 Z" fill="url(#purpleGrad)" opacity="0.12"/>
+
+    <!-- Tail -->
+    <path d="M40 180 L20 120 L80 150 L100 200 Z" fill="#E8E4FF" stroke="#C9C0FF" stroke-width="2"/>
+    <path d="M55 165 L42 125 L75 145 Z" fill="url(#orangeAccent)" opacity="0.75"/>
+
+    <!-- Fuselage -->
+    <ellipse cx="300" cy="230" rx="280" ry="52" fill="url(#fuselageGrad)" stroke="#D8D2FF" stroke-width="2.5"/>
+    <path d="M20 230 C80 200 180 188 300 188 C420 188 520 200 580 230 C520 260 420 272 300 272 C180 272 80 260 20 230Z" fill="url(#fuselageGrad)" stroke="#D8D2FF" stroke-width="2.5"/>
+
+    <!-- Nose -->
+    <path d="M560 230 C600 228 640 230 680 235 C640 245 600 248 560 245 Z" fill="#FFFFFF" stroke="#D8D2FF" stroke-width="2"/>
+    <ellipse cx="670" cy="235" rx="18" ry="10" fill="#8B73FF" opacity="0.25"/>
+
+    <!-- Cargo stripe -->
+    <rect x="140" y="215" width="360" height="30" rx="8" fill="url(#purpleGrad)" opacity="0.85"/>
+    <rect x="160" y="222" width="80" height="16" rx="4" fill="#FFFFFF" opacity="0.22"/>
+    <rect x="260" y="222" width="80" height="16" rx="4" fill="#FFFFFF" opacity="0.18"/>
+    <rect x="360" y="222" width="80" height="16" rx="4" fill="#FFFFFF" opacity="0.15"/>
+
+    <!-- Orange accent band -->
+    <rect x="480" y="218" width="70" height="24" rx="6" fill="url(#orangeAccent)" opacity="0.9"/>
+
+    <!-- Engines -->
+    <ellipse cx="200" cy="285" rx="34" ry="22" fill="#FFFFFF" stroke="#D8D2FF" stroke-width="2"/>
+    <ellipse cx="200" cy="285" rx="18" ry="12" fill="#6D4AFF" opacity="0.2"/>
+    <ellipse cx="400" cy="285" rx="34" ry="22" fill="#FFFFFF" stroke="#D8D2FF" stroke-width="2"/>
+    <ellipse cx="400" cy="285" rx="18" ry="12" fill="#6D4AFF" opacity="0.2"/>
+
+    <!-- Windows -->
+    <g fill="#8B73FF" opacity="0.35">
+      <circle cx="520" cy="218" r="5"/>
+      <circle cx="500" cy="216" r="4.5"/>
+      <circle cx="480" cy="215" r="4"/>
+    </g>
+
+    <!-- Wing lights -->
+    <circle cx="130" cy="308" r="6" fill="#FF7A1A" opacity="0.8" filter="url(#softGlow)"/>
+    <circle cx="450" cy="308" r="6" fill="#6D4AFF" opacity="0.75" filter="url(#softGlow)"/>
+  </g>
+  </g>
+
+  <!-- Floating data cubes (supply chain) -->
+  <g opacity="0.65">
+    <g transform="translate(3200 420) rotate(18)">
+      <rect x="0" y="0" width="56" height="56" rx="10" fill="#FFFFFF" stroke="#E8E4FF" stroke-width="2"/>
+      <rect x="10" y="12" width="36" height="6" rx="3" fill="#6D4AFF" opacity="0.25"/>
+      <rect x="10" y="24" width="28" height="6" rx="3" fill="#8B73FF" opacity="0.2"/>
+      <rect x="10" y="36" width="32" height="6" rx="3" fill="#FF7A1A" opacity="0.2"/>
+    </g>
+    <g transform="translate(3340 560) rotate(-12)">
+      <rect x="0" y="0" width="48" height="48" rx="9" fill="#F8F7FF" stroke="#E8E4FF" stroke-width="2"/>
+      <circle cx="24" cy="24" r="12" fill="url(#purpleGrad)" opacity="0.2"/>
+      <circle cx="24" cy="24" r="5" fill="#6D4AFF" opacity="0.55"/>
+    </g>
+    <g transform="translate(3420 380) rotate(8)">
+      <rect x="0" y="0" width="44" height="44" rx="8" fill="#FFFFFF" stroke="#E8E4FF" stroke-width="2"/>
+      <path d="M10 30 L22 14 L34 30Z" fill="#8B73FF" opacity="0.25"/>
+    </g>
+  </g>
+
+  <!-- Subtle route pulse rings near plane -->
+  <circle cx="2860" cy="500" r="42" stroke="#8B73FF" stroke-width="1.5" opacity="0.2" fill="none"/>
+  <circle cx="2860" cy="500" r="62" stroke="#6D4AFF" stroke-width="1" opacity="0.12" fill="none"/>
+</svg>

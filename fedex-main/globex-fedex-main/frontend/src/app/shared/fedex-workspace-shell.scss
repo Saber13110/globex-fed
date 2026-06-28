@@ -1,0 +1,127 @@
+.workspace {
+  height: 100vh;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  background: #f9f7fc;
+  position: relative;
+  isolation: isolate;
+}
+
+.workspace.workspace--collapsed {
+  grid-template-columns: 68px 1fr;
+}
+
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: 1fr; }
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ARRIÈRE-PLAN MINIMALISTE — Linear / Vercel / Stripe style
+   ═══════════════════════════════════════════════════════════════
+   3 orbes flous très lents qui dérivent + 1 mesh gradient
+   Aucune particule, aucune trajectoire, aucun grid.
+   Le luxe = le vide.
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(40px, -30px, 0) scale(1.08); }
+}
+
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(-50px, 40px, 0) scale(1.1); }
+}
+
+@keyframes orbFloat3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.55; }
+  50%      { transform: translate3d(30px, 30px, 0) scale(1.05); opacity: 0.75; }
+}
+
+@keyframes meshDrift {
+  0%, 100% { background-position: 0% 0%, 100% 100%; }
+  50%      { background-position: 100% 50%, 0% 50%; }
+}
+
+/* Ambient : gradient atmosphérique exactement comme la maquette
+   Lavande dense en haut (matche PNG avion) → blanc en bas (cards qui flottent) */
+.ambient {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg,
+      #e5dcf0 0%,
+      #e8e0f3 25%,
+      #ede7f7 50%,
+      #f3eef9 75%,
+      #f9f7fc 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambient__mesh,
+.ambient__orb--purple,
+.ambient__orb--violet,
+.ambient__orb--orange { display: none; }
+
+.ambient--chat-home {
+  background: #faf9fc;
+}
+
+/* ─── Canvas : transparent, juste un conteneur ─────────────────── */
+.canvas {
+  position: relative;
+  height: 100vh;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #faf9fc;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Pages secondaires (historique, documents, support…) : contenu défilable */
+.canvas.canvas--scrollable {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.canvas.canvas--scrollable::-webkit-scrollbar {
+  width: 8px;
+  display: block;
+}
+
+.canvas.canvas--scrollable::-webkit-scrollbar-thumb {
+  background: rgba(77, 20, 140, 0.22);
+  border-radius: 999px;
+}
+
+.canvas__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.canvas app-chat-hero {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.canvas::-webkit-scrollbar { display: none; }

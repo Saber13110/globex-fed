@@ -1,0 +1,75 @@
+---
+description: Export PDF/Excel client — flux LLM-first, post-traitement (Phase 3c/3d)
+globs: fedex-main/globex-fedex-main/backend/app/services/client_phase3/**,fedex-main/globex-fedex-main/backend/app/services/chatbot_service.py
+alwaysApply: false
+---
+
+# Client export — Phase 3c PDF + Phase 3d Excel
+
+## Flux obligatoire
+
+1. **Chat d'abord** : Phase 2 (`_compute_phase2_reply`) produit la réponse texte (Ollama / FedEx) — **inchangée**.
+2. **PDF ensuite** : si `wants_pdf_format(message)`, `maybe_attach_pdf_export` compose un **corps PDF séparé** via `pdf_body_composer` → `build_text_pdf_download` → `export_download`.
+3. **Message chat** : toujours `short_pdf_chat_reply` (court + lien) — **ne pas** répéter le corps PDF dans le chat.
+4. **Ne pas réactiver** `handle_client_export_turn` (Phase 3a) ni `classify_pdf_kind` pour router le chat avant Phase 2.
+
+## Composition PDF (pdf_body_composer.py)
+
+| Fonction | Rôle |
+|----------|------|
+| `build_pdf_body_for_shipment_turn` | Point d'entrée followup / same_turn colis |
+| `compose_shipment_pdf_body` | Ollama détecte format + rédige depuis faits FedEx |
+| `compose_shipment_pdf_fallback` | Template déterministe si timeout Ollama |
+| `strip_markdown_for_pdf` | Nettoyage avant fpdf |
+| `short_pdf_chat_reply` | Message chat court FR/EN |
+
+Re-fetch FedEx : `fetch_fedex_tracking_data` **uniquement** dans la couche PDF (pas dans Phase 2).
+
+## Cas spéciaux (pdf_postprocess.py)
+
+| Cas | Quand | Corps PDF | Chat |
+|-----|-------|-----------|------|
+| followup | `is_pdf_only_followup` | Ollama + faits FedEx ; fallback template | Court |
+| same_turn | PDF + question colis | `build_pdf_body_for_shipment_turn` avec `chat_reply` en contexte | Court |
+| conversation transcript | « cette discussion » | `build_session_transcript_text` (DB, sans Ollama) | Court |
+| conversation summary | « résume / synthèse » + pdf | Ollama `draft_pdf_content` ; fallback transcript | Court |
+| technical_tracking | « historique scans » | `run_tracking_pdf_export` ; fallback composer | Court |
+
+## Clarification
+
+Si ambigu (pas de réponse bot, plusieurs colis récents) → question + 2 suggestions, **pas** d'erreur sèche ni faux « patientez ».
+
+## Capability
+
+`CLIENT_AGENT_CAPABILITIES` doit inclure `pdf`. Sans `pdf` → message « fonctionnalité non activée ».
+
+## Interdictions
+
+- Ne pas décommenter `client_agent/*` pour les exports.
+- Ne pas forcer PDF tracking DB quand l'utilisateur veut le texte de la conversation.
+- Lien `export_download` uniquement si blob PDF réellement stocké.
+- **discussion/conversation** → transcript DB sans Ollama ; **résumé explicite** → Ollama avec fallback transcript.
+- Erreurs fpdf : lignes vides → `pdf.ln()` dans `generate_text_pdf`, jamais `multi_cell("")` ; `FPDFException` convertie en `ValueError` dans `build_text_pdf_download`.
+- `build_text_pdf_download` applique `strip_markdown_for_pdf` sur tout corps avant fpdf.
+
+## Phase 3d Excel (excel_postprocess.py)
+
+1. **Followup early** : `handle_excel_only_followup_turn` — « ces infos en excel » (pas Phase 2).
+2. **Same turn** : Phase 2 puis `maybe_attach_excel_export` si `wants_excel_format` et pas PDF.
+3. **Chat** : `short_excel_chat_reply` — ne pas répéter le tableur dans le chat.
+4. **Fichier** : `excel_body_composer` → Ollama layout → `generate_shipment_excel_from_fedex` (openpyxl) → `store_client_excel_blob` → `/export/text.xlsx`.
+5. **Frontend** : `history.service.ts` — `export_token` + `format: xlsx` → `downloadTextExcel`.
+
+| Cas | Corps Excel | Chat |
+|-----|-------------|------|
+| followup | FedEx re-fetch + openpyxl enrichi | Court |
+| same_turn | Idem avec `chat_reply` en contexte layout | Court |
+
+`CLIENT_AGENT_CAPABILITIES` doit inclure `excel`. Route legacy `/export/tracking-history.xlsx` (DB) inchangée.
+
+## Priorité format explicite (export_intent.py)
+
+- `excel` / `xlsx` / `tableur` sans `pdf` → Excel uniquement (`wants_pdf_format` = false même si « fichier » est présent).
+- `pdf` sans excel → PDF uniquement.
+- `pdf` et `excel` dans le même message → PDF prioritaire (ordre chatbot inchangé).
+- `wants_pdf_format` délègue à `is_pdf_export_intent` (source unique).

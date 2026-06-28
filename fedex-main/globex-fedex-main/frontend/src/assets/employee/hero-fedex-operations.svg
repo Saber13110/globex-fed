@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="fxPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4D148C"/>
+      <stop offset="100%" stop-color="#6D4AFF"/>
+    </linearGradient>
+    <linearGradient id="fxOrange" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF6200"/>
+      <stop offset="100%" stop-color="#FF7A1A"/>
+    </linearGradient>
+    <radialGradient id="fxGlow" cx="50%" cy="45%" r="50%">
+      <stop offset="0%" stop-color="#8B73FF" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#6D4AFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="fxShadow"><feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#14142B" flood-opacity="0.08"/></filter>
+  </defs>
+  <ellipse cx="480" cy="300" rx="320" ry="180" fill="url(#fxGlow)"/>
+  <!-- Globe network -->
+  <circle cx="720" cy="120" r="52" fill="url(#fxPurple)" fill-opacity="0.85"/>
+  <ellipse cx="720" cy="120" rx="52" ry="18" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+  <path d="M668 120h104M720 68v104" stroke="rgba(255,255,255,0.25)" stroke-width="0.8"/>
+  <path d="M480 200 Q600 140 720 120" stroke="#6D4AFF" stroke-width="1.2" stroke-opacity="0.25" stroke-dasharray="4 6"/>
+  <path d="M280 280 Q480 200 720 120" stroke="#FF7A1A" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="3 5"/>
+  <!-- Analytics card -->
+  <g filter="url(#fxShadow)" transform="translate(80, 200)">
+    <rect width="140" height="100" rx="16" fill="#fff" stroke="#EAEAF4" stroke-width="1.2"/>
+    <rect x="16" y="16" width="48" height="5" rx="2.5" fill="#EAEAF4"/>
+    <rect x="24" y="72" width="12" height="18" rx="3" fill="#6D4AFF" fill-opacity="0.35"/>
+    <rect x="44" y="62" width="12" height="28" rx="3" fill="#6D4AFF" fill-opacity="0.55"/>
+    <rect x="64" y="50" width="12" height="40" rx="3" fill="url(#fxPurple)"/>
+    <rect x="84" y="58" width="12" height="32" rx="3" fill="#8B73FF" fill-opacity="0.7"/>
+    <path d="M24 48 L48 40 L72 46 L96 34 L120 38" stroke="#FF7A1A" stroke-width="2" stroke-linecap="round" fill="none"/>
+  </g>
+  <!-- Warehouse nodes -->
+  <circle cx="200" cy="380" r="6" fill="#6D4AFF" fill-opacity="0.5"/>
+  <circle cx="320" cy="420" r="5" fill="#8B73FF" fill-opacity="0.45"/>
+  <circle cx="640" cy="400" r="6" fill="#6D4AFF" fill-opacity="0.5"/>
+  <path d="M200 380 L320 420 L480 360 L640 400" stroke="#6D4AFF" stroke-width="1" stroke-opacity="0.2"/>
+  <!-- FedEx Express aircraft -->
+  <g filter="url(#fxShadow)" transform="translate(300, 80)">
+    <ellipse cx="180" cy="95" rx="200" ry="28" fill="rgba(109,74,255,0.06)"/>
+    <path d="M40 100 L80 88 L200 72 L320 88 L360 100 L320 108 L200 92 L80 108 Z" fill="url(#fxPurple)"/>
+    <path d="M120 88 L160 76 L200 72 L240 76 L280 88" fill="#8B73FF" fill-opacity="0.9"/>
+    <rect x="175" y="64" width="50" height="14" rx="4" fill="#fff" fill-opacity="0.9"/>
+    <rect x="182" y="69" width="18" height="4" rx="1" fill="#4D148C"/>
+    <rect x="204" y="69" width="14" height="4" rx="1" fill="#FF6200"/>
+    <path d="M200 72 L200 48 L188 52 L200 48 L212 52 Z" fill="#6D4AFF"/>
+    <path d="M60 100 L40 108 L56 104 Z" fill="#4D148C"/>
+    <path d="M340 100 L360 108 L344 104 Z" fill="#4D148C"/>
+    <ellipse cx="100" cy="102" rx="22" ry="8" fill="rgba(77,20,140,0.25)"/>
+    <ellipse cx="300" cy="102" rx="22" ry="8" fill="rgba(77,20,140,0.25)"/>
+  </g>
+  <!-- Shipment boxes -->
+  <g filter="url(#fxShadow)" transform="translate(140, 320)">
+    <rect width="48" height="44" rx="10" fill="#fff" stroke="#EAEAF4" stroke-width="1.2"/>
+    <path d="M0 14 L24 4 L48 14" stroke="#6D4AFF" stroke-width="1.2" fill="none"/>
+    <line x1="24" y1="4" x2="24" y2="44" stroke="#6D4AFF" stroke-width="1" stroke-opacity="0.4"/>
+  </g>
+  <g transform="translate(780, 300)">
+    <rect width="40" height="36" rx="8" fill="#fff" stroke="#EAEAF4" stroke-width="1"/>
+    <path d="M0 12 L20 4 L40 12" stroke="#FF7A1A" stroke-width="1" fill="none"/>
+  </g>
+  <!-- Delivery truck -->
+  <g filter="url(#fxShadow)" transform="translate(400, 380)">
+    <rect x="0" y="16" width="72" height="36" rx="8" fill="#fff" stroke="url(#fxOrange)" stroke-width="1.5"/>
+    <path d="M72 28 H108 L128 44 V52 H72 Z" fill="rgba(255,122,26,0.12)" stroke="url(#fxOrange)" stroke-width="1.5" stroke-linejoin="round"/>
+    <rect x="112" y="32" width="12" height="12" rx="2" fill="rgba(255,255,255,0.8)" stroke="#FF7A1A" stroke-width="1"/>
+    <circle cx="22" cy="56" r="10" fill="#fff" stroke="#FF7A1A" stroke-width="2"/>
+    <circle cx="108" cy="56" r="10" fill="#fff" stroke="#FF7A1A" stroke-width="2"/>
+    <rect x="8" y="24" width="28" height="8" rx="2" fill="#FF7A1A" fill-opacity="0.25"/>
+  </g>
+  <!-- Tracking routes -->
+  <circle cx="480" cy="340" r="4" fill="#6D4AFF"/>
+  <circle cx="560" cy="300" r="3" fill="#FF7A1A" fill-opacity="0.7"/>
+  <path d="M480 340 L560 300 L640 400" stroke="#6D4AFF" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="3 4"/>
+</svg>

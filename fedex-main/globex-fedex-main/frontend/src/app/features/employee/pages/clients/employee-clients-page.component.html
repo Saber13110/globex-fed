@@ -1,0 +1,75 @@
+<div class="client-ops">
+  @if (loading && !stats) {
+    <div class="client-ops__loading">
+      <div class="client-ops__skeleton client-ops__skeleton--hero"></div>
+      <div class="client-ops__skeleton-row">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="client-ops__skeleton client-ops__skeleton--metric"></div>
+        }
+      </div>
+    </div>
+  } @else {
+    <section class="client-ops-hero">
+      <div class="client-ops-hero__illustration" [style.backgroundImage]="'url(' + heroBanner + ')'" aria-hidden="true"></div>
+      <div class="client-ops-hero__overlay" aria-hidden="true"></div>
+      <div class="client-ops-hero__content">
+        <span class="client-ops-hero__badge">{{ 'employee.clientOps.badge' | t }}</span>
+        <h1>{{ 'employee.clientOps.title' | t }}</h1>
+        <p class="client-ops-hero__subtitle">{{ 'employee.clientOps.subtitle' | t }}</p>
+      </div>
+    </section>
+
+    @if (stats) {
+      <app-client-stats [stats]="stats" />
+    }
+
+    <app-client-search
+      [q]="q"
+      [status]="status"
+      [activity]="activity"
+      [searching]="searching"
+      [showSearchResults]="showSearchResults"
+      [searchHits]="searchHits"
+      (qChange)="q = $event"
+      (statusChange)="status = $event"
+      (activityChange)="activity = $event"
+      (searchInput)="onSearchInput()"
+      (applyFilters)="applyFilters()"
+      (clearSearch)="clearSearch()"
+      (openHit)="openSearchHit($event)"
+    />
+
+    @if (loading) {
+      <div class="client-ops-grid client-ops-grid--skeleton">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="client-ops__skeleton client-ops__skeleton--card"></div>
+        }
+      </div>
+    } @else if (clients.length === 0) {
+      <div class="client-ops-empty">
+        <span class="client-ops-empty__icon" data-icon="users"></span>
+        <p>{{ 'employee.clients.empty' | t }}</p>
+      </div>
+    } @else {
+      <section class="client-ops-grid">
+        @for (c of clients; track c.id) {
+          <app-client-card [client]="c" />
+        }
+      </section>
+
+      @if (totalPages > 1) {
+        <nav class="client-ops-pagination" aria-label="Pagination">
+          <button type="button" class="client-ops-pagination__btn" [disabled]="page <= 1" (click)="goToPage(page - 1)">
+            {{ 'employee.clientOps.prevPage' | t }}
+          </button>
+          <span class="client-ops-pagination__info">
+            {{ 'employee.clientOps.pageOf' | t:{ page: '' + page, total: '' + totalPages } }}
+          </span>
+          <button type="button" class="client-ops-pagination__btn" [disabled]="page >= totalPages" (click)="goToPage(page + 1)">
+            {{ 'employee.clientOps.nextPage' | t }}
+          </button>
+        </nav>
+      }
+    }
+  }
+</div>

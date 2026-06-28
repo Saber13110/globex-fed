@@ -1,0 +1,135 @@
+.chat-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 12px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.chat-item:hover,
+.chat-item--menu-open {
+  background: var(--ui-hover);
+  transform: translateY(-1px);
+}
+
+.chat-item--active {
+  background: var(--ui-active);
+  border-color: #d8dce5;
+}
+
+.chat-item__content {
+  min-width: 0;
+}
+
+.chat-item__title {
+  margin: 0;
+  color: var(--ui-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-item__meta {
+  margin: 2px 0 0;
+  color: var(--ui-text-muted);
+  font-size: 12px;
+}
+
+.chat-item__menu-trigger {
+  opacity: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #555b67;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  transition: opacity 0.12s ease, background-color 0.14s ease, border-color 0.14s ease;
+}
+
+.chat-item:hover .chat-item__menu-trigger,
+.chat-item__menu-trigger--visible {
+  opacity: 1;
+}
+
+.chat-item__menu-trigger:hover {
+  background: #eef0f4;
+  border-color: #d8dce5;
+}
+
+.chat-item__menu-trigger:focus-visible {
+  outline-offset: 1px;
+}
+
+.chat-item__menu {
+  position: absolute;
+  right: 8px;
+  top: calc(100% - 2px);
+  z-index: 12;
+  min-width: 160px;
+  border-radius: 12px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow-md);
+  padding: 6px;
+  display: grid;
+  gap: 2px;
+}
+
+.chat-item__menu button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: #202123;
+  font-size: 13px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.chat-item__menu button:hover {
+  background: var(--ui-hover);
+}
+
+.chat-item__menu button.danger {
+  color: var(--ui-danger);
+}
+
+.chat-item__rename {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.chat-item__rename-input {
+  min-width: 0;
+  border: 1px solid #cdd1dc;
+  background: #fff;
+  color: #1f2937;
+  border-radius: 8px;
+  font-size: 13px;
+  padding: 7px 9px;
+}
+
+.chat-item__icon-btn {
+  border: 1px solid #d3d7e2;
+  background: #fff;
+  color: #2d3748;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}

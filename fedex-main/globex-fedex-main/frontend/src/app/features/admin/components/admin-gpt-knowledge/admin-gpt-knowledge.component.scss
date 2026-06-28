@@ -1,0 +1,158 @@
+.gpt-kb {
+  padding: 1.25rem 1.5rem 2rem;
+  max-width: 1100px;
+}
+
+.gpt-kb__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.gpt-kb__title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.gpt-kb__sub {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.gpt-kb__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.gpt-kb__btn {
+  border: none;
+  border-radius: 10px;
+  padding: 0.55rem 0.9rem;
+  background: linear-gradient(135deg, #6d28ff, #4f46e5);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gpt-kb__btn--ghost {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.gpt-kb__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.gpt-kb__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.gpt-kb__card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.gpt-kb__card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.gpt-kb__slug {
+  margin: 0.2rem 0 0.6rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.gpt-kb__card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.gpt-kb__upload,
+.gpt-kb__docs {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.gpt-kb__upload h2,
+.gpt-kb__docs h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.gpt-kb__form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.gpt-kb__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.gpt-kb__form select,
+.gpt-kb__file input {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.85rem;
+}
+
+.gpt-kb__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.gpt-kb__table th,
+.gpt-kb__table td {
+  text-align: left;
+  padding: 0.55rem 0.4rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.gpt-kb__status[data-status='indexed'] { color: #15803d; }
+.gpt-kb__status[data-status='failed'] { color: #b91c1c; }
+.gpt-kb__status[data-status='processing'] { color: #b45309; }
+
+.gpt-kb__link {
+  border: none;
+  background: none;
+  color: #6d28ff;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.gpt-kb__msg {
+  margin: 0.5rem 0;
+  color: #334155;
+}
+
+.gpt-kb__msg--muted {
+  color: #94a3b8;
+}
+
+.gpt-kb__error {
+  color: #b91c1c;
+  font-size: 0.78rem;
+}

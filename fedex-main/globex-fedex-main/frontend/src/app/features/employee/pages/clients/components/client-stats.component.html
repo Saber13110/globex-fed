@@ -1,0 +1,18 @@
+<section class="client-ops-metrics">
+  @for (m of stats.metrics; track m.key) {
+    @if (m.key !== 'recent_documents') {
+    <article class="client-ops-metric">
+      <div class="client-ops-metric__top">
+        <span class="client-ops-icon" [attr.data-icon]="m.icon"></span>
+        <span
+          class="client-ops-metric__trend"
+          [class.client-ops-metric__trend--up]="m.trend_up"
+          [class.client-ops-metric__trend--down]="!m.trend_up"
+        >{{ m.trend }}</span>
+      </div>
+      <strong class="client-ops-metric__value">{{ m.value }}</strong>
+      <span class="client-ops-metric__label">{{ metricLabel(m.key) | t }}</span>
+    </article>
+    }
+  }
+</section>

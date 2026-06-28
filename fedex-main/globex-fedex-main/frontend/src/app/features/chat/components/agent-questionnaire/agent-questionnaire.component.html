@@ -1,0 +1,46 @@
+<div class="agent-qcm" role="form" [attr.aria-label]="questionnaire.task_label">
+  <header class="agent-qcm__header">
+    <span class="agent-qcm__badge">{{ 'chat.agent.qcmBadge' | t }}</span>
+    <h4 class="agent-qcm__title">{{ questionnaire.task_label }}</h4>
+  </header>
+
+  @for (q of questionnaire.questions; track q.id) {
+    <fieldset class="agent-qcm__block">
+      <legend class="agent-qcm__question">{{ q.label }}</legend>
+      @if (q.hint) {
+        <p class="agent-qcm__hint">{{ q.hint }}</p>
+      }
+
+      @if (q.question_type === 'text') {
+        <input
+          class="agent-qcm__text"
+          type="text"
+          [disabled]="disabled"
+          [placeholder]="'chat.agent.trackingPlaceholder' | t"
+          (input)="onTextChange(q, $any($event.target).value)"
+        />
+      } @else {
+        <div class="agent-qcm__options">
+          @for (opt of q.options; track opt.id) {
+            <button
+              type="button"
+              class="agent-qcm__option"
+              [class.agent-qcm__option--selected]="isSelected(q, opt.id)"
+              [disabled]="disabled"
+              (click)="onSelect(q, opt.id)"
+            >
+              <span class="agent-qcm__option-label">{{ opt.label }}</span>
+              @if (opt.description) {
+                <span class="agent-qcm__option-desc">{{ opt.description }}</span>
+              }
+            </button>
+          }
+        </div>
+      }
+    </fieldset>
+  }
+
+  <button type="button" class="agent-qcm__submit" [disabled]="!canSubmit()" (click)="submit()">
+    {{ 'chat.agent.runAutomation' | t }}
+  </button>
+</div>

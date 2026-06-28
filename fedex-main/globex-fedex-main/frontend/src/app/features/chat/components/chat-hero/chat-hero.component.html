@@ -1,0 +1,141 @@
+<section class="hero" [attr.aria-label]="'sidebar.home' | t">
+
+  <div class="hero__banner">
+    <div class="hero__overlay" aria-hidden="true"></div>
+    <div class="hero__effects" aria-hidden="true">
+      <span class="hero__glow"></span>
+      <span class="hero__particle hero__particle--1"></span>
+      <span class="hero__particle hero__particle--2"></span>
+      <span class="hero__particle hero__particle--3"></span>
+    </div>
+
+    <div class="hero__banner-inner">
+      <div class="hero__copy">
+        <header class="hero__head">
+          <p class="hero__greeting">
+            {{ greetingPrefix }} <span class="hero__name">{{ displayName }}</span>
+          </p>
+          <h1 class="hero__headline">{{ 'chat.hero.headline' | t }}</h1>
+          <p class="hero__lead">{{ 'chat.hero.subtitle' | t }}</p>
+        </header>
+
+        @if (stats.length > 0) {
+          <div class="hero__stats" [attr.aria-label]="'chat.hero.quickActions' | t">
+            @for (stat of stats; track stat.id; let i = $index) {
+              <article class="hero-stat" [style.animation-delay]="(0.04 * i) + 's'">
+                <span class="hero-stat__icon hero-stat__icon--{{ stat.tone }}" aria-hidden="true">
+                  @switch (stat.icon) {
+                    @case ('box') {
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    }
+                    @case ('doc') {
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg>
+                    }
+                    @case ('shield') {
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    }
+                  }
+                </span>
+                <div class="hero-stat__body">
+                  @if (stat.operational) {
+                    <strong>{{ stat.value }}</strong>
+                    <span class="hero-stat__meta">
+                      {{ stat.label }}
+                      <span class="hero-stat__live" aria-hidden="true"></span>
+                    </span>
+                  } @else {
+                    <strong><span class="hero-stat__value">{{ stat.value }}</span> {{ stat.label }}</strong>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        }
+
+        <div class="hero__input">
+          <app-chat-input
+            layout="hero"
+            variant="premium"
+            [disabled]="inputDisabled"
+            (send)="send.emit($event)"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero__below">
+    <div class="hero__actions">
+      <p class="hero__actions-label">
+        <span class="hero__actions-plus" aria-hidden="true">+</span>
+        {{ 'chat.hero.quickActions' | t }}
+      </p>
+      <div class="hero__cards" [attr.aria-label]="'chat.hero.suggestedActions' | t">
+        @for (action of actions; track action.id; let i = $index) {
+          <button
+            type="button"
+            class="hcard"
+            [attr.data-icon]="action.icon"
+            [style.animation-delay]="(0.05 * i) + 's'"
+            (click)="actionSelect.emit(action)"
+          >
+            <span class="hcard__icon" aria-hidden="true">
+              @switch (action.icon) {
+                @case ('track') {
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                }
+                @case ('excel') {
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                }
+                @case ('proof') {
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg>
+                }
+                @case ('issue') {
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                }
+              }
+            </span>
+            <div class="hcard__body">
+              <strong class="hcard__title">{{ action.title }}</strong>
+              <span class="hcard__desc">{{ action.subtitle }}</span>
+            </div>
+            <span class="hcard__arrow" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <footer class="hero__trust">
+      <article class="trust-card">
+        <span class="trust-card__icon trust-card__icon--secure" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+        <div>
+          <strong>{{ 'chat.trust.secure.title' | t }}</strong>
+          <span>{{ 'chat.trust.secure.desc' | t }}</span>
+        </div>
+      </article>
+      <article class="trust-card">
+        <span class="trust-card__icon trust-card__icon--ai" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 11-14h-9l1-6z"/></svg>
+        </span>
+        <div>
+          <strong>{{ 'chat.trust.ai.title' | t }}</strong>
+          <span>{{ 'chat.trust.ai.desc' | t }}</span>
+        </div>
+      </article>
+      <article class="trust-card">
+        <span class="trust-card__icon trust-card__icon--support" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </span>
+        <div>
+          <strong>{{ 'chat.trust.availability.title' | t }}</strong>
+          <span>{{ 'chat.trust.availability.desc' | t }}</span>
+        </div>
+      </article>
+    </footer>
+  </div>
+
+</section>

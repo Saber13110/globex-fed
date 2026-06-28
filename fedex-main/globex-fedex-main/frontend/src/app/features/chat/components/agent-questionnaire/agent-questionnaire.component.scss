@@ -1,0 +1,126 @@
+.agent-qcm {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(109, 40, 255, 0.06), rgba(77, 20, 140, 0.04));
+  border: 1px solid rgba(109, 40, 255, 0.18);
+}
+
+.agent-qcm__header {
+  margin-bottom: 12px;
+}
+
+.agent-qcm__badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6d28ff;
+  background: rgba(109, 40, 255, 0.12);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.agent-qcm__title {
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1a0033;
+}
+
+.agent-qcm__block {
+  border: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.agent-qcm__question {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #3b2a55;
+  margin-bottom: 6px;
+}
+
+.agent-qcm__hint {
+  margin: 0 0 8px;
+  font-size: 0.76rem;
+  color: #7c6e96;
+}
+
+.agent-qcm__options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agent-qcm__option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(109, 40, 255, 0.15);
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: rgba(109, 40, 255, 0.35);
+    background: rgba(109, 40, 255, 0.04);
+  }
+
+  &--selected {
+    border-color: #6d28ff;
+    background: rgba(109, 40, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(109, 40, 255, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.agent-qcm__option-label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #1a0033;
+}
+
+.agent-qcm__option-desc {
+  font-size: 0.74rem;
+  color: #7c6e96;
+}
+
+.agent-qcm__text {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(109, 40, 255, 0.2);
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.agent-qcm__submit {
+  width: 100%;
+  margin-top: 4px;
+  padding: 11px 14px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.86rem;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #6d28ff 0%, #4d148c 100%);
+  box-shadow: 0 4px 14px rgba(109, 40, 255, 0.3);
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}

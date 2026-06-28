@@ -1,0 +1,191 @@
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(77, 20, 140, 0.18);
+  backdrop-filter: blur(4px);
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.dialog-panel {
+  width: min(480px, 100%);
+  background: #fff;
+  border: 1px solid #ede9fe;
+  border-radius: 20px;
+  padding: 1.35rem 1.4rem 1.25rem;
+  display: grid;
+  gap: 0.85rem;
+  box-shadow: 0 24px 64px rgba(77, 20, 140, 0.14);
+}
+
+.dialog-panel h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f1230;
+  letter-spacing: -0.01em;
+}
+
+.dialog-panel p {
+  margin: 0;
+  color: #6b5b7b;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.dialog-panel input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ede9fe;
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+  color: #1f1230;
+  background: #faf8ff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &::placeholder {
+    color: #a78bcc;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: rgba(77, 20, 140, 0.45);
+    box-shadow: 0 0 0 3px rgba(77, 20, 140, 0.1);
+  }
+}
+
+.dialog-panel__note {
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: #f5f3ff;
+  border: 1px solid #ede9fe;
+  font-size: 0.8125rem;
+  color: #6b5b7b;
+  line-height: 1.45;
+}
+
+.dialog-panel__list {
+  max-height: 130px;
+  overflow: auto;
+  display: grid;
+  gap: 0.35rem;
+
+  &--folders {
+    max-height: 280px;
+    gap: 0.4rem;
+  }
+}
+
+.dialog-panel__folder {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid #ede9fe;
+  background: #faf8ff;
+  border-radius: 12px;
+  padding: 0.6rem 0.7rem;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: #1f1230;
+  transition: background-color 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
+
+  svg {
+    flex-shrink: 0;
+    color: #7c3aed;
+  }
+
+  span {
+    flex: 1;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  &:hover {
+    background: #f3edff;
+    border-color: rgba(77, 20, 140, 0.25);
+    transform: translateY(-1px);
+  }
+
+  &--active {
+    background: rgba(77, 20, 140, 0.08);
+    border-color: rgba(77, 20, 140, 0.3);
+
+    svg {
+      color: #4d148c;
+    }
+  }
+}
+
+.dialog-panel__list button {
+  border: 1px solid #ede9fe;
+  background: #faf8ff;
+  border-radius: 12px;
+  padding: 0.5rem 0.65rem;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: #1f1230;
+  transition: background-color 0.14s ease, border-color 0.14s ease;
+}
+
+.dialog-panel__list button:hover {
+  background: #f3edff;
+  border-color: rgba(77, 20, 140, 0.25);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+}
+
+.dialog-actions .light,
+.dialog-actions .dark,
+.dialog-actions .danger {
+  border-radius: 12px;
+  padding: 0.55rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease, transform 0.14s ease;
+}
+
+.dialog-actions .light {
+  border: 1px solid #ede9fe;
+  background: #fff;
+  color: #4d148c;
+}
+
+.dialog-actions .light:hover {
+  background: #faf8ff;
+  border-color: rgba(77, 20, 140, 0.3);
+}
+
+.dialog-actions .dark {
+  border: 1px solid #4d148c;
+  background: linear-gradient(135deg, #4d148c 0%, #6b21a8 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(77, 20, 140, 0.25);
+}
+
+.dialog-actions .dark:hover {
+  background: linear-gradient(135deg, #3d0f6e 0%, #581c87 100%);
+  transform: translateY(-1px);
+}
+
+.dialog-actions .danger {
+  border: 1px solid #fecaca;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.2);
+}
+
+.dialog-actions .danger:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  transform: translateY(-1px);
+}

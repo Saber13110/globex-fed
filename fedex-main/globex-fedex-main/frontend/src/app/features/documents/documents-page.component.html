@@ -1,0 +1,429 @@
+<div class="workspace" [class.workspace--collapsed]="sidebarCollapsed">
+
+  <div class="ambient" aria-hidden="true">
+
+    <span class="ambient__orb ambient__orb--purple"></span>
+
+    <span class="ambient__orb ambient__orb--violet"></span>
+
+    <span class="ambient__orb ambient__orb--orange"></span>
+
+    <span class="ambient__mesh"></span>
+
+  </div>
+
+
+
+  <aside class="sidebar" [class.sidebar--collapsed]="sidebarCollapsed" aria-label="Navigation">
+
+    <app-sidebar
+
+      [collapsed]="sidebarCollapsed"
+
+      [showAdminLink]="false"
+
+      [activeNav]="'documents'"
+
+      [language]="accountLanguage"
+
+      [accountName]="accountName"
+
+      [accountEmail]="accountEmail"
+
+      [avatarInitial]="accountAvatarInitial"
+
+      [avatarClass]="accountAvatarClass"
+
+      [colorMode]="colorMode"
+
+      [unreadCount]="unreadNotifications"
+
+      [searchQuery]="search"
+
+      [pinnedConversations]="pinnedConversations"
+
+      [recentConversations]="recentConversations"
+
+      [totalChatsCount]="sessions.length"
+
+      [loading]="loadingSessions"
+
+      (collapseToggle)="toggleSidebar()"
+
+      (createChat)="goToChat()"
+
+      (goHome)="goToChat()"
+
+      (openTrackingHistory)="goToHistory()"
+
+      (openHistory)="goToHistory()"
+
+      (openDocuments)="goToDocuments()"
+
+      (openSupport)="openSupport()"
+
+      (openHelp)="openHelp()"
+
+      (openProfile)="openProfile()"
+
+      (openSettings)="openSettings()"
+
+      (selectConversation)="goToChat($event)"
+
+      (renameConversationRequest)="onSidebarRenameConversation($event)"
+
+      (togglePinConversation)="onSidebarTogglePinConversation($event)"
+
+      (moveConversation)="onSidebarMoveConversation($event)"
+
+      (deleteConversation)="onSidebarDeleteConversation($event)"
+
+      (toggleTheme)="toggleTheme()"
+
+      (logout)="logout()"
+
+    />
+
+  </aside>
+
+
+
+  <main class="canvas canvas--scrollable">
+
+    <div class="docs">
+
+      <header class="docs__head">
+
+        <div class="docs__head-text">
+
+          <h1 class="docs__title">{{ 'documents.pageTitle' | t }}</h1>
+
+          <p class="docs__sub">{{ 'documents.pageSub' | t }}</p>
+
+        </div>
+
+        <div class="docs__head-actions">
+
+          <button type="button" class="docs-btn docs-btn--ghost" (click)="loadDocuments()" [disabled]="loading">
+
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+
+              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+
+            </svg>
+
+            {{ (loading ? 'common.loading' : 'documents.refresh') | t }}
+
+          </button>
+
+          <button type="button" class="docs-btn docs-btn--primary" (click)="exportAll()" [disabled]="downloading || statTotal === 0">
+
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+
+            </svg>
+
+            {{ 'documents.exportAll' | t }}
+
+          </button>
+
+        </div>
+
+      </header>
+
+
+
+      <section class="docs__stats" aria-label="Statistics">
+
+        <article class="docs-stat">
+
+          <span class="docs-stat__value">{{ statTotal }}</span>
+
+          <span class="docs-stat__label">{{ 'documents.statTotal' | t }}</span>
+
+        </article>
+
+        <article class="docs-stat docs-stat--green">
+
+          <span class="docs-stat__value">{{ statProofs }}</span>
+
+          <span class="docs-stat__label">{{ 'documents.statProofs' | t }}</span>
+
+        </article>
+
+        <article class="docs-stat docs-stat--orange">
+
+          <span class="docs-stat__value">{{ statExports }}</span>
+
+          <span class="docs-stat__label">{{ 'documents.statExports' | t }}</span>
+
+        </article>
+
+      </section>
+
+
+
+      <section class="docs__toolbar">
+
+        <label class="docs-search">
+
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+
+          </svg>
+
+          <input type="search" [(ngModel)]="searchQuery" [placeholder]="'documents.searchPlaceholder' | t" />
+
+        </label>
+
+
+
+        <div class="docs-filters">
+
+          <span class="docs-filters__label">{{ 'history.filter' | t }}</span>
+
+          <div class="docs-chips" role="tablist">
+
+            <button type="button" class="docs-chip" [class.docs-chip--active]="typeFilter === 'all'" (click)="setTypeFilter('all')">{{ 'documents.filterAll' | t }}</button>
+
+            <button type="button" class="docs-chip" [class.docs-chip--active]="typeFilter === 'proof'" (click)="setTypeFilter('proof')">{{ 'documents.filterProof' | t }}</button>
+
+            <button type="button" class="docs-chip" [class.docs-chip--active]="typeFilter === 'export'" (click)="setTypeFilter('export')">{{ 'documents.filterExport' | t }}</button>
+
+            <button type="button" class="docs-chip" [class.docs-chip--active]="typeFilter === 'report'" (click)="setTypeFilter('report')">{{ 'documents.filterReport' | t }}</button>
+
+          </div>
+
+        </div>
+
+
+
+        <button type="button" class="docs-sort" (click)="toggleSort()">
+
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+
+            <path d="M3 6h18M7 12h10M10 18h4"/>
+
+          </svg>
+
+          {{ (sortRecent ? 'documents.sortRecent' : 'documents.sortOldest') | t }}
+
+        </button>
+
+      </section>
+
+
+
+      @if (error) {
+
+        <p class="docs__error" role="alert">{{ error }}</p>
+
+      }
+
+
+
+      @if (loading) {
+
+        <p class="docs__loading">{{ 'common.loading' | t }}</p>
+
+      } @else if (statTotal === 0) {
+
+        <section class="docs-empty">
+
+          <div class="docs-empty__illus" aria-hidden="true">
+
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+
+            </svg>
+
+          </div>
+
+          <h2>{{ 'documents.emptyTitle' | t }}</h2>
+
+          <p>{{ 'documents.emptySub' | t }}</p>
+
+          <button type="button" class="docs-btn docs-btn--primary" (click)="generateFirstReport()">{{ 'documents.emptyCta' | t }}</button>
+
+        </section>
+
+      } @else if (visibleDocuments.length === 0) {
+
+        <p class="docs__no-results">{{ 'documents.noResults' | t }}</p>
+
+      } @else {
+
+        <div class="docs__grid">
+
+          @for (doc of visibleDocuments; track doc.id) {
+
+            <article class="doc-card doc-card--{{ doc.type }}">
+
+              <div class="doc-card__top">
+
+                <div class="doc-card__icon" aria-hidden="true">
+
+                  @switch (doc.type) {
+
+                    @case ('export') {
+
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+
+                    }
+
+                    @case ('proof') {
+
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+
+                    }
+
+                    @default {
+
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16V9M12 16V5M17 16v-6"/></svg>
+
+                    }
+
+                  }
+
+                </div>
+
+                <span class="doc-card__badge">{{ typeLabel(doc.type) }}</span>
+
+              </div>
+
+
+
+              <h3 class="doc-card__title">{{ doc.title }}</h3>
+
+
+
+              <dl class="doc-card__meta">
+
+                @if (doc.trackingNumber) {
+
+                  <div><dt>{{ 'documents.tracking' | t }}</dt><dd>{{ doc.trackingNumber }}</dd></div>
+
+                }
+
+                <div><dt>{{ 'tracking.colDate' | t }}</dt><dd>{{ doc.createdAt | date : 'medium' }}</dd></div>
+
+                <div><dt>{{ 'documents.fileSize' | t }}</dt><dd>{{ fileSizeLabel(doc) }}</dd></div>
+
+              </dl>
+
+
+
+              <span class="doc-card__status">{{ statusLabel(doc) }}</span>
+
+
+
+              <footer class="doc-card__actions">
+
+                <button type="button" class="doc-card__action doc-card__action--primary" (click)="openDocument(doc)">
+
+                  {{ 'documents.open' | t }}
+
+                </button>
+
+                <button type="button" class="doc-card__action" (click)="downloadDocument($event, doc)" [disabled]="downloading">
+
+                  {{ 'documents.download' | t }}
+
+                </button>
+
+                <div class="doc-card__more-wrap">
+
+                  <button type="button" class="doc-card__more" [attr.aria-label]="'documents.more' | t" (click)="toggleDocMenu($event, doc.id)">
+
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+
+                  </button>
+
+                  @if (isDocMenuOpen(doc.id)) {
+
+                    <div class="doc-card__menu" role="menu" (click)="$event.stopPropagation()">
+
+                      <button type="button" role="menuitem" (click)="openRenameDoc($event, doc)">{{ 'documents.rename' | t }}</button>
+
+                      <button type="button" role="menuitem" (click)="moveDocToFolder($event, doc)">{{ 'documents.moveToFolder' | t }}</button>
+
+                      <button type="button" class="doc-card__menu-danger" role="menuitem" (click)="openDeleteDoc($event, doc)">{{ 'documents.delete' | t }}</button>
+
+                    </div>
+
+                  }
+
+                </div>
+
+              </footer>
+
+            </article>
+
+          }
+
+        </div>
+
+      }
+
+    </div>
+
+  </main>
+
+</div>
+
+
+
+@if (renameModalOpen) {
+
+  <div class="dialog-overlay" (click)="closeDocModals()">
+
+    <section class="dialog-panel" (click)="$event.stopPropagation()">
+
+      <h3>{{ 'documents.renameTitle' | t }}</h3>
+
+      <input type="text" [(ngModel)]="renameDraft" />
+
+      <div class="dialog-actions">
+
+        <button type="button" class="light" (click)="closeDocModals()">{{ 'common.cancel' | t }}</button>
+
+        <button type="button" class="dark" (click)="saveRenameDoc()">{{ 'common.save' | t }}</button>
+
+      </div>
+
+    </section>
+
+  </div>
+
+}
+
+
+
+@if (deleteModalOpen) {
+
+  <div class="dialog-overlay" (click)="closeDocModals()">
+
+    <section class="dialog-panel" (click)="$event.stopPropagation()">
+
+      <h3>{{ 'documents.deleteTitle' | t }}</h3>
+
+      <p>{{ 'documents.deleteSub' | t }}</p>
+
+      <div class="dialog-actions">
+
+        <button type="button" class="light" (click)="closeDocModals()">{{ 'common.cancel' | t }}</button>
+
+        <button type="button" class="danger" (click)="confirmDeleteDoc()">{{ 'common.delete' | t }}</button>
+
+      </div>
+
+    </section>
+
+  </div>
+
+}
+
+

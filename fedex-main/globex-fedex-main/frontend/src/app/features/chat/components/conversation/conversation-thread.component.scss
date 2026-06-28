@@ -1,0 +1,108 @@
+:host {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.conv-thread {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.25rem 0.75rem;
+}
+
+.conv-thread__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.conv-thread__loading {
+  margin: 1.5rem auto;
+  max-width: 420px;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px dashed rgba(77, 20, 140, 0.15);
+  background: rgba(255, 255, 255, 0.75);
+  color: #64748b;
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.conv-thread__error {
+  margin: 0.35rem auto 0;
+  max-width: 1100px;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.conv-thread__dock {
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 6;
+  padding: 0.65rem 0 0.25rem;
+  background: linear-gradient(to top, rgba(250, 250, 252, 0.98) 55%, transparent);
+}
+
+.conv-input-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -4px 24px rgba(15, 23, 42, 0.04),
+    0 12px 36px rgba(77, 20, 140, 0.08);
+
+  ::ng-deep .composer--dock.composer--premium {
+    width: 100%;
+  }
+
+  ::ng-deep .composer--dock.composer--premium .pill {
+    border-radius: 999px;
+    min-height: 52px;
+    padding: 0.4rem 0.5rem 0.4rem 0.55rem;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.95) inset,
+      0 4px 20px rgba(77, 20, 140, 0.08);
+  }
+
+  ::ng-deep .composer--dock.composer--premium .pill:focus-within {
+    border-color: rgba(77, 20, 140, 0.22);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.95) inset,
+      0 8px 28px rgba(77, 20, 140, 0.12),
+      0 0 0 4px rgba(77, 20, 140, 0.08);
+  }
+
+  ::ng-deep .pill__tools--dock {
+    border-right-color: rgba(77, 20, 140, 0.08);
+  }
+}
+
+@media (max-width: 768px) {
+  .conv-thread {
+    padding-inline: 0.85rem;
+    max-width: 100%;
+  }
+}

@@ -1,0 +1,365 @@
+@import '../../styles/admin-premium';
+
+$blue: #4d7cff;
+$blue-soft: rgba(77, 124, 255, 0.12);
+$text: #0f172a;
+$muted: #64748b;
+$border: #e2e8f0;
+$surface: #ffffff;
+$bg: #f8fafc;
+$danger: #ef4444;
+$warning: #f59e0b;
+$shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.05);
+
+.sec-ids {
+  padding: 0;
+  color: $text;
+  font-family: 'Inter', var(--font-sans, system-ui, sans-serif);
+}
+
+.sec-ids__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  h1 {
+    margin: 0 0 0.35rem;
+    font-size: 1.65rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #64748b;
+  }
+
+  p {
+    margin: 0;
+    color: $muted;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    max-width: 42rem;
+  }
+}
+
+.sec-ids__hero-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.sec-ids__kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.sec-ids__kpi {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  box-shadow: $shadow-card;
+
+  strong {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 0.25rem;
+    color: $text;
+  }
+}
+
+.sec-ids__kpi-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+
+.sec-ids__kpi--policy small {
+  display: block;
+  margin-top: 0.35rem;
+  color: $muted;
+  font-size: 0.75rem;
+}
+
+.sec-ids__layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.sec-ids__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  button {
+    border: 1px solid $border;
+    background: $surface;
+    color: $muted;
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+
+    &:hover {
+      background: #f8fafc;
+      color: $text;
+    }
+
+    &.active {
+      background: $blue-soft;
+      border-color: rgba(77, 124, 255, 0.35);
+      color: $blue;
+      font-weight: 600;
+    }
+  }
+}
+
+.sec-ids__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sec-ids__card {
+  background: $surface;
+  border: 1px solid $border;
+  border-left: 3px solid $blue;
+  border-radius: 14px;
+  padding: 1rem 1.05rem;
+  box-shadow: $shadow-card;
+
+  &[data-severity='high'] {
+    border-left-color: $danger;
+  }
+
+  &[data-severity='medium'] {
+    border-left-color: $warning;
+  }
+
+  h3 {
+    margin: 0.5rem 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $text;
+  }
+
+  p {
+    margin: 0 0 0.65rem;
+    color: $muted;
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+
+  &--highlight {
+    box-shadow: 0 0 0 2px rgba(77, 124, 255, 0.25), $shadow-card;
+    background: #f8fbff;
+  }
+}
+
+.sec-ids__card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #94a3b8;
+
+  time {
+    margin-left: auto;
+    font-size: 0.75rem;
+  }
+}
+
+.sec-ids__badge {
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.18rem 0.5rem;
+  border-radius: 6px;
+  background: $blue-soft;
+  color: $blue;
+
+  &[data-severity='high'] {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+  }
+
+  &[data-severity='medium'] {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+  }
+}
+
+.sec-ids__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-bottom: 0.75rem;
+}
+
+.sec-ids__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sec-ids__btn {
+  border: none;
+  border-radius: 10px;
+  padding: 0.5rem 0.95rem;
+  background: $blue;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition: background 0.12s ease, transform 0.12s ease;
+
+  &:hover:not(:disabled) {
+    background: #3d6ef5;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &--ghost {
+    background: $surface;
+    border: 1px solid $border;
+    color: $muted;
+
+    &:hover:not(:disabled) {
+      background: #f8fafc;
+      color: $text;
+      transform: none;
+    }
+  }
+
+  &--danger {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+
+    &:hover:not(:disabled) {
+      background: #fecaca;
+    }
+  }
+}
+
+.sec-ids__switch {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.35rem;
+
+  input {
+    width: 2.2rem;
+    height: 1.2rem;
+    accent-color: $blue;
+  }
+}
+
+.sec-ids__agent {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: $shadow-card;
+  position: sticky;
+  top: 1rem;
+
+  h2 {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $text;
+  }
+
+  p {
+    margin: 0 0 0.75rem;
+    color: $muted;
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 10px;
+    border: 1px solid $border;
+    background: #f8fafc;
+    color: $text;
+    padding: 0.7rem 0.75rem;
+    margin-bottom: 0.65rem;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 0.875rem;
+    line-height: 1.45;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: rgba(77, 124, 255, 0.45);
+      box-shadow: 0 0 0 3px rgba(77, 124, 255, 0.12);
+      background: $surface;
+    }
+  }
+
+  .sec-ids__btn {
+    width: 100%;
+  }
+}
+
+.sec-ids__agent-reply {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: $blue-soft;
+  border: 1px solid rgba(77, 124, 255, 0.15);
+  color: $text;
+  white-space: pre-wrap;
+  line-height: 1.45;
+  font-size: 0.875rem;
+}
+
+.sec-ids__agent-actions {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  color: #16a34a;
+  font-size: 0.85rem;
+}
+
+.sec-ids__error,
+.sec-ids__loading,
+.sec-ids__empty {
+  color: $muted;
+  padding: 1rem 0;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 1100px) {
+  .sec-ids__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sec-ids__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sec-ids__agent {
+    position: static;
+  }
+}

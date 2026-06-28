@@ -1,0 +1,126 @@
+.qr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(26, 16, 51, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.qr-panel {
+  width: min(420px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.2rem 1.2rem 1.4rem;
+  box-shadow: 0 24px 60px rgba(26, 16, 51, 0.25);
+}
+
+.qr-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.qr-panel__head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--fedex-ink, #1a1033);
+}
+
+.qr-panel__close {
+  border: none;
+  background: transparent;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+}
+
+.qr-panel__hint {
+  margin: 0 0 0.8rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.qr-panel__hint strong {
+  color: var(--fedex-purple, #4d148c);
+}
+
+.qr-panel__camera-select {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.88rem;
+}
+
+.qr-panel__camera-select select {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(77, 20, 140, 0.2);
+  font-family: inherit;
+}
+
+.qr-panel__status {
+  margin: 0.75rem 0 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.qr-panel__actions {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.qr-panel__file-btn {
+  display: block;
+  text-align: center;
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #4d148c, #6b2fa0);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.qr-panel__file-btn input {
+  display: none;
+}
+
+.qr-panel__retry {
+  border: 1px solid rgba(77, 20, 140, 0.35);
+  background: #fff;
+  color: #4d148c;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.qr-panel__reader {
+  width: 100%;
+  min-height: 280px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(77, 20, 140, 0.15);
+  background: #111;
+}
+
+/* html5-qrcode injecte la vidéo — on force la taille */
+.qr-panel__reader video {
+  width: 100% !important;
+  height: auto !important;
+  border-radius: 12px;
+}
+
+.qr-panel__error {
+  margin: 0.8rem 0 0;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
