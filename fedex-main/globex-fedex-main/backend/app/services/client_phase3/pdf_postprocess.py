@@ -22,11 +22,17 @@ from app.services.client_phase3.pdf_body_composer import (
 )
 from app.services.client_phase3.pdf_text import (
     build_session_transcript_text,
+    build_text_pdf_artifact,
     build_text_pdf_download,
     draft_pdf_content,
     last_bot_message_text,
     recent_bot_message_texts,
 )
+from app.services.client_phase7.export_email_hook import (
+    email_tracking_pdf_export,
+    finalize_export_delivery,
+)
+from app.services.client_phase7.export_email_intent import wants_export_by_email
 from app.services.client_phase3.pdf_tracking import run_tracking_pdf_export
 from app.services.llm.providers import LlmProviderError
 from app.services.llm.tracking_extract import extract_tracking_number
@@ -65,6 +71,37 @@ class PdfBodyKind(str, Enum):
     same_turn = "same_turn"
     conversation = "conversation"
     technical_tracking = "technical_tracking"
+
+
+def _finalize_text_pdf_reply(
+    user: User,
+    session: ChatSession,
+    message: str,
+    reply: str,
+    pdf_body: str,
+    *,
+    title: str,
+    doc_label: str,
+    ui_language: str | None,
+) -> tuple[str, dict[str, Any]]:
+    spec, pdf_bytes, filename = build_text_pdf_artifact(
+        user.id,
+        pdf_body,
+        title=title,
+        session_id=session.id,
+    )
+    return finalize_export_delivery(
+        user,
+        session.id,
+        message,
+        reply,
+        spec,
+        pdf_bytes,
+        filename,
+        "pdf",
+        doc_label,
+        ui_language=ui_language,
+    )
 
 
 def wants_pdf_format(message: str) -> bool:
@@ -224,17 +261,22 @@ def handle_pdf_only_followup_turn(
 
     title = f"Suivi colis {tn_used}" if tn_used else "Réponse assistant FedEx"
     try:
-        export_download = build_text_pdf_download(
-            user.id,
+        reply = short_pdf_chat_reply(lang, doc_title=title)
+        reply, export_download = _finalize_text_pdf_reply(
+            user,
+            session,
+            message,
+            reply,
             pdf_body,
             title=title,
-            session_id=session.id,
+            doc_label=title,
+            ui_language=ui_language,
         )
     except ValueError as exc:
         return _pdf_error_turn(ui_language, user, exc)
 
     return {
-        "reply": short_pdf_chat_reply(lang, doc_title=title),
+        "reply": reply,
         "source": "export",
         "intent": "export_pdf",
         "tracking_number": tn_used or extract_tracking_number(last_bot),
@@ -300,6 +342,7 @@ def _build_conversation_pdf_result(
     body: str,
     *,
     title: str,
+    message: str = "",
     llm_provider: str | None = None,
     prefix_note: str | None = None,
     ui_language: str | None = None,
@@ -307,15 +350,23 @@ def _build_conversation_pdf_result(
     pdf_body = body
     if prefix_note:
         pdf_body = f"{prefix_note}\n\n{body}"
-    export_download = build_text_pdf_download(
-        user.id,
-        pdf_body,
-        title=title,
-        session_id=session.id,
-    )
     lang = _lang_code(ui_language, user)
+    reply = short_pdf_chat_reply(lang, doc_title=title)
+    try:
+        reply, export_download = _finalize_text_pdf_reply(
+            user,
+            session,
+            message,
+            reply,
+            pdf_body,
+            title=title,
+            doc_label=title,
+            ui_language=ui_language,
+        )
+    except ValueError as exc:
+        raise exc
     return {
-        "reply": short_pdf_chat_reply(lang, doc_title=title),
+        "reply": reply,
         "source": "export",
         "intent": "export_pdf",
         "tracking_number": None,
@@ -369,6 +420,7 @@ def handle_conversation_pdf_turn(
                 session,
                 body,
                 title="Conversation FedEx Globex",
+                message=message,
                 llm_provider=None,
                 ui_language=ui_language,
             )
@@ -419,6 +471,7 @@ def handle_conversation_pdf_turn(
             session,
             body,
             title="Résumé FedEx Globex",
+            message=message,
             llm_provider="ollama" if prefix_note is None else None,
             prefix_note=prefix_note,
             ui_language=ui_language,
@@ -459,7 +512,19 @@ def maybe_attach_pdf_export(
         )
         if export_dl:
             title = f"Suivi colis {tn}" if tn else "Historique FedEx"
-            return short_pdf_chat_reply(lang, doc_title=title), export_dl, "export_pdf"
+            reply = short_pdf_chat_reply(lang, doc_title=title)
+            if wants_export_by_email(message):
+                reply = email_tracking_pdf_export(
+                    db,
+                    user,
+                    session.id,
+                    message,
+                    reply,
+                    export_dl,
+                    ui_language=ui_language,
+                    doc_label=title,
+                )
+            return reply, export_dl, "export_pdf"
         last_bot = last_bot_message_text(db, session.id)
         pdf_body, tn_used = build_pdf_body_for_shipment_turn(
             message,
@@ -474,15 +539,20 @@ def maybe_attach_pdf_export(
             return tech_reply, None, "export_pdf_error"
         title = f"Suivi colis {tn_used or tn or tracking_number}" if (tn_used or tn or tracking_number) else "Réponse assistant FedEx"
         try:
-            export_download = build_text_pdf_download(
-                user.id,
+            reply = short_pdf_chat_reply(lang, doc_title=title)
+            reply, export_download = _finalize_text_pdf_reply(
+                user,
+                session,
+                message,
+                reply,
                 pdf_body,
                 title=title,
-                session_id=session.id,
+                doc_label=title,
+                ui_language=ui_language,
             )
         except ValueError:
             return tech_reply, None, "export_pdf_error"
-        return short_pdf_chat_reply(lang, doc_title=title), export_download, "export_pdf"
+        return reply, export_download, "export_pdf"
 
     if kind == PdfBodyKind.conversation:
         clarification = clarify_pdf_followup(db, session, user, message, ui_language)
@@ -518,15 +588,20 @@ def maybe_attach_pdf_export(
             pdf_body = f"{prefix_note}\n\n{pdf_body}"
         title = "Résumé FedEx Globex"
         try:
-            export_download = build_text_pdf_download(
-                user.id,
+            reply = short_pdf_chat_reply(lang, doc_title=title)
+            reply, export_download = _finalize_text_pdf_reply(
+                user,
+                session,
+                message,
+                reply,
                 pdf_body,
                 title=title,
-                session_id=session.id,
+                doc_label=title,
+                ui_language=ui_language,
             )
         except ValueError:
             return _pdf_generation_error_reply(ui_language, user), None, "export_pdf_error"
-        return short_pdf_chat_reply(lang, doc_title=title), export_download, "export_pdf"
+        return reply, export_download, "export_pdf"
 
     last_bot = last_bot_message_text(db, session.id)
     pdf_body, tn_used = build_pdf_body_for_shipment_turn(
@@ -552,13 +627,18 @@ def maybe_attach_pdf_export(
         title = f"Suivi colis {tn_used or tracking_number}"
 
     try:
-        export_download = build_text_pdf_download(
-            user.id,
+        reply = short_pdf_chat_reply(lang, doc_title=title)
+        reply, export_download = _finalize_text_pdf_reply(
+            user,
+            session,
+            message,
+            reply,
             pdf_body,
             title=title,
-            session_id=session.id,
+            doc_label=title,
+            ui_language=ui_language,
         )
     except ValueError:
         return _pdf_generation_error_reply(ui_language, user), None, "export_pdf_error"
 
-    return short_pdf_chat_reply(lang, doc_title=title), export_download, "export_pdf"
+    return reply, export_download, "export_pdf"

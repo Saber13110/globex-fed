@@ -515,6 +515,18 @@ def init_db() -> None:
         )
         conn.execute(
             text(
+                "ALTER TABLE shipment_watches "
+                "ADD COLUMN IF NOT EXISTS max_email_updates INTEGER"
+            )
+        )
+        conn.execute(
+            text(
+                "ALTER TABLE shipment_watches "
+                "ADD COLUMN IF NOT EXISTS email_updates_sent INTEGER NOT NULL DEFAULT 0"
+            )
+        )
+        conn.execute(
+            text(
                 "CREATE TABLE IF NOT EXISTS client_agent_pending ("
                 "id VARCHAR(36) PRIMARY KEY, "
                 "session_id INTEGER NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE, "

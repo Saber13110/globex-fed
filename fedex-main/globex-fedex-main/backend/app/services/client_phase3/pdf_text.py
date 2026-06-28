@@ -174,14 +174,14 @@ def draft_pdf_content(
     return text
 
 
-def build_text_pdf_download(
+def build_text_pdf_artifact(
     user_id: int,
     body: str,
     *,
     title: str,
     session_id: int,
-) -> dict[str, Any]:
-    """Génère le blob PDF et retourne la spec export_download."""
+) -> tuple[dict[str, Any], bytes, str]:
+    """Génère le blob PDF et retourne (export_download, pdf_bytes, filename)."""
     cleaned_body = strip_markdown_for_pdf(body)
     try:
         pdf_bytes, filename = generate_text_pdf(cleaned_body, title=title)
@@ -195,13 +195,31 @@ def build_text_pdf_download(
         filename=filename,
         meta={"text_preview": cleaned_body[:200]},
     )
-    return build_export_download_spec(
+    spec = build_export_download_spec(
         preset="text_pdf",
         filename=filename,
         fmt="pdf",
         export_token=token,
         session_id=session_id,
     )
+    return spec, pdf_bytes, filename
+
+
+def build_text_pdf_download(
+    user_id: int,
+    body: str,
+    *,
+    title: str,
+    session_id: int,
+) -> dict[str, Any]:
+    """Génère le blob PDF et retourne la spec export_download."""
+    spec, _, _ = build_text_pdf_artifact(
+        user_id,
+        body,
+        title=title,
+        session_id=session_id,
+    )
+    return spec
 
 
 def append_pdf_ready_note(reply: str) -> str:

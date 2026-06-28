@@ -15,7 +15,8 @@ from app.services.client_phase3.excel_body_composer import (
     build_excel_body_for_shipment_turn,
     short_excel_chat_reply,
 )
-from app.services.client_phase3.excel_download import build_excel_download
+from app.services.client_phase3.excel_download import build_excel_artifact, build_excel_download
+from app.services.client_phase7.export_email_hook import finalize_export_delivery
 from app.services.client_phase3.export_intent import is_excel_export_intent
 from app.services.client_phase3.export_router import _capability_disabled_reply
 from app.services.client_phase3.pdf_postprocess import (
@@ -98,6 +99,7 @@ def _excel_error_turn(
 def _build_excel_turn_result(
     user: User,
     session: ChatSession,
+    message: str,
     xlsx_bytes: bytes,
     filename: str,
     *,
@@ -107,14 +109,27 @@ def _build_excel_turn_result(
 ) -> dict[str, Any]:
     lang = _lang_code(ui_language, user)
     doc_title = f"Suivi colis {tracking_number}" if tracking_number else filename
-    export_download = build_excel_download(
+    spec, _, _ = build_excel_artifact(
         user.id,
         xlsx_bytes,
         filename=filename,
         session_id=session.id,
     )
+    reply = short_excel_chat_reply(lang, doc_title=doc_title)
+    reply, export_download = finalize_export_delivery(
+        user,
+        session.id,
+        message,
+        reply,
+        spec,
+        xlsx_bytes,
+        filename,
+        "xlsx",
+        doc_title,
+        ui_language=ui_language,
+    )
     return {
-        "reply": short_excel_chat_reply(lang, doc_title=doc_title),
+        "reply": reply,
         "source": "export",
         "intent": "export_excel",
         "tracking_number": tracking_number,
@@ -181,6 +196,7 @@ def handle_excel_only_followup_turn(
         return _build_excel_turn_result(
             user,
             session,
+            message,
             xlsx_bytes,
             filename,
             tracking_number=tn_used or extract_tracking_number(last_bot),
@@ -238,7 +254,7 @@ def maybe_attach_excel_export(
         return err, None, "export_excel_error"
 
     try:
-        export_download = build_excel_download(
+        spec, _, _ = build_excel_artifact(
             user.id,
             xlsx_bytes,
             filename=filename,
@@ -253,4 +269,17 @@ def maybe_attach_excel_export(
         return err, None, "export_excel_error"
 
     doc_title = f"Suivi colis {tn_used or tracking_number}" if (tn_used or tracking_number) else filename
-    return short_excel_chat_reply(lang, doc_title=doc_title), export_download, "export_excel"
+    reply = short_excel_chat_reply(lang, doc_title=doc_title)
+    reply, export_download = finalize_export_delivery(
+        user,
+        session.id,
+        message,
+        reply,
+        spec,
+        xlsx_bytes,
+        filename,
+        "xlsx",
+        doc_title,
+        ui_language=ui_language,
+    )
+    return reply, export_download, "export_excel"

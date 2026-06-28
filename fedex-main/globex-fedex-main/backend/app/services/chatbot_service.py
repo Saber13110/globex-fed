@@ -1950,6 +1950,8 @@ from app.services.client_phase3.pdf_postprocess import (
 )
 from app.services.client_phase4.router import try_client_sessions_turn
 from app.services.client_phase5.router import try_client_notifications_turn
+from app.services.client_phase6.router import try_client_watch_turn
+from app.services.client_phase7.export_email_followup import try_export_email_only_turn
 from app.services.chat_session_context import (
     build_conversation_history_for_llm,
     resolve_tracking_for_message,
@@ -2279,6 +2281,14 @@ def process_user_message(
             if agent_turn is None:
                 agent_turn = try_client_notifications_turn(
                     db, user, session, message, user_msg.id, ui_language
+                )
+            if agent_turn is None:
+                agent_turn = try_client_watch_turn(
+                    db, user, session, message, user_msg.id, ui_language
+                )
+            if agent_turn is None:
+                agent_turn = try_export_email_only_turn(
+                    db, user, session, message, ui_language
                 )
             if agent_turn is not None:
                 (

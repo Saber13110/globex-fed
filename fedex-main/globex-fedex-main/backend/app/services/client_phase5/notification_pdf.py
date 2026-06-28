@@ -59,7 +59,7 @@ def build_notifications_pdf_body(
     return "\n".join(lines).strip()
 
 
-def build_notifications_pdf_download(
+def build_notifications_pdf_artifact(
     user_id: int,
     session_id: int,
     items: list[UserNotificationRead],
@@ -68,7 +68,7 @@ def build_notifications_pdf_download(
     total: int,
     filter_label: str,
     lang: str,
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], bytes, str]:
     body = build_notifications_pdf_body(
         items,
         unread_count=unread_count,
@@ -86,10 +86,33 @@ def build_notifications_pdf_download(
         module="notifications",
         meta={"count": len(items), "filter": filter_label},
     )
-    return build_export_download_spec(
+    spec = build_export_download_spec(
         preset="notifications_pdf",
         filename=filename,
         fmt="pdf",
         export_token=token,
         session_id=session_id,
     )
+    return spec, pdf_bytes, filename
+
+
+def build_notifications_pdf_download(
+    user_id: int,
+    session_id: int,
+    items: list[UserNotificationRead],
+    *,
+    unread_count: int,
+    total: int,
+    filter_label: str,
+    lang: str,
+) -> dict[str, Any]:
+    spec, _, _ = build_notifications_pdf_artifact(
+        user_id,
+        session_id,
+        items,
+        unread_count=unread_count,
+        total=total,
+        filter_label=filter_label,
+        lang=lang,
+    )
+    return spec

@@ -8,14 +8,14 @@ from app.services.ai_assistant.export_dataset_cache import store_client_excel_bl
 from app.services.copilot_export_service import build_export_download_spec
 
 
-def build_excel_download(
+def build_excel_artifact(
     user_id: int,
     xlsx_bytes: bytes,
     *,
     filename: str,
     session_id: int,
-) -> dict[str, Any]:
-    """Stocke le blob Excel et retourne la spec export_download."""
+) -> tuple[dict[str, Any], bytes, str]:
+    """Stocke le blob Excel et retourne (export_download, xlsx_bytes, filename)."""
     if not xlsx_bytes:
         raise ValueError(
             "Impossible de générer le fichier Excel. Réessayez ou reformulez votre demande."
@@ -26,10 +26,28 @@ def build_excel_download(
         filename=filename,
         meta={"bytes_len": len(xlsx_bytes)},
     )
-    return build_export_download_spec(
+    spec = build_export_download_spec(
         preset="text_xlsx",
         filename=filename,
         fmt="xlsx",
         export_token=token,
         session_id=session_id,
     )
+    return spec, xlsx_bytes, filename
+
+
+def build_excel_download(
+    user_id: int,
+    xlsx_bytes: bytes,
+    *,
+    filename: str,
+    session_id: int,
+) -> dict[str, Any]:
+    """Stocke le blob Excel et retourne la spec export_download."""
+    spec, _, _ = build_excel_artifact(
+        user_id,
+        xlsx_bytes,
+        filename=filename,
+        session_id=session_id,
+    )
+    return spec

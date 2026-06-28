@@ -566,6 +566,8 @@ def _execute_plan(
 
         params,
 
+        message=message,
+
         ui_language=ui_language,
 
         assistant_intro=intro,

@@ -116,7 +116,7 @@ def test_list_mode_chat_no_export(mock_fetch, _mock_cap):
 
 
 @patch("app.services.client_phase5.notification_executor.has_capability", return_value=True)
-@patch("app.services.client_phase5.notification_executor.build_notifications_pdf_download")
+@patch("app.services.client_phase5.notification_executor.build_notifications_pdf_artifact")
 @patch("app.services.client_phase5.notification_executor.fetch_notifications_for_query")
 def test_export_pdf_mode(mock_fetch, mock_pdf, _mock_cap):
     mock_fetch.return_value = SimpleNamespace(
@@ -133,7 +133,11 @@ def test_export_pdf_mode(mock_fetch, mock_pdf, _mock_cap):
         unread_count=0,
         total=1,
     )
-    mock_pdf.return_value = {"format": "pdf", "filename": "notifications.pdf", "export_token": "abc"}
+    mock_pdf.return_value = (
+        {"format": "pdf", "filename": "notifications.pdf", "export_token": "abc"},
+        b"%PDF",
+        "notifications.pdf",
+    )
     db = MagicMock()
     user = SimpleNamespace(id=1, preferred_language="fr")
     session = SimpleNamespace(id=5)

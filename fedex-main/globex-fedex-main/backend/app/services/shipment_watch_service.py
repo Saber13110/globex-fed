@@ -186,6 +186,43 @@ def _sandbox_watch_demo_mode() -> bool:
     return bool(settings.fedex_visibility_simulation_enabled and is_fedex_sandbox())
 
 
+def _watch_email_limit_reached(watch: ShipmentWatch) -> bool:
+    cap = watch.max_email_updates
+    if cap is None:
+        return False
+    return int(watch.email_updates_sent or 0) >= int(cap)
+
+
+def _try_send_watch_update_email(
+    user: User,
+    watch: ShipmentWatch,
+    *,
+    subject: str,
+    body: str,
+) -> bool:
+    if not watch.notify_email or not is_email_configured():
+        return False
+    if _watch_email_limit_reached(watch):
+        return False
+    to = (user.email or "").strip()
+    if not to:
+        return False
+    try:
+        if send_email(to=to, subject=subject, body_text=body):
+            watch.email_updates_sent = int(watch.email_updates_sent or 0) + 1
+            logger.info(
+                "E-mail alerte surveillance envoyé à %s pour %s (%s/%s)",
+                to,
+                watch.tracking_number,
+                watch.email_updates_sent,
+                watch.max_email_updates if watch.max_email_updates is not None else "∞",
+            )
+            return True
+    except Exception:
+        logger.exception("Échec email alerte watch %s", watch.tracking_number)
+    return False
+
+
 def upsert_watch(
     db: Session,
     *,
@@ -194,6 +231,7 @@ def upsert_watch(
     alert_type: str = ALERT_ALL,
     notify_email: bool = True,
     notify_in_app: bool = True,
+    max_email_updates: int | None = None,
 ) -> ShipmentWatch:
     tn = tracking_number.strip()
     if sandbox_whitelist_applies() and not is_whitelisted_tracking_number(tn):
@@ -213,6 +251,8 @@ def upsert_watch(
             alert_type=alert_type or ALERT_ALL,
             notify_email=notify_email,
             notify_in_app=notify_in_app,
+            max_email_updates=max_email_updates,
+            email_updates_sent=0,
         )
         db.add(row)
     else:
@@ -220,6 +260,8 @@ def upsert_watch(
         row.alert_type = alert_type or row.alert_type
         row.notify_email = notify_email
         row.notify_in_app = notify_in_app
+        row.max_email_updates = max_email_updates
+        row.email_updates_sent = 0
     db.flush()
     return row
 
@@ -244,11 +286,15 @@ def send_watch_confirmation_email(user: User, watch: ShipmentWatch) -> bool:
         ALERT_OUT_FOR_DELIVERY: "quand le colis est en livraison",
     }
     when = alert_labels.get(watch.alert_type, alert_labels[ALERT_ALL])
+    limit_line = ""
+    if watch.max_email_updates is not None:
+        limit_line = f"\nNombre maximum de mails d'avancement : {watch.max_email_updates}.\n"
     subject = f"[Globex FedEx] Surveillance activée — {watch.tracking_number}"
     body = (
         f"Bonjour {user.full_name or ''},\n\n"
         f"La surveillance automatique est active pour le colis {watch.tracking_number}.\n"
         f"Vous serez alerté(e) {when}.\n"
+        f"{limit_line}"
         f"Les mises à jour passent par le flux Visibilité intégrée FedEx.\n\n"
         f"— Votre agent FedEx Globex"
     )
@@ -267,6 +313,7 @@ def activate_client_shipment_watch(
     alert_type: str = ALERT_ALL,
     notify_email: bool = True,
     notify_in_app: bool = True,
+    max_email_updates: int | None = None,
 ) -> dict[str, Any]:
     """
     Inscription surveillance client : FedEx sync, 1er scan sandbox simulé, e-mail confirmation.
@@ -279,6 +326,7 @@ def activate_client_shipment_watch(
         alert_type=alert_type,
         notify_email=notify_email,
         notify_in_app=notify_in_app,
+        max_email_updates=max_email_updates,
     )
     notified_before = watch.last_notified_status
     data = fedex_service.get_shipment(tn)
@@ -332,23 +380,17 @@ def notify_watch_visibility_event(
         )
 
     if watch.notify_email and is_email_configured():
-        to = (user.email or "").strip()
-        if to:
-            subject = f"[Globex FedEx] Colis {watch.tracking_number} — {label}"
-            body = (
-                f"Bonjour {user.full_name or ''},\n\n"
-                f"Votre colis {watch.tracking_number} a été mis à jour "
-                f"(Visibilité intégrée FedEx) :\n"
-                f"Événement : {event.event_type}\n"
-                f"Détail : {message}\n\n"
-                f"Consultez votre espace Globex FedEx.\n\n"
-                f"— Agent FedEx Globex"
-            )
-            try:
-                if send_email(to=to, subject=subject, body_text=body):
-                    logger.info("E-mail alerte surveillance envoyé à %s pour %s", to, watch.tracking_number)
-            except Exception:
-                logger.exception("Échec email alerte visibility %s", watch.tracking_number)
+        subject = f"[Globex FedEx] Colis {watch.tracking_number} — {label}"
+        body = (
+            f"Bonjour {user.full_name or ''},\n\n"
+            f"Votre colis {watch.tracking_number} a été mis à jour "
+            f"(Visibilité intégrée FedEx) :\n"
+            f"Événement : {event.event_type}\n"
+            f"Détail : {message}\n\n"
+            f"Consultez votre espace Globex FedEx.\n\n"
+            f"— Agent FedEx Globex"
+        )
+        _try_send_watch_update_email(user, watch, subject=subject, body=body)
 
     watch.last_notified_status = label
     watch.last_status = label
@@ -452,7 +494,11 @@ def process_single_watch(db: Session, watch: ShipmentWatch) -> bool:
         return True
 
     previous = watch.last_notified_status
-    if new_status and new_status != previous and _event_matches_alert("IN_TRANSIT", new_status, watch.alert_type):
+    if (
+        new_status
+        and new_status != previous
+        and _event_matches_alert("IN_TRANSIT", new_status, watch.alert_type)
+    ):
         if watch.notify_in_app:
             create_user_notification(
                 db,
@@ -463,17 +509,14 @@ def process_single_watch(db: Session, watch: ShipmentWatch) -> bool:
                 related_tracking_number=watch.tracking_number,
                 link="/notifications",
             )
-        if watch.notify_email and is_email_configured() and user.email:
-            try:
-                send_email(
-                    to=user.email,
-                    subject=f"[Globex FedEx] Colis {watch.tracking_number} — {new_status}",
-                    body_text=(
-                        f"Statut FedEx : {new_status}\nLieu : {location}\n\n— Agent FedEx Globex"
-                    ),
-                )
-            except Exception:
-                logger.exception("Échec email fallback watch %s", watch.tracking_number)
+        _try_send_watch_update_email(
+            user,
+            watch,
+            subject=f"[Globex FedEx] Colis {watch.tracking_number} — {new_status}",
+            body=(
+                f"Statut FedEx : {new_status}\nLieu : {location}\n\n— Agent FedEx Globex"
+            ),
+        )
         watch.last_notified_status = new_status
 
     if (

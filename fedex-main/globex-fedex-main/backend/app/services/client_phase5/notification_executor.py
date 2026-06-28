@@ -17,7 +17,8 @@ from app.services.client_phase5.notification_filters import (
     NotificationQueryParams,
     section_label,
 )
-from app.services.client_phase5.notification_pdf import build_notifications_pdf_download
+from app.services.client_phase5.notification_pdf import build_notifications_pdf_artifact
+from app.services.client_phase7.export_email_hook import finalize_export_delivery
 from app.services.client_phase5.notification_service import fetch_notifications_for_query
 from app.services.client_phase5.notification_summary_llm import generate_notifications_summary
 from app.services.user_notification_service import mark_all_user_notifications_read
@@ -132,6 +133,7 @@ def execute_notifications_query(
     session: ChatSession,
     params: NotificationQueryParams,
     *,
+    message: str = "",
     ui_language: str | None = None,
     assistant_intro: str = "",
 ) -> tuple[str, dict[str, Any] | None]:
@@ -146,7 +148,7 @@ def execute_notifications_query(
     if mode == "export_pdf" or params.attach_pdf:
         if not has_capability(CAP_PDF):
             return _pdf_disabled_message(lang), None
-        export_download = build_notifications_pdf_download(
+        export_download, pdf_bytes, filename = build_notifications_pdf_artifact(
             user.id,
             session.id,
             result.items,
@@ -159,6 +161,18 @@ def execute_notifications_query(
         reply = short_pdf_chat_reply(lang, doc_title=doc_title)
         if assistant_intro.strip():
             reply = f"{assistant_intro.strip()}\n\n{reply}"
+        reply, export_download = finalize_export_delivery(
+            user,
+            session.id,
+            message,
+            reply,
+            export_download,
+            pdf_bytes,
+            filename,
+            "pdf",
+            doc_title,
+            ui_language=ui_language,
+        )
         return reply, export_download
 
     if mode == "summarize":
