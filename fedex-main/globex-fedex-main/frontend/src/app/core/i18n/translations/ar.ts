@@ -1093,6 +1093,8 @@ export const AR: TranslationMap = {
   'chat.input.addImage': 'إضافة صورة',
   'chat.input.removeImage': 'إزالة الصورة',
   'chat.input.imageSent': 'تم إرسال الصورة',
+  'chat.input.documentSent': 'تم إرسال المستند',
+  'chat.input.pasteImageHint': 'أرفق صورة أو PDF أو Excel — أو الصق لقطة شاشة (Ctrl+V).',
   'chat.input.imageTooLarge': 'الصورة كبيرة جدًا (الحد الأقصى 4 ميغابايت).',
   'chat.input.imageInvalid': 'صيغة غير مدعومة (JPEG, PNG, WebP, GIF).',
   'chat.input.micSoon': 'ميكروفون (قريبًا)',

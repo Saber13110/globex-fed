@@ -12,6 +12,11 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.models.gpt_definition import GptDefinition, KnowledgeChunk, KnowledgeCollection, KnowledgeDocument
+from app.services.document_text_extractor import (
+    DocumentExtractError,
+    extract_text_from_bytes,
+    mime_for_ext,
+)
 from app.services.gpt.embedding_service import EmbeddingError, embed_texts
 from app.services.gpt.text_chunking import split_text
 from app.services.gpt.vector_store import store_chunk_embedding
@@ -23,10 +28,9 @@ _ALLOWED_EXT = frozenset({
     ".xlsx", ".xls",
     ".jpg", ".jpeg", ".png", ".webp", ".gif",
 })
-_IMAGE_EXT = frozenset({".jpg", ".jpeg", ".png", ".webp", ".gif"})
 
 
-class DocumentIngestError(Exception):
+class DocumentIngestError(DocumentExtractError):
     pass
 
 
@@ -35,81 +39,6 @@ def _upload_root() -> Path:
     root = Path(__file__).resolve().parents[2] / settings.knowledge_upload_dir
     root.mkdir(parents=True, exist_ok=True)
     return root
-
-
-def _extract_xlsx(data: bytes) -> str:
-    from io import BytesIO
-
-    from openpyxl import load_workbook
-
-    wb = load_workbook(BytesIO(data), read_only=True, data_only=True)
-    parts: list[str] = []
-    for sheet in wb.worksheets:
-        parts.append(f"## Feuille: {sheet.title}")
-        for row in sheet.iter_rows(values_only=True):
-            cells = [str(c).strip() if c is not None else "" for c in row]
-            if any(cells):
-                parts.append(" | ".join(cells))
-    return "\n".join(parts)
-
-
-def _extract_image_text(data: bytes, *, mime_type: str) -> str:
-    import base64
-
-    from app.services.llm.providers import _gemini_generate
-
-    b64 = base64.b64encode(data).decode("ascii")
-    prompt = (
-        "Transcris et décris le contenu de cette image pour indexation dans une base documentaire. "
-        "Inclus tout texte visible, tableaux, chiffres et libellés. Réponds en français."
-    )
-    return _gemini_generate(
-        prompt,
-        max_output_tokens=2048,
-        ui_language="fr",
-        image_base64=b64,
-        image_mime_type=mime_type,
-    )
-
-
-def extract_text_from_bytes(data: bytes, *, filename: str) -> str:
-    ext = Path(filename).suffix.lower()
-    if ext == ".pdf":
-        from pypdf import PdfReader
-        from io import BytesIO
-
-        reader = PdfReader(BytesIO(data))
-        parts: list[str] = []
-        for page in reader.pages:
-            text = page.extract_text() or ""
-            if text.strip():
-                parts.append(text.strip())
-        return "\n\n".join(parts)
-
-    if ext == ".docx":
-        from io import BytesIO
-
-        from docx import Document
-
-        doc = Document(BytesIO(data))
-        return "\n".join(p.text.strip() for p in doc.paragraphs if p.text.strip())
-
-    if ext in {".xlsx", ".xls"}:
-        return _extract_xlsx(data)
-
-    if ext in _IMAGE_EXT:
-        mime = _mime_for_ext(ext)
-        return _extract_image_text(data, mime_type=mime)
-
-    if ext in {".txt", ".md", ".csv"}:
-        for encoding in ("utf-8", "latin-1", "cp1252"):
-            try:
-                return data.decode(encoding)
-            except UnicodeDecodeError:
-                continue
-        return data.decode("utf-8", errors="replace")
-
-    raise DocumentIngestError(f"Format non supporté : {ext or 'inconnu'}")
 
 
 def _slugify_filename(name: str) -> str:
@@ -189,7 +118,7 @@ def ingest_uploaded_document(
         collection_id=collection.id,
         original_filename=filename,
         stored_path=str(stored_path),
-        mime_type=_mime_for_ext(ext),
+        mime_type=mime_for_ext(ext),
         file_size_bytes=len(file_bytes),
         status="processing",
         uploaded_by_user_id=uploaded_by_user_id,
@@ -267,20 +196,7 @@ def ingest_uploaded_document(
 
 
 def _mime_for_ext(ext: str) -> str:
-    return {
-        ".pdf": "application/pdf",
-        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        ".xls": "application/vnd.ms-excel",
-        ".txt": "text/plain",
-        ".md": "text/markdown",
-        ".csv": "text/csv",
-        ".jpg": "image/jpeg",
-        ".jpeg": "image/jpeg",
-        ".png": "image/png",
-        ".webp": "image/webp",
-        ".gif": "image/gif",
-    }.get(ext, "application/octet-stream")
+    return mime_for_ext(ext)
 
 
 def _auto_keywords(text: str) -> str:

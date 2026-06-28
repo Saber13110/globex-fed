@@ -902,6 +902,8 @@ export class ChatPageComponent implements OnInit, AfterViewChecked, OnDestroy {
       return;
     }
 
+    const isDoc = Boolean(image && !image.mimeType.startsWith('image/'));
+
     this.error = null;
     this.currentView = 'chat';
     const wasNewConversation = this.sessionId === null;
@@ -911,8 +913,16 @@ export class ChatPageComponent implements OnInit, AfterViewChecked, OnDestroy {
       {
         id: this.nextId++,
         role: 'user',
-        text: text || (image ? this.i18n.t('chat.input.imageSent') : normalized.agentAnswers ? this.i18n.t('chat.agent.answersSent') : ''),
+        text:
+          text ||
+          (image
+            ? this.i18n.t(isDoc ? 'chat.input.documentSent' : 'chat.input.imageSent')
+            : normalized.agentAnswers
+              ? this.i18n.t('chat.agent.answersSent')
+              : ''),
         imageUrl: image?.previewUrl,
+        fileName: image?.name,
+        isDocument: isDoc,
         source: 'user_input',
       },
     ];
@@ -1463,6 +1473,8 @@ export class ChatPageComponent implements OnInit, AfterViewChecked, OnDestroy {
           role: r.sender,
           text: unpacked.text,
           imageUrl: unpacked.imageUrl,
+          fileName: unpacked.fileName,
+          isDocument: unpacked.isDocument,
           source: (r as { source?: UiMessage['source'] }).source ?? 'unknown',
         };
       });

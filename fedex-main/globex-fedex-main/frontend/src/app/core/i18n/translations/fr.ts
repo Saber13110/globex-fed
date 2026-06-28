@@ -1106,6 +1106,8 @@ export const FR: TranslationMap = {
   'chat.input.addImage': 'Ajouter une image',
   'chat.input.removeImage': 'Retirer l’image',
   'chat.input.imageSent': 'Image envoyée',
+  'chat.input.documentSent': 'Document envoyé',
+  'chat.input.pasteImageHint': 'Joignez une image, un PDF ou un Excel — ou collez une capture (Ctrl+V).',
   'chat.input.imageTooLarge': 'Image trop volumineuse (max. 4 Mo).',
   'chat.input.imageInvalid': 'Format non pris en charge (JPEG, PNG, WebP, GIF).',
   'chat.input.micSoon': 'Micro (bientôt)',

@@ -152,6 +152,11 @@ def post_message(
         metadata={
             "session_id": session.id,
             "has_image": bool(payload.image_base64),
+            "has_document": bool(
+                payload.image_base64
+                and payload.image_mime_type
+                and str(payload.image_mime_type).startswith("application/")
+            ),
             "risk_score": message_risk.score if message_risk else 0,
             "risk_reasons": message_risk.reasons if message_risk else [],
             "risk_level": message_risk.level.value if message_risk else "ok",
@@ -167,6 +172,7 @@ def post_message(
         ui_language=ui_lang,
         image_base64=payload.image_base64,
         image_mime_type=payload.image_mime_type,
+        file_name=payload.file_name,
         agent_mode=payload.agent_mode,
         agent_flow_id=payload.agent_flow_id,
         agent_answers=payload.agent_answers,

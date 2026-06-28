@@ -15,8 +15,9 @@ class ChatMessageRequest(BaseModel):
     response_preferences: str | None = Field(default=None, max_length=1200)
     preferred_name: str | None = Field(default=None, max_length=120)
     ui_language: str | None = Field(default=None, max_length=16)
-    image_base64: str | None = Field(default=None, max_length=5_600_000)
-    image_mime_type: str | None = Field(default=None, max_length=64)
+    image_base64: str | None = Field(default=None, max_length=14_000_000)
+    image_mime_type: str | None = Field(default=None, max_length=128)
+    file_name: str | None = Field(default=None, max_length=255)
     agent_mode: bool = False
     agent_flow_id: str | None = Field(default=None, max_length=36)
     agent_answers: dict[str, str] | None = None

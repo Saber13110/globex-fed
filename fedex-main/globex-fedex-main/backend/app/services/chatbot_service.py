@@ -1970,7 +1970,13 @@ from app.services.llm.intent_detection import is_general_logistics_question
 from app.services.llm.providers import LlmProviderError, call_ollama_simple, call_ollama_tracking
 from app.services.llm.session_title import heuristic_session_title, should_auto_rename
 from app.services.llm.tracking_extract import extract_tracking_number
-from app.services.message_attachment import normalize_image_mime, pack_message_text
+from app.services.client_phase9.capabilities import has_document_read_capability
+from app.services.client_phase9.document_reader import resolve_attachment, try_document_read_turn
+from app.services.client_phase9.document_session import (
+    is_document_followup_question,
+    try_document_followup_turn,
+)
+from app.services.message_attachment import normalize_attachment_mime, pack_message_text
 from app.services.prompt_guard_service import assess_user_message, must_block_preferences
 from app.services.llm.prompts import prompt_injection_refusal
 from app.services.tracking_presenter import shipment_summary
@@ -2224,6 +2230,7 @@ def process_user_message(
     ui_language: str | None = None,
     image_base64: str | None = None,
     image_mime_type: str | None = None,
+    file_name: str | None = None,
     agent_mode: bool = False,
     agent_flow_id: str | None = None,
     agent_answers: dict[str, str] | None = None,
@@ -2231,7 +2238,7 @@ def process_user_message(
     """Traite un message utilisateur client — Phase 3b suivi FedEx + PDF post-réponse."""
     settings = get_settings()
     probe_text = (message or "").strip()
-    if settings.prompt_guard_enabled and probe_text and not (image_base64 or "").strip():
+    if settings.prompt_guard_enabled and probe_text:
         risk = assess_user_message(probe_text)
         if must_block_preferences(risk):
             lang = (ui_language or user.preferred_language or "fr").lower()
@@ -2250,8 +2257,18 @@ def process_user_message(
 
     try:
         b64 = (image_base64 or "").strip() or None
-        mime = normalize_image_mime(image_mime_type) if b64 else None
-        stored_message = pack_message_text(message, image_base64=b64, image_mime_type=mime)
+        mime = normalize_attachment_mime(image_mime_type) if b64 else None
+        attachment = resolve_attachment(
+            attachment_base64=b64,
+            attachment_mime_type=mime,
+            file_name=file_name,
+        )
+        stored_message = pack_message_text(
+            message,
+            image_base64=b64,
+            image_mime_type=mime,
+            file_name=file_name,
+        )
 
         user_msg = ChatMessage(
             session_id=session.id,
@@ -2262,7 +2279,39 @@ def process_user_message(
         db.add(user_msg)
         db.flush()
 
-        if b64:
+        has_attachment = attachment is not None
+        doc_turn: dict[str, Any] | None = None
+        if has_attachment and has_document_read_capability():
+            doc_turn = try_document_read_turn(
+                db,
+                user,
+                session,
+                message,
+                user_msg.id,
+                attachment=attachment,
+                ui_language=ui_language,
+                compute_phase2_reply=_compute_phase2_reply,
+            )
+        elif has_document_read_capability() and is_document_followup_question(message):
+            doc_turn = try_document_followup_turn(
+                db,
+                user,
+                session,
+                message,
+                user_msg.id,
+                ui_language=ui_language,
+                compute_phase2_reply=_compute_phase2_reply,
+            )
+
+        if doc_turn is not None:
+            reply = doc_turn["reply"]
+            source = doc_turn.get("source", "agent_document")
+            intent = doc_turn.get("intent", "document_read")
+            tracking_number = doc_turn.get("tracking_number")
+            llm_provider = doc_turn.get("llm_provider")
+            shipment_for_client = doc_turn.get("shipment")
+            export_download = doc_turn.get("export_download")
+        elif b64:
             reply = _image_not_supported_reply(ui_language, user)
             source, intent, llm_provider = "phase1", "image_not_supported", None
             tracking_number: str | None = None
@@ -2374,13 +2423,13 @@ def process_user_message(
         )
         db.add(bot)
 
-        title_source = message.strip() or ("Image FedEx" if b64 else message)
+        title_source = message.strip() or ("Document joint" if attachment is not None else message)
         if should_auto_rename(session.title):
             session.title = heuristic_session_title(
                 title_source,
                 ui_language=ui_language,
                 intent=intent,
-                tracking_number=tracking_number if not b64 else None,
+                tracking_number=tracking_number,
             )
         session.updated_at = func.now()
         db.commit()
@@ -2392,7 +2441,7 @@ def process_user_message(
             shipment=shipment_for_client,
             source=source,
             intent=intent,
-            tracking_number=tracking_number if not b64 else None,
+            tracking_number=tracking_number,
             llm_provider=llm_provider,
         )
         result["agent_mode"] = False

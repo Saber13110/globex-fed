@@ -151,6 +151,10 @@ class Settings(BaseSettings):
     globex_proactive_dormant_days: int = 30
     globex_proactive_dormant_limit: int = 10
 
+    client_document_max_mb: int = 10
+    client_document_max_chars: int = 12000
+    client_document_llm_max_chars: int = 4000
+
     # Phase 8 — rapport d'activité quotidien client (scheduler background)
     daily_report_scheduler_enabled: bool = True
     daily_report_check_interval_seconds: int = 60

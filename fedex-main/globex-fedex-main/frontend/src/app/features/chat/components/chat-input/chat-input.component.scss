@@ -73,47 +73,82 @@
 }
 
 .composer__preview {
-  position: relative;
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
   margin: 0 0 8px 4px;
-  padding: 6px;
-  border-radius: 12px;
-  background: rgba(77, 20, 140, 0.06);
+  padding: 0.55rem 0.65rem;
+  border-radius: 14px;
+  background: rgba(77, 20, 140, 0.05);
   border: 1px solid rgba(77, 20, 140, 0.12);
+  max-width: min(100%, 360px);
 }
 
-.composer__preview-img {
-  width: 72px;
-  height: 72px;
+.composer__preview-thumb {
+  width: 40px;
+  height: 40px;
   object-fit: cover;
   border-radius: 8px;
   display: block;
+  flex-shrink: 0;
 }
 
-.composer__preview-remove {
-  position: absolute;
-  top: 2px;
-  left: 62px;
-  width: 22px;
-  height: 22px;
-  border: none;
-  border-radius: 50%;
-  background: #1a0033;
-  color: #fff;
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
+.composer__preview-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(77, 20, 140, 0.1);
+  color: #4d148c;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.composer__preview-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .composer__preview-name {
-  font-size: 0.72rem;
-  color: #7c6e96;
-  max-width: 120px;
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1a0033;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.composer__preview-size {
+  display: block;
+  font-size: 0.68rem;
+  color: #7c6e96;
+  margin-top: 0.1rem;
+}
+
+.composer__preview-remove {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #9585ab;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+  }
+}
+
+.composer__hint {
+  margin: 0.45rem 0 0 0.5rem;
+  font-size: 0.72rem;
+  color: #9585ab;
 }
 
 .composer__img-error {

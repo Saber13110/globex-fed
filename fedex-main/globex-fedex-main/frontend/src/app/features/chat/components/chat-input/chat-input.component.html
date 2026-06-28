@@ -10,11 +10,32 @@
 >
   @if (pendingImage) {
     <div class="composer__preview">
-      <img [src]="pendingImage.previewUrl" [alt]="pendingImage.name" class="composer__preview-img" />
+      @if (pendingIsImage) {
+        <img [src]="pendingImage.previewUrl" [alt]="pendingImage.name" class="composer__preview-thumb" />
+      } @else {
+        <span class="composer__preview-icon" aria-hidden="true">
+          @if (pendingIsSpreadsheet) {
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
+            </svg>
+          } @else {
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+          }
+        </span>
+      }
+      <div class="composer__preview-info">
+        <strong class="composer__preview-name">{{ pendingImage.name }}</strong>
+        <span class="composer__preview-size">{{ formatFileSize(pendingImage.sizeBytes) }}</span>
+      </div>
       <button type="button" class="composer__preview-remove" (click)="removeImage()" [attr.aria-label]="'chat.input.removeImage' | t">
-        ×
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
       </button>
-      <span class="composer__preview-name">{{ pendingImage.name }}</span>
     </div>
   }
   @if (imageErrorMessage) {
@@ -28,7 +49,7 @@
       #fileInput
       type="file"
       class="composer__file-input"
-      accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+      accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
       (change)="onImageSelected($event)"
     />
 
@@ -88,6 +109,7 @@
       class="field"
       type="text"
       formControlName="message"
+      (paste)="onPaste($event)"
       [placeholder]="placeholderText || ((layout === 'hero' ? 'chat.input.heroPlaceholder' : 'chat.input.dockPlaceholder') | t)"
       autocomplete="off"
     />
@@ -113,4 +135,8 @@
       }
     </button>
   </div>
+
+  @if (showHint) {
+    <p class="composer__hint">{{ 'chat.input.pasteImageHint' | t }}</p>
+  }
 </form>

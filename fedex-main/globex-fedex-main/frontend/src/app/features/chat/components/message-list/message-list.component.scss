@@ -42,6 +42,33 @@
   margin-bottom: 0.5rem;
 }
 
+.bubble__attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: min(260px, 100%);
+  margin-bottom: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 8px;
+  background: rgba(77, 20, 140, 0.08);
+  border: 1px solid rgba(77, 20, 140, 0.14);
+}
+
+.bubble__attachment-icon {
+  color: #4d148c;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.bubble__attachment-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .text {
   margin: 0 0 0.65rem;
   white-space: pre-wrap;

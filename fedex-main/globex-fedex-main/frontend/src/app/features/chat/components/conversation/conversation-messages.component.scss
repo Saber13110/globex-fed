@@ -238,6 +238,38 @@
   margin-bottom: 0.5rem;
 }
 
+.msg-attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: min(280px, 100%);
+  margin-bottom: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 10px;
+  background: rgba(77, 20, 140, 0.08);
+  border: 1px solid rgba(77, 20, 140, 0.14);
+}
+
+.msg-attachment-chip__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(77, 20, 140, 0.12);
+  color: #4d148c;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.msg-attachment-chip__name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2a1f40;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .msg-bubble__footer {
   margin-top: 0.75rem;
   padding-top: 0.65rem;

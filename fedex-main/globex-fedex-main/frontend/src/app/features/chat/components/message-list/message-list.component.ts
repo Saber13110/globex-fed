@@ -13,6 +13,8 @@ export interface UiMessage {
   role: 'user' | 'bot';
   text: string;
   imageUrl?: string;
+  fileName?: string;
+  isDocument?: boolean;
   source?: 'fedex_api' | 'fedex_api+ollama' | 'gemini' | 'ollama' | 'llm' | 'export' | 'export_prompt' | 'fallback' | 'security' | 'unknown' | 'user_input' | 'agent' | 'agent+gemini';
   shipment?: ShipmentSummary | null;
   trackingNumber?: string | null;

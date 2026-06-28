@@ -137,4 +137,9 @@ export class ConversationMessagesComponent implements AfterViewChecked, OnChange
       error: () => this.exportLoadingId.set(null),
     });
   }
+
+  isSpreadsheetFile(fileName: string): boolean {
+    const lower = fileName.toLowerCase();
+    return lower.endsWith('.xlsx') || lower.endsWith('.xls');
+  }
 }

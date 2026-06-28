@@ -152,6 +152,7 @@ export class ChatbotService {
       ui_language: context?.ui_language ?? null,
       image_base64: context?.image?.base64 ?? null,
       image_mime_type: context?.image?.mimeType ?? null,
+      file_name: context?.image?.name ?? null,
       agent_mode: context?.agent_mode ?? false,
       agent_flow_id: context?.agent_flow_id ?? null,
       agent_answers: context?.agent_answers ?? null,

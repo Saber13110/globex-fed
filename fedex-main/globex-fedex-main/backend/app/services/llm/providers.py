@@ -826,6 +826,92 @@ def call_ollama_simple(
     return reply
 
 
+def call_ollama_document(
+    user_message: str,
+    *,
+    ui_language: str | None = None,
+) -> str:
+    """Ollama pour réponses basées sur un document extrait (Phase 9)."""
+    from app.services.client_phase9.document_prompt import document_system_prompt
+
+    settings = get_settings()
+    if not settings.llm_enabled:
+        raise LlmProviderError("LLM désactivé (LLM_ENABLED=false).")
+
+    lang = normalize_lang_code(ui_language)
+    msg = (user_message or "").strip()
+    if not msg:
+        raise LlmProviderError("Message document vide.")
+    system = document_system_prompt(lang if lang in {"fr", "en"} else "fr")
+    prompt = f"===SYSTEM===\n{system}\n\n===USER===\n{msg}"
+
+    base = settings.ollama_base_url.rstrip("/")
+    body = {
+        "model": settings.ollama_model,
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "temperature": 0.2,
+            "num_predict": 512,
+            "num_ctx": 8192,
+        },
+    }
+    timeout = httpx.Timeout(
+        connect=5.0,
+        read=settings.ollama_timeout_seconds,
+        write=30.0,
+        pool=5.0,
+    )
+
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            resp = client.post(f"{base}/api/generate", json=body)
+            resp.raise_for_status()
+            data = resp.json()
+    except httpx.TimeoutException as exc:
+        raise LlmProviderError(f"Timeout Ollama document ({settings.ollama_model})") from exc
+    except Exception as exc:
+        raise LlmProviderError(f"Échec Ollama document : {exc}") from exc
+
+    reply = _extract_ollama_text(data)
+    if not reply:
+        raise LlmProviderError("Réponse vide retournée par Ollama.")
+    return reply
+
+
+def call_gemini_document(
+    user_message: str,
+    *,
+    ui_language: str | None = None,
+    concise: bool = False,
+) -> str:
+    """Gemini pour réponses basées sur un document extrait (Phase 9)."""
+    from app.services.client_phase9.document_prompt import document_system_prompt
+
+    if not gemini_api_key_usable():
+        raise LlmProviderError(
+            "Clé API Gemini absente. Définissez GEMINI_API_KEY pour la lecture de documents."
+        )
+
+    lang = normalize_lang_code(ui_language)
+    msg = (user_message or "").strip()
+    if not msg:
+        raise LlmProviderError("Message document vide.")
+    prompt_lang = lang if lang in {"fr", "en"} else "fr"
+    system = document_system_prompt(prompt_lang, concise=concise)
+    prompt = f"{msg}\n\n(Réponds à la question ci-dessus en t'appuyant sur le bloc DOCUMENT EXTRAIT.)"
+
+    reply = _gemini_generate(
+        prompt,
+        max_output_tokens=1024,
+        system_instruction=system,
+        ui_language=prompt_lang,
+    )
+    if not (reply or "").strip():
+        raise LlmProviderError("Réponse vide retournée par Gemini.")
+    return reply.strip()
+
+
 def call_ollama_agent_plan(
     user_message: str,
     *,

@@ -6,7 +6,16 @@ import { TranslatePipe } from '../../../../core/i18n/translate.pipe';
 import { ChatImageAttachment, ChatSendPayload } from '../../../../core/models/chat-send.model';
 
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
-const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
+const ALLOWED_MIME = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-excel',
+]);
 
 @Component({
   selector: 'app-chat-input',
@@ -44,6 +53,15 @@ export class ChatInputComponent {
     return Boolean(text || this.pendingImage);
   }
 
+  get pendingIsImage(): boolean {
+    return Boolean(this.pendingImage?.previewUrl);
+  }
+
+  get pendingIsSpreadsheet(): boolean {
+    const mime = this.pendingImage?.mimeType ?? '';
+    return mime.includes('spreadsheet') || mime.endsWith('ms-excel');
+  }
+
   openImagePicker(): void {
     this.fileInput?.nativeElement.click();
   }
@@ -55,12 +73,35 @@ export class ChatInputComponent {
     if (!file) {
       return;
     }
+    this.processFile(file);
+  }
+
+  onPaste(event: ClipboardEvent): void {
+    const items = event.clipboardData?.items;
+    if (!items) {
+      return;
+    }
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        event.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          this.processFile(file);
+        }
+        return;
+      }
+    }
+  }
+
+  processFile(file: File): void {
     if (!ALLOWED_MIME.has(file.type)) {
       this.imageErrorMessage = 'format';
       this.imageError.emit('format');
       return;
     }
-    if (file.size > MAX_IMAGE_BYTES) {
+    const isImage = file.type.startsWith('image/');
+    const maxBytes = isImage ? MAX_IMAGE_BYTES : MAX_DOCUMENT_BYTES;
+    if (file.size > maxBytes) {
       this.imageErrorMessage = 'size';
       this.imageError.emit('size');
       return;
@@ -80,11 +121,25 @@ export class ChatInputComponent {
         base64,
         mimeType: file.type,
         name: file.name,
-        previewUrl: result,
+        previewUrl: isImage ? result : undefined,
+        sizeBytes: file.size,
       };
       this.imageErrorMessage = null;
     };
     reader.readAsDataURL(file);
+  }
+
+  formatFileSize(bytes: number | undefined): string {
+    if (!bytes || bytes < 0) {
+      return '';
+    }
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   removeImage(): void {
