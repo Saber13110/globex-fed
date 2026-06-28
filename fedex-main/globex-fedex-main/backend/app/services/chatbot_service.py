@@ -1966,6 +1966,7 @@ from app.services.chat_shipment_reply import (
     shipment_card_display_flags,
     should_attach_shipment_card,
 )
+from app.services.client_phase12.output_guard import sanitize_client_reply
 from app.services.fedex_sandbox_whitelist import CLIENT_TRACKING_NOT_FOUND_HINT
 from app.services.llm.fedex_context import compact_fedex_facts, fetch_fedex_tracking_data
 from app.services.llm.intent_detection import is_general_logistics_question
@@ -2241,7 +2242,7 @@ def process_user_message(
     settings = get_settings()
     probe_text = (message or "").strip()
     if settings.prompt_guard_enabled and probe_text:
-        risk = assess_user_message(probe_text)
+        risk = assess_user_message(probe_text, ui_language=ui_language)
         if must_block_preferences(risk):
             lang = (ui_language or user.preferred_language or "fr").lower()
             refusal = prompt_injection_refusal(lang)
@@ -2453,6 +2454,15 @@ def process_user_message(
             intent=intent,
             tracking_number=tracking_number,
             llm_provider=llm_provider,
+        )
+        fedex_err = None
+        if shipment_for_client and isinstance(shipment_for_client, dict):
+            fedex_err = shipment_for_client.get("tracking_error_code") or shipment_for_client.get("error_code")
+        result["reply"] = sanitize_client_reply(
+            result["reply"],
+            intent=intent,
+            fedex_error_code=fedex_err,
+            ui_language=ui_language,
         )
         result["agent_mode"] = False
         if export_download:

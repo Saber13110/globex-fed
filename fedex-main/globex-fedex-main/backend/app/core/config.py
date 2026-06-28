@@ -69,6 +69,8 @@ class Settings(BaseSettings):
     prompt_guard_block_threshold: int = 70
     prompt_guard_warn_threshold: int = 40
     prompt_guard_block_chat: bool = True
+    # Phase 12 — smart guard (intent métier avant blocage attaque)
+    security_smart_guard_enabled: bool = False
 
     # Désactivé par défaut : sans SMTP + email admin réel, utiliser l’onglet admin.
     notify_admin_on_preference_submit: bool = False

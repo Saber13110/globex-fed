@@ -149,9 +149,15 @@ def record_prompt_guard_event(
 ) -> SecurityIncident | None:
     if not get_settings().security_ids_enabled:
         return None
-    severity = "high" if blocked or score >= 70 else ("medium" if score >= 40 else "low")
-    if severity == "low":
+
+    business_cleared = any(str(r).startswith("business_intent:") for r in reasons)
+    if business_cleared:
         return None
+
+    if not blocked:
+        return None
+
+    severity = "high"
 
     if user_id:
         write_log(

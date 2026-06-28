@@ -343,7 +343,14 @@ def is_legitimate_copilot_request(text: str) -> bool:
     )
 
 
-def assess_user_message(text: str) -> RiskResult:
+def assess_user_message(text: str, *, ui_language: str | None = None) -> RiskResult:
+    from app.services.client_phase12.capabilities import smart_guard_enabled
+
+    if smart_guard_enabled():
+        from app.services.client_phase12.threat_assessment import assess_message_threat
+
+        return assess_message_threat(text, ui_language=ui_language)
+
     if is_strict_security_attack(text):
         result = assess_text(text)
         if result.level != RiskLevel.block:

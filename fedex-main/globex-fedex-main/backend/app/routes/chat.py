@@ -80,7 +80,7 @@ def post_message(
     msg_check = (payload.message or "").strip()
     message_risk = None
     if settings.prompt_guard_enabled and msg_check:
-        message_risk = assess_user_message(msg_check)
+        message_risk = assess_user_message(msg_check, ui_language=payload.ui_language)
         blocked = settings.prompt_guard_block_chat and must_block_preferences(message_risk)
         if message_risk.level != RiskLevel.ok:
             record_prompt_guard_event(

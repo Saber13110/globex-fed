@@ -35,6 +35,7 @@ import { SidebarComponent } from '../chat/components/sidebar/sidebar.component';
 import {
   buildDocumentDownloadSpec,
   classifyDocumentBlob,
+  DocumentCatalogType,
 } from '../../core/utils/document-catalog.util';
 
 
@@ -45,7 +46,7 @@ export interface UserDocumentItem {
 
   title: string;
 
-  type: 'export' | 'proof' | 'tracking' | 'report';
+  type: DocumentCatalogType;
 
   trackingNumber?: string;
 
@@ -243,7 +244,7 @@ export class DocumentsPageComponent implements OnInit, OnDestroy {
 
     if (this.typeFilter !== 'all') {
 
-      rows = rows.filter((doc) => doc.type === this.typeFilter || (this.typeFilter === 'report' && doc.type === 'tracking'));
+      rows = rows.filter((doc) => doc.type === this.typeFilter);
 
     }
 
@@ -378,8 +379,6 @@ export class DocumentsPageComponent implements OnInit, OnDestroy {
       export: 'documents.typeExport',
 
       proof: 'documents.typeProof',
-
-      tracking: 'documents.typeTracking',
 
       report: 'documents.typeReport',
 
