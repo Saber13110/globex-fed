@@ -4,6 +4,7 @@ import { Observable, tap } from 'rxjs';
 
 import { API_BASE_URL } from '../api.config';
 import { ExportDownloadSpec } from './chatbot.service';
+import { TrackingService } from './tracking.service';
 
 export interface HistoryItem {
   id: number;
@@ -21,7 +22,10 @@ export type ExportLang = 'fr' | 'en' | 'ar';
 
 @Injectable({ providedIn: 'root' })
 export class HistoryService {
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly tracking: TrackingService,
+  ) {}
 
   list(limit = 50): Observable<HistoryItem[]> {
     return this.http.get<HistoryItem[]>(`${API_BASE_URL}/history`, { params: { limit } });
@@ -66,6 +70,13 @@ export class HistoryService {
   }
 
   downloadFromSpec(spec: ExportDownloadSpec, lang: ExportLang = 'fr'): Observable<Blob> {
+    const preset = (spec.preset ?? '').toLowerCase();
+    if (preset === 'pod' && spec.tracking_numbers?.length) {
+      const filename = spec.filename ?? `preuve-livraison-${spec.tracking_numbers[0]}.pdf`;
+      return this.tracking.downloadProofOfDelivery(spec.tracking_numbers[0]).pipe(
+        tap((blob) => this.triggerDownload(blob, filename)),
+      );
+    }
     if (spec.export_token) {
       const fmt = (spec.format ?? '').toLowerCase();
       if (fmt === 'xlsx' || fmt === 'excel') {

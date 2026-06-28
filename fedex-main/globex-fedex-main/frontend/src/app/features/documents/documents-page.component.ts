@@ -32,6 +32,11 @@ import { Conversation } from '../chat/components/chat-item/chat-item.component';
 
 import { SidebarComponent } from '../chat/components/sidebar/sidebar.component';
 
+import {
+  buildDocumentDownloadSpec,
+  classifyDocumentBlob,
+} from '../../core/utils/document-catalog.util';
+
 
 
 export interface UserDocumentItem {
@@ -51,6 +56,8 @@ export interface UserDocumentItem {
   historyId?: number;
 
   fileSizeKb?: number;
+
+  sourceText?: string;
 
 }
 
@@ -454,7 +461,15 @@ export class DocumentsPageComponent implements OnInit, OnDestroy {
 
     const lang = this.i18n.toBackendCode() as 'fr' | 'en' | 'ar';
 
-    this.history.downloadExcel({ lang, limit: 200, includeEvents: doc.type !== 'export' }).subscribe({
+    const spec = buildDocumentDownloadSpec({
+      type: doc.type,
+      trackingNumber: doc.trackingNumber,
+      sessionId: doc.sessionId,
+      title: doc.title,
+      sourceText: doc.sourceText,
+    });
+
+    this.history.downloadFromSpec(spec, lang).subscribe({
 
       next: () => {
 
@@ -760,23 +775,9 @@ export class DocumentsPageComponent implements OnInit, OnDestroy {
 
     for (const row of rows) {
 
-      const blob = `${row.user_question} ${row.bot_response}`.toLowerCase();
+      const blob = `${row.user_question} ${row.bot_response}`;
 
-      let type: UserDocumentItem['type'] | null = null;
-
-      if (/export|excel|xlsx|rapport|report/.test(blob)) {
-
-        type = 'export';
-
-      } else if (/preuve|proof|pod|livraison|delivery/.test(blob)) {
-
-        type = 'proof';
-
-      } else if (/pdf|document|facture|invoice/.test(blob)) {
-
-        type = 'report';
-
-      }
+      const type = classifyDocumentBlob(blob);
 
       if (!type) {
 
@@ -812,6 +813,8 @@ export class DocumentsPageComponent implements OnInit, OnDestroy {
 
         fileSizeKb: this.estimateFileSize(type, key),
 
+        sourceText: blob,
+
       });
 
     }
@@ -820,23 +823,9 @@ export class DocumentsPageComponent implements OnInit, OnDestroy {
 
     for (const session of this.sessions) {
 
-      const title = session.title.toLowerCase();
+      const title = session.title;
 
-      let type: UserDocumentItem['type'] | null = null;
-
-      if (/export|excel|rapport|report/.test(title)) {
-
-        type = 'export';
-
-      } else if (/preuve|proof|pod|livraison/.test(title)) {
-
-        type = 'proof';
-
-      } else if (/pdf|document|facture/.test(title)) {
-
-        type = 'report';
-
-      }
+      const type = classifyDocumentBlob(title);
 
       if (!type) {
 
@@ -867,6 +856,8 @@ export class DocumentsPageComponent implements OnInit, OnDestroy {
         sessionId: session.id,
 
         fileSizeKb: this.estimateFileSize(type, key),
+
+        sourceText: title,
 
       });
 

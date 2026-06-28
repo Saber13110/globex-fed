@@ -1952,6 +1952,8 @@ from app.services.client_phase4.router import try_client_sessions_turn
 from app.services.client_phase5.router import try_client_notifications_turn
 from app.services.client_phase6.router import try_client_watch_turn
 from app.services.client_phase8.router import try_client_daily_report_turn
+from app.services.client_phase10.router import try_client_document_library_turn
+from app.services.client_phase11.router import try_client_support_ticket_turn
 from app.services.client_phase7.export_email_followup import try_export_email_only_turn
 from app.services.chat_session_context import (
     build_conversation_history_for_llm,
@@ -2328,6 +2330,14 @@ def process_user_message(
             agent_turn = try_client_daily_report_turn(
                 db, user, session, message, user_msg.id, ui_language
             )
+            if agent_turn is None:
+                agent_turn = try_client_document_library_turn(
+                    db, user, session, message, user_msg.id, ui_language
+                )
+            if agent_turn is None:
+                agent_turn = try_client_support_ticket_turn(
+                    db, user, session, message, user_msg.id, ui_language
+                )
             if agent_turn is None:
                 agent_turn = try_client_sessions_turn(
                     db, user, session, message, user_msg.id, ui_language

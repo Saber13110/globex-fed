@@ -61,3 +61,8 @@ def get_session_export_pointer(session_id: int) -> SessionExportPointer | None:
         fmt=str(payload.get("fmt") or "pdf"),
         filename=str(payload.get("filename") or "export.pdf"),
     )
+
+
+def clear_all_session_export_pointers() -> None:
+    """Vide le cache (tests / isolation)."""
+    _pointers.clear()

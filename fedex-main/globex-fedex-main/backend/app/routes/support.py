@@ -1,5 +1,3 @@
-import re
-
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy import func, select
@@ -28,6 +26,7 @@ from app.schemas.support import (
 from app.services.activity_log_service import client_ip, write_log
 from app.services.faq_service import load_faq
 from app.services.help_center_service import generate_ticket_number
+from app.services.support_ticket_service import create_client_support_ticket, sanitize_support_text
 from app.services.support_attachment_service import (
     attachment_file_path,
     display_filename,
@@ -40,18 +39,13 @@ from app.services.employee_notification_service import (
 )
 from app.services.user_notification_service import (
     create_user_notification,
-    notify_admins_new_support_ticket,
     notify_admins_support_user_reply,
-    notify_employees_new_support_ticket,
 )
 
 router = APIRouter(prefix="/support", tags=["support"])
 
-_HTML_TAG_RE = re.compile(r"<[^>]+>")
-
-
 def _sanitize_text(value: str) -> str:
-    return _HTML_TAG_RE.sub("", value).strip()
+    return sanitize_support_text(value)
 
 
 def _ticket_to_read(ticket: SupportTicket) -> SupportTicketRead:
@@ -214,54 +208,27 @@ def create_support_ticket(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> SupportTicketCreatedResponse:
-    subject = _sanitize_text(payload.subject)
-    message = _sanitize_text(payload.message)
-    if len(subject) < 3:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Subject required.")
-    if len(message) < 10:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Message required.")
-
-    row = SupportTicket(
-        user_id=current_user.id,
-        subject=subject,
-        category=payload.category,
-        priority=payload.priority,
-        message=message,
-        attachment_url=payload.attachmentUrl,
-        status=SupportTicketStatus.open,
-    )
-    db.add(row)
-    db.flush()
-    row.ticket_number = generate_ticket_number(row.id)
-    first_message = SupportTicketMessage(
-        ticket_id=row.id,
-        author_role="user",
-        author_user_id=current_user.id,
-        body=message,
-        attachment_url=payload.attachmentUrl,
-    )
-    db.add(first_message)
-    write_log(
-        db,
-        action="support.ticket_created",
-        message=f"Nouveau ticket support de {current_user.email} : {subject[:80]}",
-        category="admin",
-        level="INFO",
-        user_id=current_user.id,
-        ip_address=client_ip(request),
-        metadata={"ticket_id": row.id, "ticket_number": row.ticket_number},
-        commit=False,
-    )
-    notify_admins_new_support_ticket(db, row, current_user)
-    notify_employees_new_support_ticket(db, row, current_user)
-    db.commit()
-    db.refresh(row)
+    try:
+        created = create_client_support_ticket(
+            db,
+            user=current_user,
+            subject=payload.subject,
+            message=payload.message,
+            category=payload.category,
+            priority=payload.priority,
+            attachment_url=payload.attachmentUrl,
+            ip_address=client_ip(request),
+            commit=True,
+        )
+    except ValueError as exc:
+        detail = "Subject required." if "Subject" in str(exc) else "Message required."
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail) from exc
     return SupportTicketCreatedResponse(
         success=True,
-        ticketId=row.ticket_number,
-        id=row.id,
-        status=row.status,
-        createdAt=row.created_at,
+        ticketId=created["ticket_number"],
+        id=created["ticket_id"],
+        status=created["status"],
+        createdAt=created["created_at"],
     )
 
 
