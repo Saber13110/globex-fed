@@ -126,3 +126,55 @@ def assert_catalog_complete() -> None:
     for name in HANDLERS:
         if get_tool(name) is None:
             raise AssertionError(f"Handler orphelin sans définition: {name}")
+
+
+_ADMIN_TASK_TOOLS: dict[str, list[str]] = {
+    "analyze_tickets": [
+        "analyze_tickets",
+        "export_tickets_pdf",
+        "scan_ticket_sla",
+        "reply_support_ticket",
+    ],
+    "analyze_users": [
+        "analyze_users",
+        "get_admin_users",
+        "search_users",
+        "scan_dormant_accounts",
+    ],
+    "get_platform_stats": [
+        "get_platform_stats",
+        "analyze_platform_health",
+        "analyze_weekly_activity",
+        "get_workspace_briefing",
+    ],
+    "analyze_security": [
+        "analyze_security",
+        "get_security_alerts",
+        "analyze_suspicious_logs",
+        "run_security_scan",
+        "generate_security_report",
+    ],
+    "analyze_logs": [
+        "analyze_logs",
+        "analyze_suspicious_logs",
+        "export_activity_logs_pdf",
+    ],
+    "export_logs": [
+        "export_activity_logs_pdf",
+        "export_activity_logs_excel",
+    ],
+    "general": [
+        "analyze_tickets",
+        "analyze_users",
+        "get_platform_stats",
+        "analyze_security",
+        "analyze_logs",
+        "search_users",
+    ],
+}
+
+
+def tools_for_admin_task(task_type: str) -> list[str]:
+    """Sous-ensemble d'outils (5–12) pour une tâche routeur admin."""
+    key = (task_type or "general").strip().lower()
+    return list(_ADMIN_TASK_TOOLS.get(key, _ADMIN_TASK_TOOLS["general"]))

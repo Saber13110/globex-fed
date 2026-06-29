@@ -252,6 +252,66 @@ def _step_f_fedex_lookup() -> StepResult:
         return StepResult(label, False, time.perf_counter() - t0, str(exc))
 
 
+def _step_g_tool_calling_ping() -> StepResult:
+    """Vérifie que le modèle Jarvis admin supporte le function calling (1 round)."""
+    settings = get_settings()
+    base = settings.ollama_base_url.rstrip("/")
+    model = settings.ollama_model
+    read_timeout = max(float(settings.ollama_timeout_seconds), 120.0)
+    timeout = httpx.Timeout(connect=10.0, read=read_timeout, write=30.0, pool=5.0)
+    body: dict[str, Any] = {
+        "model": model,
+        "messages": [
+            {
+                "role": "user",
+                "content": "Appelle l'outil ping_health pour vérifier la plateforme.",
+            }
+        ],
+        "stream": False,
+        "think": False,
+        "tools": [
+            {
+                "type": "function",
+                "function": {
+                    "name": "ping_health",
+                    "description": "Vérifie l'état de la plateforme.",
+                    "parameters": {"type": "object", "properties": {}},
+                },
+            }
+        ],
+        "options": {"temperature": 0.0, "num_predict": 128},
+    }
+    label = "7. tool calling ping [Jarvis admin]"
+    t0 = time.perf_counter()
+    try:
+        with httpx.Client(timeout=timeout) as client:
+            resp = client.post(f"{base}/api/chat", json=body)
+            resp.raise_for_status()
+            data = resp.json()
+        elapsed = time.perf_counter() - t0
+        msg = data.get("message") if isinstance(data.get("message"), dict) else {}
+        tool_calls = msg.get("tool_calls") or []
+        if tool_calls:
+            name = (
+                tool_calls[0].get("function", {}).get("name")
+                if isinstance(tool_calls[0], dict)
+                else ""
+            )
+            return StepResult(label, True, elapsed, f"tool_call={name or 'ping_health'}")
+        content = str(msg.get("content") or "").strip()
+        if content:
+            return StepResult(
+                label,
+                True,
+                elapsed,
+                "réponse texte sans tool_call (modèle peut répondre direct)",
+                content[:120],
+            )
+        return StepResult(label, False, elapsed, "pas de tool_call ni contenu")
+    except Exception as exc:
+        return StepResult(label, False, time.perf_counter() - t0, str(exc))
+
+
 def _print_results(results: list[StepResult]) -> None:
     print("=" * 60)
     print("Résultats")
@@ -280,10 +340,15 @@ def _print_diagnosis(results: list[StepResult]) -> None:
     elif b and b.ok and d_fr and d_fr.ok:
         print("  B et D OK -> chemin chat Phase 1 (call_ollama_simple) pret.")
         e_fr = by_name.get("5. call_ollama_tracking (fr) [chat Phase 2 suivi]")
+        g = by_name.get("7. tool calling ping [Jarvis admin]")
         if e_fr and e_fr.ok:
             print(f"  E OK -> suivi Phase 2 (call_ollama_tracking) = {e_fr.seconds:.1f}s")
         elif e_fr and not e_fr.ok:
             print("  E KO -> verifier call_ollama_tracking ou timeout.")
+        if g and g.ok:
+            print(f"  G OK -> function calling Jarvis ({g.detail}) = {g.seconds:.1f}s")
+        elif g and not g.ok:
+            print("  G KO -> verifier qwen2.5:7b-instruct et tool calling Ollama.")
         if c_fr and c_fr.ok:
             print(f"  (ref: call_ollama complet = {c_fr.seconds:.1f}s, simple = {d_fr.seconds:.1f}s)")
     else:
@@ -303,6 +368,7 @@ def main() -> int:
         _step_d_call_ollama_simple("fr"),
         _step_e_call_ollama_tracking("fr"),
         _step_f_fedex_lookup(),
+        _step_g_tool_calling_ping(),
     ]
     _print_results(results)
     _print_diagnosis(results)

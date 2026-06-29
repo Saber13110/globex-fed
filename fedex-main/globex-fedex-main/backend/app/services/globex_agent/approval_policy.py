@@ -24,6 +24,7 @@ TOOL_APPROVAL_MODES: dict[str, ApprovalMode] = {
     "scan_ticket_sla": "never",
     "scan_dormant_accounts": "never",
     "get_security_alerts": "never",
+    "analyze_security": "never",
     "generate_security_report": "never",
     "analyze_platform_health": "never",
     "analyze_weekly_activity": "never",

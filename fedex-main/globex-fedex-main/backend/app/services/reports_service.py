@@ -79,6 +79,34 @@ REPORT_CATALOG: list[dict[str, str]] = [
 
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "data" / "reports"
 
+_COMPLETED_STATUSES = frozenset({"completed", "complet", "complete", "success", "done"})
+
+
+def is_run_completed_status(status: str | None) -> bool:
+    return (status or "").strip().lower() in _COMPLETED_STATUSES
+
+
+def resolve_run_path(run: ReportRun) -> Path | None:
+    """Localise le fichier export — chemin PostgreSQL puis emplacement canonique local."""
+    if run is None:
+        return None
+    fmt = (run.format or "xlsx").lstrip(".")
+    candidates: list[Path] = []
+    if run.file_path:
+        stored = Path(run.file_path)
+        candidates.append(stored)
+        candidates.append(REPORTS_DIR / stored.name)
+    candidates.append(REPORTS_DIR / f"report_{run.id}_{run.slug}.{fmt}")
+    seen: set[str] = set()
+    for path in candidates:
+        key = str(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        if path.is_file():
+            return path
+    return None
+
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
@@ -350,6 +378,24 @@ def _run_to_read(db: Session, run: ReportRun) -> ReportRunRead:
     )
 
 
+def run_to_read_dict(
+    db: Session,
+    run: ReportRun,
+    *,
+    resolved_path: Path | None = None,
+) -> dict[str, Any]:
+    """Schéma ReportRunRead sérialisé — même payload que l'UI Reports Center."""
+    data = _run_to_read(db, run).model_dump(mode="json")
+    data["download_url"] = f"/api/reports/runs/{run.id}/download"
+    if resolved_path is not None:
+        data["file_path"] = str(resolved_path)
+    elif run.file_path:
+        data["file_path"] = run.file_path
+    else:
+        data["file_path"] = ""
+    return data
+
+
 def _ensure_reports_dir() -> Path:
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     return REPORTS_DIR
@@ -493,12 +539,113 @@ def generate_report(
 
 def get_run_file(db: Session, run_id: int) -> tuple[ReportRun, Path]:
     run = db.get(ReportRun, run_id)
-    if run is None or not run.file_path:
+    if run is None:
         raise FileNotFoundError("run_not_found")
-    path = Path(run.file_path)
-    if not path.is_file():
+    path = resolve_run_path(run)
+    if path is None:
         raise FileNotFoundError("file_missing")
     return run, path
+
+
+def list_recent_runs(db: Session, *, limit: int = 8) -> list[ReportRunRead]:
+    rows = list(
+        db.scalars(
+            select(ReportRun).order_by(ReportRun.created_at.desc()).limit(min(max(limit, 1), 30))
+        ).all()
+    )
+    return [_run_to_read(db, r) for r in rows]
+
+
+_MEDIA_TYPES = {
+    "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "csv": "text/csv",
+    "json": "application/json",
+    "pdf": "application/pdf",
+}
+
+
+def share_run_preview(
+    db: Session,
+    run_id: int,
+    recipient_emails: list[str] | None = None,
+) -> dict[str, Any]:
+    """Preview partage — aligné POST /share confirm=false."""
+    run = db.get(ReportRun, run_id)
+    if run is None:
+        raise FileNotFoundError("run_not_found")
+    return {
+        "run_id": run_id,
+        "run_name": run.name,
+        "share_url": f"/api/reports/runs/{run.id}/download",
+        "message": "Confirmez l'envoi par e-mail (confirm=true).",
+        "pending_confirmation": True,
+        "recipients": list(recipient_emails or []),
+    }
+
+
+def share_run_by_email(
+    db: Session,
+    *,
+    run_id: int,
+    recipient_emails: list[str],
+    admin_id: int,
+) -> dict[str, object]:
+    """Partage un export ReportRun par e-mail (utilisateurs existants, pièce jointe)."""
+    from app.services.email_service import is_email_configured, send_email_with_attachment
+
+    run, path = get_run_file(db, run_id)
+    if not is_run_completed_status(run.status):
+        raise FileNotFoundError("run_not_completed")
+
+    smtp_ok = is_email_configured()
+    sent_to: list[str] = []
+    failures: list[str] = []
+    skipped: list[str] = []
+
+    for raw_email in recipient_emails:
+        email = (raw_email or "").strip().lower()
+        if not email:
+            continue
+        user = db.scalar(select(User).where(User.email.ilike(email)))
+        if user is None:
+            skipped.append(email)
+            continue
+        if str(user.status or "") != "active":
+            skipped.append(email)
+            continue
+        if not smtp_ok:
+            failures.append(email)
+            continue
+        body = (
+            f"Bonjour {user.full_name or ''},\n\n"
+            f"Veuillez trouver ci-joint le rapport admin : {run.name} ({run.format}).\n\n"
+            f"— Centre de rapports Globex"
+        )
+        try:
+            ok = send_email_with_attachment(
+                to=user.email,
+                subject=f"[Globex] Rapport admin — {run.name}",
+                body_text=body,
+                attachment_bytes=path.read_bytes(),
+                attachment_filename=path.name,
+                attachment_mime=_MEDIA_TYPES.get(run.format, "application/octet-stream"),
+            )
+            if ok:
+                sent_to.append(user.email)
+            else:
+                failures.append(email)
+        except Exception:
+            failures.append(email)
+
+    return {
+        "run_id": run_id,
+        "run_name": run.name,
+        "smtp_ok": smtp_ok,
+        "sent_to": sent_to,
+        "failures": failures,
+        "skipped_unknown_or_inactive": skipped,
+        "sent_count": len(sent_to),
+    }
 
 
 def preview_run(db: Session, run_id: int) -> ReportPreviewResponse:
@@ -509,6 +656,39 @@ def preview_run(db: Session, run_id: int) -> ReportPreviewResponse:
             cols = list(data[0].keys())
             rows = [[str(row.get(c, "")) for c in cols] for row in data[:20]]
             return ReportPreviewResponse(columns=cols, rows=rows, total_rows=len(data))
+        if isinstance(data, dict):
+            cols = list(data.keys())
+            return ReportPreviewResponse(columns=cols, rows=[[str(data.get(c, "")) for c in cols]], total_rows=1)
+    if path.suffix in {".xlsx", ".xls"}:
+        wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+        try:
+            ws = wb.active
+            row_iter = ws.iter_rows(values_only=True)
+            header_row = next(row_iter, None)
+            if not header_row:
+                return ReportPreviewResponse(columns=[], rows=[], total_rows=0)
+            cols = [str(c) if c is not None else "" for c in header_row]
+            rows: list[list[str]] = []
+            for i, row in enumerate(row_iter):
+                if i >= 20:
+                    break
+                rows.append([str(c) if c is not None else "" for c in row])
+            total = max((ws.max_row or 1) - 1, len(rows))
+            return ReportPreviewResponse(columns=cols, rows=rows, total_rows=total)
+        finally:
+            wb.close()
+    if path.suffix == ".csv":
+        with path.open(encoding="utf-8", newline="") as f:
+            all_rows = list(csv.reader(f))
+        if not all_rows:
+            return ReportPreviewResponse(columns=[], rows=[], total_rows=0)
+        cols = all_rows[0]
+        data_rows = all_rows[1:21]
+        return ReportPreviewResponse(
+            columns=[str(c) for c in cols],
+            rows=[[str(c) for c in row] for row in data_rows],
+            total_rows=max(len(all_rows) - 1, 0),
+        )
     return ReportPreviewResponse(
         columns=["Report", "Rows", "Format"],
         rows=[[run.name, str(run.row_count), run.format]],

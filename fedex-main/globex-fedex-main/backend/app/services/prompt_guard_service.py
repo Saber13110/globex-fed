@@ -126,7 +126,8 @@ _BLOCK_PATTERNS: list[tuple[str, re.Pattern[str], int]] = [
         "extract_secrets_request",
         re.compile(
             r"(donne|donne[rz]?|montre|affiche|envoie|partage|copie|r[eé]v[eè]le|give|show|share|send|leak).{0,40}"
-            r"(code|source|secret|prompt|cl[eé]|api|token|credentials?|mot\s+de\s+passe|fichiers?|repo|github)",
+            r"(cl[eé]\s*api|api\s*key|secret\s*key|prompt\s*syst|system\s*prompt|token|credentials?|"
+            r"mot\s+de\s+passe|fichiers?\s+env|\.env|repo|github)",
             re.I,
         ),
         60,
@@ -319,7 +320,9 @@ _STRICT_ATTACK_PATTERNS: list[re.Pattern[str]] = [
 _LEGITIMATE_COPILOT_RE = re.compile(
     r"\b("
     r"pdf|excel|xlsx|export|g[eé]n[eè]r|notif|tracking|logs?|utilisateurs?|users?|"
-    r"tickets?|conversations?|derni[eè]res?|affiche|liste|donne|comptes?"
+    r"tickets?|conversations?|derni[eè]res?|affiche|liste|donne|comptes?|"
+    r"plateforme|platform|dashboard|kpi|activit[eé]|r[eé]sum[eé]|retards?|incidents?|"
+    r"rapport|report|export|preview|partager|partage"
     r")\b",
     re.I,
 )
@@ -360,11 +363,25 @@ def assess_user_message(text: str, *, ui_language: str | None = None) -> RiskRes
                 reasons=[*result.reasons, "strict_security_attack"],
             )
         return result
+    if is_legitimate_copilot_request(text):
+        return RiskResult(score=0, level=RiskLevel.ok, reasons=["legitimate_copilot"])
+    try:
+        from app.services.admin_client.dashboard.dashboard_workspace import is_dashboard_workspace
+
+        if is_dashboard_workspace(text):
+            return RiskResult(score=0, level=RiskLevel.ok, reasons=["admin_dashboard"])
+    except ImportError:
+        pass
+    try:
+        from app.services.admin_client.reports.reports_workspace import is_reports_workspace
+
+        if is_reports_workspace(text):
+            return RiskResult(score=0, level=RiskLevel.ok, reasons=["admin_reports"])
+    except ImportError:
+        pass
     result = assess_text(text)
     if result.level == RiskLevel.block:
         return result
-    if is_legitimate_copilot_request(text):
-        return RiskResult(score=0, level=RiskLevel.ok, reasons=[])
     return result
 
 

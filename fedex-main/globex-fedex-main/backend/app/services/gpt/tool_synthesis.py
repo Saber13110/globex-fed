@@ -607,6 +607,59 @@ def _format_tool(name: str, payload: dict[str, Any], *, lang: str) -> str | None
             f"admins {payload.get('admins', 0)}."
         )
 
+    if name in {"analyze_security", "get_security_alerts"}:
+        sample = payload.get("sample") or []
+        total = int(payload.get("total") or 0)
+        open_count = int(payload.get("open_count") or 0)
+        note = str(payload.get("message") or "").strip()
+        if note and not sample:
+            return note
+        if not sample:
+            if lang == "fr":
+                return (
+                    f"Aucun incident sécurité enregistré "
+                    f"({open_count} ouvert(s) sur {total} au total)."
+                )
+            return f"No security incidents recorded ({open_count} open of {total} total)."
+
+        def _fmt_incident(inc: dict[str, Any]) -> str:
+            title = str(inc.get("title") or inc.get("threat_type") or "Incident").strip()
+            severity = str(inc.get("severity") or "—")
+            threat = str(inc.get("threat_type") or "—")
+            when = inc.get("created_at")
+            when_s = str(when)[:19] if when else "—"
+            ip = str(inc.get("ip_address") or "—")
+            user = inc.get("user_email") or inc.get("user_name") or "—"
+            summary = str(inc.get("summary") or "").strip()
+            lines = [
+                f"**{title}**",
+                f"- Type : {threat} | Sévérité : {severity} | Statut : {inc.get('status', '—')}",
+                f"- Date : {when_s} | IP : {ip} | Compte : {user}",
+            ]
+            if summary:
+                lines.append(f"- Résumé : {summary[:240]}")
+            action = str(inc.get("recommended_action") or "").strip()
+            if action:
+                lines.append(f"- Action recommandée : {action[:160]}")
+            return "\n".join(lines)
+
+        if len(sample) == 1:
+            header = (
+                "Voici la **dernière tentative d'attaque** enregistrée :"
+                if lang == "fr"
+                else "Here is the **most recent attack attempt** on record:"
+            )
+            return f"{header}\n\n{_fmt_incident(sample[0])}"
+
+        if lang == "fr":
+            header = f"**{len(sample)} incident(s) sécurité** ({open_count} ouvert(s) sur {total}) :"
+        else:
+            header = f"**{len(sample)} security incident(s)** ({open_count} open of {total}):"
+        body = "\n\n".join(_fmt_incident(inc) for inc in sample[:10] if isinstance(inc, dict))
+        if len(sample) > 10:
+            body += f"\n\n… +{len(sample) - 10} autre(s)"
+        return f"{header}\n\n{body}"
+
     if name == "get_platform_stats":
         return (
             f"KPIs plateforme — utilisateurs actifs {payload.get('active_users', '—')}, "

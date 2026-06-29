@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
 
 import { API_BASE_URL } from '../api.config';
+import { AdminExportDownloadSpec } from './admin-ai.service';
+import { ShipmentSummary } from './chatbot.service';
 
 export interface AgentWindowHistoryMessage {
   role: 'user' | 'assistant';
@@ -14,6 +16,11 @@ export interface AgentWindowChatRequest {
   message: string;
   session_id?: string | null;
   conversation_history?: AgentWindowHistoryMessage[];
+  ui_language?: string;
+  chat_session_id?: number | null;
+  image_base64?: string | null;
+  image_mime_type?: string | null;
+  file_name?: string | null;
 }
 
 export interface AgentWindowChatResponse {
@@ -24,6 +31,9 @@ export interface AgentWindowChatResponse {
   latency_ms?: number | null;
   redirect_to_copilot?: boolean;
   copilot_hint?: string | null;
+  shipment?: ShipmentSummary | null;
+  chat_session_id?: number | null;
+  export_download?: AdminExportDownloadSpec | null;
 }
 
 export interface AgentWindowSession {

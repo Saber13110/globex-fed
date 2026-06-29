@@ -413,11 +413,81 @@
   // ── Widget Chat : envoi de message texte ──────────────────────────
   let _chatSending = false;
   const GLOBEX_PENDING_KEY = "jarvis_globex_pending";
+  const GLOBEX_ADMIN_CHAT_SESSION_KEY = "globex_admin_chat_session_id";
+  const GLOBEX_ADMIN_ALLOWED_MIME = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+  ]);
   const GLOBEX_APPROVE_YES = /^(oui|yes|ok|d['']accord|j\s*autorise|jautorise|approuve|approuver|vas[- ]?y|go|autorise)\b/i;
   const GLOBEX_APPROVE_NO = /^(non|no|refuse|refuser|annule|annuler|stop)\b/i;
 
   let _pendingAttachment = null;
   const CHAT_FILE_ACCEPT = /\.(txt|md|csv|xlsx|xls|pdf|png|jpe?g|webp)$/i;
+
+  function readGlobexAdminChatSessionId() {
+    try {
+      const raw = localStorage.getItem(GLOBEX_ADMIN_CHAT_SESSION_KEY);
+      if (!raw) return null;
+      const id = parseInt(raw, 10);
+      return Number.isFinite(id) && id > 0 ? id : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function persistGlobexAdminChatSessionId(id) {
+    try {
+      if (id != null && id > 0) {
+        localStorage.setItem(GLOBEX_ADMIN_CHAT_SESSION_KEY, String(id));
+      }
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function readFileAsGlobexAttachment(file) {
+    return new Promise(function (resolve, reject) {
+      if (!GLOBEX_ADMIN_ALLOWED_MIME.has(file.type)) {
+        reject(new Error("Format de fichier non pris en charge."));
+        return;
+      }
+      const maxBytes = file.type.startsWith("image/") ? 4 * 1024 * 1024 : 10 * 1024 * 1024;
+      if (file.size > maxBytes) {
+        reject(new Error("Fichier trop volumineux."));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function () {
+        const result = reader.result;
+        if (typeof result !== "string") {
+          reject(new Error("Lecture fichier impossible."));
+          return;
+        }
+        const comma = result.indexOf(",");
+        const base64 = comma >= 0 ? result.slice(comma + 1) : "";
+        if (!base64) {
+          reject(new Error("Lecture fichier impossible."));
+          return;
+        }
+        resolve({ base64: base64, mime: file.type, name: file.name });
+      };
+      reader.onerror = function () {
+        reject(new Error("Lecture fichier impossible."));
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function sendGlobexFileMessage(file, question, streamTarget) {
+    const att = await readFileAsGlobexAttachment(file);
+    const text = (question || "").trim() || "résume ce document";
+    return sendGlobexChatMessage(text, streamTarget, att);
+  }
 
   function getGlobexPending() {
     try {
@@ -1287,26 +1357,40 @@
       const role = roleEl.classList.contains("assistant") ? "assistant" : "user";
       out.push({ role, content });
     });
-    return out.slice(-limit);
+    const limited = out.slice(-limit);
+    if (limited.length && limited[limited.length - 1].role === "user") {
+      return limited.slice(0, -1);
+    }
+    return limited;
   }
 
-  async function sendGlobexChatMessage(text, streamTarget) {
-    const looksExport = /\b(pdf|export|exporter|g[eé]n[eè]re|g[eé]nere|t[eé]l[eé]charger|fichier)\b/i.test(text);
+  async function sendGlobexChatMessage(text, streamTarget, attachment) {
+    const msg = (text || "").trim();
+    const looksExport = /\b(pdf|export|exporter|g[eé]n[eè]re|g[eé]nere|t[eé]l[eé]charger|fichier)\b/i.test(msg);
     const thinkStarted = Date.now();
     if (streamTarget && looksExport) {
       streamTarget.textContent = "Fedex-v0 prépare le fichier…";
       setOrbState("thinking");
     }
 
+    const payload = {
+      message: msg || (attachment ? "résume ce document" : ""),
+      agent_mode: true,
+      ui_language: "fr",
+      conversation_history: collectGlobexHistory(),
+    };
+    const sessionId = readGlobexAdminChatSessionId();
+    if (sessionId) payload.chat_session_id = sessionId;
+    if (attachment) {
+      payload.image_base64 = attachment.base64;
+      payload.image_mime_type = attachment.mime;
+      payload.file_name = attachment.name;
+    }
+
     const resp = await fetch("/api/globex/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...(J.authHeaders ? J.authHeaders() : {}) },
-      body: JSON.stringify({
-        message: text,
-        agent_mode: true,
-        ui_language: "fr",
-        conversation_history: collectGlobexHistory(),
-      }),
+      body: JSON.stringify(payload),
     });
     let data = {};
     try {
@@ -1329,6 +1413,9 @@
 
     if (data.export_download && data.export_download.preset) {
       cacheExportDownload(data.export_download);
+    }
+    if (data.chat_session_id) {
+      persistGlobexAdminChatSessionId(data.chat_session_id);
     }
 
     const reply = formatGlobexReply(data);
@@ -1367,7 +1454,11 @@
 
     try {
       if (attachment) {
-        await sendAssistantFileMessage(attachment.file, text, streamTarget);
+        if (useGlobex) {
+          await sendGlobexFileMessage(attachment.file, text, streamTarget);
+        } else {
+          await sendAssistantFileMessage(attachment.file, text, streamTarget);
+        }
       } else if (useGlobex) {
         const handled = await handleGlobexPendingChat(text, streamTarget);
         if (!handled) {

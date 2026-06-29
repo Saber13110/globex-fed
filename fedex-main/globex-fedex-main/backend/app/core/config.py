@@ -94,6 +94,8 @@ class Settings(BaseSettings):
     client_agent_capabilities: str = "chat"
     # Phase 4 — routeur sémantique Ollama (list/summarize sessions). false = flux Phase 2/3 inchangé.
     client_agent_router_enabled: bool = False
+    # Capacités client réutilisées côté admin (pipeline admin_client). Indépendant du portail client.
+    admin_client_capabilities: str = "fedex,pdf,excel,document_read,notifications"
 
     # Phase 3 — RAG vectoriel (PGVector + embeddings Gemini)
     gpt_rag_vector_enabled: bool = True
@@ -152,6 +154,8 @@ class Settings(BaseSettings):
     globex_proactive_sla_limit: int = 10
     globex_proactive_dormant_days: int = 30
     globex_proactive_dormant_limit: int = 10
+    globex_ollama_warmup_on_start: bool = True
+    globex_simple_mode: bool = True  # Phase 0 : Ollama seul (désactiver pour P0/P2/P1)
 
     client_document_max_mb: int = 10
     client_document_max_chars: int = 12000

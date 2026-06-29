@@ -126,10 +126,11 @@ def globex_agent_chat(
     _ensure_enabled()
     settings = get_settings()
     message = (payload.message or "").strip()
-    if not message:
+    has_attachment = bool((payload.image_base64 or "").strip())
+    if not message and not has_attachment:
         raise HTTPException(status_code=400, detail="Message requis.")
 
-    if settings.prompt_guard_enabled:
+    if message and settings.prompt_guard_enabled:
         risk = assess_user_message(message)
         if must_block_preferences(risk) and settings.prompt_guard_block_chat:
             raise HTTPException(status_code=403, detail="Message bloqué par la politique de sécurité.")
@@ -145,6 +146,10 @@ def globex_agent_chat(
             conversation_history=hist,
             ui_language=payload.ui_language,
             ip_address=client_ip(request),
+            chat_session_id=payload.chat_session_id,
+            image_base64=payload.image_base64,
+            image_mime_type=payload.image_mime_type,
+            file_name=payload.file_name,
         )
     except Exception as exc:
         logger.exception("[GlobexAgent] erreur chat")
@@ -169,6 +174,8 @@ def globex_agent_chat(
         llm_degraded=bool(result.get("llm_degraded")),
         intent=result.get("intent"),
         execution_time_ms=result.get("execution_time_ms"),
+        shipment=result.get("shipment"),
+        chat_session_id=result.get("chat_session_id"),
     )
 
 

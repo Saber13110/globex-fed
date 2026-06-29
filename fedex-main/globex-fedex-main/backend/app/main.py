@@ -63,9 +63,28 @@ def on_startup() -> None:
     if settings.globex_agent_enabled and settings.globex_proactive_enabled:
         threading.Thread(target=_globex_proactive_loop, name="globex-proactive", daemon=True).start()
         threading.Thread(target=_run_globex_proactive_once, name="globex-proactive-initial", daemon=True).start()
+    if settings.globex_agent_enabled and settings.globex_ollama_warmup_on_start and settings.llm_enabled:
+        threading.Thread(target=_globex_ollama_warmup, name="globex-ollama-warmup", daemon=True).start()
     if settings.daily_report_scheduler_enabled:
         threading.Thread(target=_daily_report_loop, name="daily-report", daemon=True).start()
         threading.Thread(target=_run_daily_report_once, name="daily-report-initial", daemon=True).start()
+
+
+def _globex_ollama_warmup() -> None:
+    from app.services.globex_agent.ollama_readiness import ollama_inference_ready
+
+    try:
+        ready = ollama_inference_ready(force=True)
+        if ready:
+            logger.info("Globex Agent : Ollama warmup OK (%s)", settings.ollama_model)
+        else:
+            logger.warning(
+                "Globex Agent : Ollama warmup échoué — routes locales actives, "
+                "lancez: ollama run %s",
+                settings.ollama_model,
+            )
+    except Exception:
+        logger.exception("Globex Agent : erreur warmup Ollama")
 
 
 def _run_watch_cycle_once() -> None:

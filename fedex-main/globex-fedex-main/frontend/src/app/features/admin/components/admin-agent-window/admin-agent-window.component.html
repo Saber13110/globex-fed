@@ -55,6 +55,16 @@
             @else { Globex }
           </span>
           <div class="jwin__msg-body" [innerHTML]="m.content | chatFormattedText"></div>
+          @if (showShipmentCard(m.shipment)) {
+            <div class="jwin__shipment-card">
+              <app-shipment-card [shipment]="m.shipment!" [compact]="true" />
+            </div>
+          }
+          @if (m.exportDownload) {
+            <button type="button" class="jwin__btn jwin__btn--ghost jwin__dl-btn" (click)="downloadExport(m.exportDownload!)">
+              ⬇ {{ m.exportDownload.filename || 'export' }}
+            </button>
+          }
           @if (m.latencyMs) {
             <small class="jwin__msg-meta">{{ m.latencyMs | number: '1.0-0' }} ms</small>
           }
@@ -72,7 +82,30 @@
       <p class="jwin__error">{{ error() }}</p>
     }
 
+    @if (attachment(); as att) {
+      <div class="jwin__attachment">
+        <span class="jwin__attachment-name">📎 {{ att.name }}</span>
+        <button type="button" class="jwin__attachment-remove" (click)="removeAttachment()" aria-label="Retirer">×</button>
+      </div>
+    }
+
     <footer class="jwin__composer">
+      <input
+        #fileInput
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.xlsx,.xls"
+        (change)="onFileSelected($event)"
+        hidden
+      />
+      <button
+        type="button"
+        class="jwin__btn jwin__btn--ghost jwin__attach"
+        (click)="openFilePicker()"
+        [attr.title]="'admin.jarvis.sidebar.attachFile' | t"
+        [attr.aria-label]="'admin.jarvis.sidebar.attachFile' | t"
+      >
+        📎
+      </button>
       <textarea
         class="jwin__input"
         rows="2"
@@ -80,12 +113,16 @@
         (ngModelChange)="prompt.set($event)"
         [placeholder]="'admin.jarvisWindow.placeholder' | t"
         (keydown.enter)="onEnter($event)"
+        (paste)="onPaste($event)"
       ></textarea>
       <button type="button" class="jwin__btn jwin__btn--primary" [disabled]="!canSend()" (click)="send()">
         {{ 'admin.jarvisWindow.send' | t }}
       </button>
     </footer>
 
+    <p class="jwin__foot-hint">
+      {{ 'admin.jarvis.sidebar.pasteHint' | t }}
+    </p>
     <p class="jwin__foot-hint">
       {{ 'admin.jarvisWindow.copilotHint' | t }}
       <button type="button" class="jwin__link" (click)="goToCopilot()">{{ 'admin.nav.aiAssistant' | t }}</button>

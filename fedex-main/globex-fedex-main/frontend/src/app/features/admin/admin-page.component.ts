@@ -32,6 +32,7 @@ import { AdminAuditLogsComponent, AuditLogNavigateEvent } from './components/adm
 import { AdminSupportTicketsComponent } from './components/admin-support-tickets/admin-support-tickets.component';
 import { AdminSettingsComponent } from './components/admin-settings/admin-settings.component';
 import { AdminReportsComponent } from './components/admin-reports/admin-reports.component';
+import { AdminJarvisSidebarComponent } from './components/admin-jarvis-sidebar/admin-jarvis-sidebar.component';
 import { AdminAiAssistantComponent } from './components/admin-ai-assistant/admin-ai-assistant.component';
 import { AdminAiHealthComponent } from './components/admin-ai-health/admin-ai-health.component';
 import { AdminGptKnowledgeComponent } from './components/admin-gpt-knowledge/admin-gpt-knowledge.component';
@@ -80,6 +81,7 @@ export type AdminSection =
     AdminGptKnowledgeComponent,
     AdminNotificationsComponent,
     AdminSecurityComponent,
+    AdminJarvisSidebarComponent,
     AdminSupportDrawerComponent,
     AdminEmployeeChatDrawerComponent,
   ],
@@ -92,6 +94,7 @@ export class AdminPageComponent implements OnInit, OnDestroy {
   }
 
   readonly activeSection = signal<AdminSection>('dashboard');
+  readonly jarvisDrawerOpen = signal(AdminJarvisSidebarComponent.readPersistedOpen());
   readonly agentMissionsActive = signal(false);
   readonly activeTab = signal<AdminTab>('overview');
   readonly globalSearch = signal('');
@@ -182,7 +185,6 @@ export class AdminPageComponent implements OnInit, OnDestroy {
         title: '',
         items: [
           { id: 'dashboard' as AdminSection, label: this.i18n.t('admin.nav.dashboard'), icon: 'grid' },
-          { id: 'ai-assistant' as AdminSection, label: this.i18n.t('admin.nav.aiAssistant'), icon: 'sparkles' },
           { id: 'ai-health' as AdminSection, label: 'AI Health', icon: 'activity' },
           { id: 'gpt-knowledge' as AdminSection, label: 'Base connaissances GPT', icon: 'file' },
           { id: 'conversations' as AdminSection, label: this.i18n.t('admin.nav.conversations'), icon: 'message' },
@@ -316,6 +318,19 @@ export class AdminPageComponent implements OnInit, OnDestroy {
 
   openJarvisUi(): void {
     window.open(JARVIS_UI_URL, '_blank', 'noopener,noreferrer');
+  }
+
+  toggleJarvisDrawer(): void {
+    this.jarvisDrawerOpen.update((open) => {
+      const next = !open;
+      AdminJarvisSidebarComponent.persistOpen(next);
+      return next;
+    });
+  }
+
+  closeJarvisDrawer(): void {
+    this.jarvisDrawerOpen.set(false);
+    AdminJarvisSidebarComponent.persistOpen(false);
   }
 
   setSection(section: AdminSection): void {

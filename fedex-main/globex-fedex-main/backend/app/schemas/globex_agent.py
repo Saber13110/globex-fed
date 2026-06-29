@@ -6,6 +6,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from app.schemas.chat import ShipmentSummary
+
 
 class GlobexAgentHistoryMessage(BaseModel):
     role: Literal["user", "assistant"]
@@ -13,10 +15,15 @@ class GlobexAgentHistoryMessage(BaseModel):
 
 
 class GlobexAgentChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=8000)
+    message: str = Field(default="", max_length=8000)
     agent_mode: bool = False
     conversation_history: list[GlobexAgentHistoryMessage] = Field(default_factory=list)
     ui_language: str = "fr"
+    # Pipeline admin_client : session miroir + pièce jointe (image / PDF / Excel).
+    chat_session_id: int | None = None
+    image_base64: str | None = None
+    image_mime_type: str | None = None
+    file_name: str | None = None
 
 
 class GlobexAgentStep(BaseModel):
@@ -39,6 +46,8 @@ class GlobexAgentChatResponse(BaseModel):
     llm_degraded: bool = False
     intent: str | None = None
     execution_time_ms: float | None = None
+    shipment: ShipmentSummary | None = None
+    chat_session_id: int | None = None
 
 
 class GlobexAgentToolExecuteRequest(BaseModel):
@@ -93,6 +102,7 @@ class GlobexAgentHealthResponse(BaseModel):
     ollama_online: bool
     detail: str | None = None
     kernel_version: str = "unknown"
+    simple_mode: bool = False
     proactive: dict[str, Any] = Field(default_factory=dict)
 
 

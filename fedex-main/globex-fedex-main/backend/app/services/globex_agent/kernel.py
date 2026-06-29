@@ -25,27 +25,34 @@ from app.services.globex_agent.client_action_planner import (
     is_client_communication_action,
     plan_client_action_tools,
 )
+from app.services.admin_client.pipeline import run_admin_client_turn
+from app.services.admin_client.tracking_rescue import (
+    build_tracking_error_kernel_result,
+    try_admin_kernel_tracking_rescue,
+)
+from app.services.globex_agent.admin_action_bridge import try_admin_simple_actions
+from app.services.globex_agent.admin_chat import admin_ollama_chat
+from app.services.globex_agent.language import resolve_admin_chat_language
+from app.services.llm.tracking_extract import extract_tracking_number
+from app.utils.tracking_parser import is_plausible_tracking_number
 from app.services.globex_agent.local_replies import (
-    capabilities_reply_text,
-    greeting_reply_text,
-    is_capabilities_message,
-    is_greeting_message,
     naturalize_tool_reply,
     ollama_unavailable_reply,
 )
-from app.services.globex_agent.prompts import globex_system_for_lang
+from app.services.globex_agent.ollama_readiness import ollama_inference_ready
+from app.services.globex_agent.read_action_planner import plan_read_action_tools
+from app.services.globex_agent.routers import plan_admin_platform_task, plan_to_tool_calls
 from app.services.globex_agent.scan_action_planner import plan_scan_action_tools
+from app.services.globex_agent.security_action_planner import plan_security_action_tools
 from app.services.admin_agent_tools import find_user_for_task
 from app.services.gpt.admin_reasoning_engine import filter_tools_for_admin_mode
 from app.services.gpt.intent_classifier import classify_intent
 from app.services.gpt.orchestrator import SLUG_ADMIN, load_gpt_by_slug
-from app.services.gpt.prompt_composer import build_gpt_user_payload
 from app.services.gpt.tool_executor import execute_tool
-from app.services.gpt.tool_registry import list_tools_for_gpt, ollama_tool_declarations
+from app.services.gpt.tool_registry import list_tools_for_gpt
 from app.services.gpt.tool_synthesis import synthesize_tool_results
 from app.services.gpt.tool_types import ToolCall
-from app.services.jarvis.context_builder import build_globex_context_block
-from app.services.llm.providers import ollama_tool_agent_loop
+from app.services.llm.providers import LlmProviderError
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +144,14 @@ def _humanize_action_with_ollama(
     base = (local_reply or "").strip()
     if not base:
         return base, True
+    lang = (ui_language or "fr").lower()[:2]
+    if not ollama_inference_ready():
+        natural = naturalize_tool_reply(
+            tool_payloads, message=message, lang=lang,
+        )
+        if natural:
+            return natural, True
+        return base, True
     try:
         from app.services.gpt.model_gateway import generate_ollama_admin_fast
 
@@ -195,6 +210,15 @@ def _fallback_reply(
     if local:
         return local, True
 
+    lang = (ui_language or "fr").lower()[:2]
+    if not ollama_inference_ready():
+        natural = naturalize_tool_reply(
+            tool_payloads, message=message, lang=lang,
+        )
+        if natural:
+            return natural, True
+        return ollama_unavailable_reply(lang=lang), True
+
     from app.services.gpt.model_gateway import generate_ollama_admin_fast
 
     settings = get_settings()
@@ -215,7 +239,7 @@ def _fallback_reply(
         return synthesized, False
 
     lang = (ui_language or "fr").lower()[:2]
-    if not _probe_ollama_inference():
+    if not ollama_inference_ready():
         return ollama_unavailable_reply(lang=lang), True
     return (
         "Je n'ai pas pu formuler une réponse. Réessayez ou précisez votre demande."
@@ -277,20 +301,92 @@ def run_globex_agent_chat(
     conversation_history: list[dict[str, str]] | None = None,
     ui_language: str = "fr",
     ip_address: str = "",
+    chat_session_id: int | None = None,
+    image_base64: str | None = None,
+    image_mime_type: str | None = None,
+    file_name: str | None = None,
 ) -> dict[str, Any]:
     """
-    Pipeline LLM-first : Ollama (llama3.2) choisit les outils, reçoit les données, reformule.
-    Aucun planificateur déterministe n'exécute d'outils avant le modèle.
+    Pipeline cascade client-like :
+    P0 planifiers métier → P2 routeur JSON → P1 chat Ollama → P3 boucle outils réduite.
     """
-    settings = get_settings()
     started = time.perf_counter()
-    lang = (ui_language or "fr").lower()[:2]
-    if lang not in {"fr", "en", "ar"}:
-        lang = "fr"
+    lang = resolve_admin_chat_language(message, ui_language)
 
-    if is_greeting_message(message):
+    settings = get_settings()
+    if settings.globex_simple_mode:
+        # PHASE -1 — pipeline client (suivi/PDF/Excel/documents/notifications) ; None = poursuivre
+        pipeline_result = run_admin_client_turn(
+            db,
+            admin,
+            message,
+            conversation_history=conversation_history,
+            ui_language=lang,
+            chat_session_id=chat_session_id,
+            image_base64=image_base64,
+            image_mime_type=image_mime_type,
+            file_name=file_name,
+            ip_address=ip_address,
+            started=started,
+        )
+        if pipeline_result is not None:
+            return pipeline_result
+
+        # PHASE 0.5 — tracking/exports déterministes, puis Ollama si aucun match
+        bridge_result = try_admin_simple_actions(
+            db,
+            admin,
+            message,
+            conversation_history=conversation_history,
+            ui_language=lang,
+            agent_mode=agent_mode,
+            ip_address=ip_address,
+            started=started,
+        )
+        if bridge_result is not None:
+            return bridge_result
+
+        rescue_result = try_admin_kernel_tracking_rescue(
+            db,
+            admin,
+            message,
+            conversation_history=conversation_history,
+            ui_language=lang,
+            chat_session_id=chat_session_id,
+            ip_address=ip_address,
+            started=started,
+        )
+        if rescue_result is not None:
+            return rescue_result
+
+        tn_guard = extract_tracking_number(message or "")
+        if tn_guard and is_plausible_tracking_number(tn_guard):
+            return build_tracking_error_kernel_result(
+                message=message,
+                ui_language=lang,
+                admin=admin,
+                ip_address=ip_address,
+                started=started,
+            )
+
+        # PHASE 0 — Ollama seul. REACTIVER P0/P2/P1 : GLOBEX_SIMPLE_MODE=false
+        llm_degraded = False
+        tools_used: list[str] = []
+        try:
+            llm_reply = admin_ollama_chat(
+                message,
+                ui_language=lang,
+                conversation_history=conversation_history,
+                agent_mode=agent_mode,
+            )
+            tools_used.append("ollama_chat")
+        except LlmProviderError as exc:
+            logger.warning("[GlobexAgent] Phase 0 Ollama échec : %s", exc)
+            llm_reply = ollama_unavailable_reply(lang=lang)
+            tools_used.append("ollama_chat")
+            llm_degraded = True
+
         elapsed = round((time.perf_counter() - started) * 1000, 1)
-        reply = greeting_reply_text(lang=lang, agent_mode=agent_mode, message=message)
         write_log(
             db,
             action="globex_agent.chat",
@@ -299,13 +395,18 @@ def run_globex_agent_chat(
             level="INFO",
             actor_user_id=admin.id,
             ip_address=ip_address,
-            metadata={"agent_mode": agent_mode, "tools": ["greeting"], "orchestrator": "local"},
+            metadata={
+                "agent_mode": agent_mode,
+                "tools": tools_used,
+                "orchestrator": "ollama_chat",
+                "simple_mode": True,
+            },
         )
         db.commit()
         return {
-            "reply": reply,
+            "reply": llm_reply,
             "mode": "jarvis",
-            "tools_used": ["greeting"],
+            "tools_used": tools_used,
             "agent_steps": [],
             "needs_approval": False,
             "approval_id": None,
@@ -313,41 +414,12 @@ def run_globex_agent_chat(
             "mission_id": None,
             "action_executed": False,
             "export_download": None,
-            "llm_degraded": False,
-            "intent": "greeting",
+            "llm_degraded": llm_degraded,
+            "intent": "general_question",
             "execution_time_ms": elapsed,
         }
 
-    if is_capabilities_message(message):
-        elapsed = round((time.perf_counter() - started) * 1000, 1)
-        reply = capabilities_reply_text(lang=lang, agent_mode=agent_mode)
-        write_log(
-            db,
-            action="globex_agent.chat",
-            message=message[:120],
-            category="admin",
-            level="INFO",
-            actor_user_id=admin.id,
-            ip_address=ip_address,
-            metadata={"agent_mode": agent_mode, "tools": ["capabilities"], "orchestrator": "local"},
-        )
-        db.commit()
-        return {
-            "reply": reply,
-            "mode": "jarvis",
-            "tools_used": ["capabilities"],
-            "agent_steps": [],
-            "needs_approval": False,
-            "approval_id": None,
-            "approval_hint": None,
-            "mission_id": None,
-            "action_executed": False,
-            "export_download": None,
-            "llm_degraded": False,
-            "intent": "capabilities",
-            "execution_time_ms": elapsed,
-        }
-
+    # REACTIVER: GLOBEX_SIMPLE_MODE=false — pipeline P0 → P2 → P1 ci-dessous
     gpt = load_gpt_by_slug(db, SLUG_ADMIN)
     if gpt is None:
         raise RuntimeError("Configuration GPT admin introuvable.")
@@ -370,7 +442,6 @@ def run_globex_agent_chat(
     )
     if client_action:
         tools = filter_tools_for_client_communication(tools)
-    declarations = ollama_tool_declarations(tools)
     classification = classify_intent(message, SLUG_ADMIN)
 
     agent_steps: list[dict[str, Any]] = []
@@ -383,24 +454,7 @@ def run_globex_agent_chat(
     export_download: dict[str, Any] | None = None
     action_executed = False
 
-    context_block = build_globex_context_block(db, admin)
     hist_text = _format_history(conversation_history)
-    system = globex_system_for_lang(lang, agent_mode=agent_mode)
-    user_payload = build_gpt_user_payload(
-        message,
-        knowledge_text="",
-        memory_text="",
-        operational_context=context_block,
-        ui_language=lang,
-        conversation_history=hist_text or None,
-    )
-    if client_action:
-        user_payload += (
-            "\n\n[CONSIGNE SYSTÈME] L'admin demande d'ENVOYER un message (mail ou notification), "
-            "PAS un export PDF. Étapes : 1) search_users si besoin pour trouver l'utilisateur "
-            "2) send_client_email (SMTP) ou notify_user (notification in-app). "
-            "Reformule ta réponse finale en français naturel."
-        )
 
     def _on_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
         nonlocal needs_approval, approval_id, mission_id, approval_hint
@@ -446,9 +500,6 @@ def run_globex_agent_chat(
         })
         return resp
 
-    ollama_timeout = float(
-        settings.ai_llm_ollama_timeout_seconds or settings.ollama_timeout_seconds or 120,
-    )
     llm_reply = ""
     llm_degraded = False
     planned_tools = (
@@ -461,14 +512,26 @@ def run_globex_agent_chat(
         if agent_mode and not planned_tools
         else None
     )
+    planned_security = (
+        plan_security_action_tools(message)
+        if agent_mode and not planned_tools and not planned_scan
+        else None
+    )
     planned_export = (
         plan_export_tools(message, conversation_history)
-        if agent_mode and not planned_tools and not planned_scan and not client_action
+        if agent_mode and not planned_tools and not planned_scan and not planned_security and not client_action
+        else None
+    )
+    planned_read = (
+        plan_read_action_tools(message, classification.intent, conversation_history)
+        if agent_mode and not planned_tools and not planned_scan and not planned_security and not planned_export
         else None
     )
     deterministic_comm = False
     deterministic_scan = False
+    deterministic_security = False
     deterministic_export = False
+    deterministic_read_plan = False
 
     if planned_tools:
         deterministic_comm = True
@@ -481,35 +544,31 @@ def run_globex_agent_chat(
         deterministic_scan = True
         for tool_name, tool_args in planned_scan:
             _on_tool(tool_name, dict(tool_args or {}))
+    elif planned_security:
+        deterministic_security = True
+        for tool_name, tool_args in planned_security:
+            _on_tool(tool_name, dict(tool_args or {}))
     elif planned_export:
         deterministic_export = True
         for tool_name, tool_args in planned_export:
             _on_tool(tool_name, dict(tool_args or {}))
+    elif planned_read:
+        deterministic_read_plan = True
+        for tool_name, tool_args in planned_read:
+            _on_tool(tool_name, dict(tool_args or {}))
 
-    if declarations and not deterministic_comm and not deterministic_scan and not deterministic_export:
-        try:
-            def _loop() -> tuple[str, list[str]]:
-                return ollama_tool_agent_loop(
-                    system_instruction=system,
-                    user_payload=user_payload,
-                    tool_declarations=declarations,
-                    on_tool_call=_on_tool,
-                    max_rounds=min(settings.gpt_tool_max_rounds, 4),
-                    max_output_tokens=1024,
-                )
+    deterministic_any = (
+        deterministic_comm
+        or deterministic_scan
+        or deterministic_security
+        or deterministic_export
+        or deterministic_read_plan
+    )
+    orchestrator = "deterministic"
 
-            llm_reply, extra_tools = run_with_timeout(
-                _loop, timeout_seconds=ollama_timeout, label="globex-agent-loop",
-            ) or ("", [])
-            for t in extra_tools or []:
-                if t and t not in tools_used:
-                    tools_used.append(t)
-        except Exception as exc:
-            logger.warning("[GlobexAgent] boucle Ollama : %s", exc)
-            llm_degraded = True
-    elif (deterministic_comm or deterministic_scan or deterministic_export) and tool_payloads:
+    if deterministic_any and tool_payloads:
         local = synthesize_tool_results(tool_payloads, ui_language=lang)
-        if deterministic_scan:
+        if deterministic_scan or deterministic_security or deterministic_read_plan:
             llm_reply = local or ""
             llm_degraded = not bool(local)
         else:
@@ -527,6 +586,51 @@ def run_globex_agent_chat(
                     llm_reply="",
                 )
             if synth_degraded:
+                llm_degraded = True
+    elif not deterministic_any:
+        platform_plan = plan_admin_platform_task(
+            message,
+            conversation_history=hist_text or None,
+            ui_language=lang,
+        )
+        if platform_plan and platform_plan.get("needs_clarification") and platform_plan.get(
+            "clarification_question",
+        ):
+            llm_reply = platform_plan["clarification_question"]
+            tools_used.append("platform_router")
+            orchestrator = "platform_router"
+        elif platform_plan and platform_plan.get("ready_to_execute"):
+            tools_used.append("platform_router")
+            orchestrator = "platform_router"
+            intro = platform_plan.get("assistant_intro") or ""
+            for tool_name, tool_args in plan_to_tool_calls(platform_plan):
+                _on_tool(tool_name, tool_args)
+            local = synthesize_tool_results(tool_payloads, ui_language=lang)
+            llm_reply = local or intro
+            if tool_payloads:
+                llm_reply, synth_degraded = _humanize_action_with_ollama(
+                    message=message,
+                    tool_payloads=tool_payloads,
+                    ui_language=lang,
+                    local_reply=llm_reply,
+                )
+                if synth_degraded:
+                    llm_degraded = True
+        else:
+            try:
+                llm_reply = admin_ollama_chat(
+                    message,
+                    ui_language=lang,
+                    conversation_history=conversation_history,
+                    agent_mode=agent_mode,
+                )
+                tools_used.append("ollama_chat")
+                orchestrator = "ollama_chat"
+            except LlmProviderError as exc:
+                logger.warning("[GlobexAgent] admin_ollama_chat échec : %s", exc)
+                llm_reply = ollama_unavailable_reply(lang=lang)
+                tools_used.append("ollama_chat")
+                orchestrator = "ollama_chat"
                 llm_degraded = True
 
     if needs_approval and approval_id is None and tool_payloads:
@@ -573,7 +677,7 @@ def run_globex_agent_chat(
             "tools": tools_used,
             "needs_approval": needs_approval,
             "intent": classification.intent,
-            "orchestrator": "ollama",
+            "orchestrator": orchestrator,
         },
     )
     db.commit()
@@ -626,29 +730,6 @@ def execute_globex_tool(
     }
 
 
-def _probe_ollama_inference() -> bool:
-    """Vérifie que Ollama peut réellement inférer (pas seulement lister les modèles)."""
-    settings = get_settings()
-    try:
-        import httpx
-
-        base = settings.ollama_base_url.rstrip("/")
-        body = {
-            "model": settings.ollama_model,
-            "prompt": "ok",
-            "stream": False,
-            "options": {"num_predict": 4},
-        }
-        with httpx.Client(timeout=httpx.Timeout(connect=5.0, read=20.0, write=5.0, pool=2.0)) as client:
-            resp = client.post(f"{base}/api/generate", json=body)
-            if resp.status_code != 200:
-                return False
-            data = resp.json()
-            return bool((data.get("response") or "").strip())
-    except Exception:
-        return False
-
-
 def check_globex_agent_health() -> dict[str, Any]:
     settings = get_settings()
     tags_ok = False
@@ -667,21 +748,23 @@ def check_globex_agent_health() -> dict[str, Any]:
         detail = str(exc)
 
     if tags_ok:
-        inference_ok = _probe_ollama_inference()
+        inference_ok = ollama_inference_ready()
         if not inference_ok:
             detail = (
                 f"Ollama répond sur /api/tags mais l'inférence échoue "
                 f"(modèle {settings.ollama_model})"
             )
 
+    kernel_ver = "simple-v0" if settings.globex_simple_mode else "client-arch-v1"
     return {
         "enabled": settings.globex_agent_enabled,
         "ollama_model": settings.ollama_model,
-        "ollama_online": tags_ok and inference_ok,
+        "ollama_online": tags_ok,
         "ollama_tags_ok": tags_ok,
-        "ollama_inference_ok": inference_ok,
+        "ollama_inference_ok": inference_ok if tags_ok else False,
         "detail": detail,
-        "kernel_version": "llm-first-v5-phase6",  # workspace UI phase 6
+        "kernel_version": kernel_ver,
+        "simple_mode": settings.globex_simple_mode,
     }
 
 

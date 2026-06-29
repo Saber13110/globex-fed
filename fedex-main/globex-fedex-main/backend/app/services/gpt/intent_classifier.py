@@ -65,6 +65,12 @@ _CAPABILITY_TRIGGERS = (
     "at your disposal",
     "à ta disposition",
     "a ta disposition",
+    "comment tu peux",
+    "comment m'aider",
+    "how can you help",
+    "help me with",
+    "m'aider",
+    "m aider",
 )
 
 _CAPABILITY_PATTERN = re.compile(
@@ -78,6 +84,7 @@ _CAPABILITY_PATTERN = re.compile(
     r"|(?:quels?\s+(?:sont\s+)?(?:les\s+)?(?:outils?|tools?))"
     r"|(?:outils?\s+(?:as[-\s]?tu|avez|disponibles|[àa]\s+ta\s+disposition))"
     r"|(?:tools?\s+(?:do\s+you\s+have|available|at\s+your\s+disposition))"
+    r"|(?:comment\s+(?:tu\s+)?(?:peux|puis).{0,12}aider)"
     r")",
     re.I,
 )

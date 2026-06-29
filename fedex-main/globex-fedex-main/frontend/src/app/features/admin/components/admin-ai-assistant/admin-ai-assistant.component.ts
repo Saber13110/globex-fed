@@ -439,7 +439,9 @@ export class AdminAiAssistantComponent implements OnInit {
       return;
     }
     if (spec.preset === 'admin_tracking') {
-      const numbers = spec.tracking_numbers?.trim();
+      const numbers = Array.isArray(spec.tracking_numbers)
+        ? spec.tracking_numbers.join(',')
+        : spec.tracking_numbers?.trim();
       if (numbers) {
         this.api.downloadTrackingStatusPdf(numbers, spec.filename ?? 'tracking-status.pdf').subscribe({
           error: () => this.toast('Échec du téléchargement PDF tracking.', 'error'),

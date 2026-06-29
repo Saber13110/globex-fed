@@ -13,6 +13,7 @@ from app.schemas.reports import (
     ReportListResponse,
     ReportScheduleCreate,
     ReportScheduleRead,
+    ReportShareRequest,
     ReportShareResponse,
     ReportsChartsResponse,
     ReportsKpisResponse,
@@ -168,25 +169,46 @@ def reports_preview(
 def reports_share(
     run_id: int,
     request: Request,
+    payload: ReportShareRequest | None = None,
     admin: User = Depends(require_role("admin")),
     db: Session = Depends(get_db),
 ) -> ReportShareResponse:
+    from app.services.reports_service import share_run_by_email
+
+    body = payload or ReportShareRequest()
     try:
         run, _ = get_run_file(db, run_id)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rapport introuvable") from exc
-    url = f"/api/reports/runs/{run.id}/download"
+
+    recipients = [e.strip() for e in body.recipients.replace(";", ",").split(",") if e.strip()]
+    if not body.confirm:
+        return ReportShareResponse(
+            share_url=f"/api/reports/runs/{run.id}/download",
+            message="Confirmez l'envoi par e-mail (confirm=true).",
+            pending_confirmation=True,
+        )
+
+    if not recipients:
+        raise HTTPException(status_code=400, detail="Destinataires requis.")
+
+    result = share_run_by_email(db, run_id=run_id, recipient_emails=recipients, admin_id=admin.id)
     write_log(
         db,
-        action="reports.share",
+        action="reports.share_email",
         message=f"Partage rapport #{run.id}",
         category="admin",
         level="INFO",
         actor_user_id=admin.id,
         ip_address=client_ip(request),
+        metadata={"run_id": run_id, "sent_to": result.get("sent_to")},
         commit=True,
     )
-    return ReportShareResponse(share_url=url, message="Lien de téléchargement prêt à partager.")
+    return ReportShareResponse(
+        share_url=f"/api/reports/runs/{run.id}/download",
+        message="Rapport partagé par e-mail." if result.get("sent_to") else "Aucun e-mail envoyé.",
+        sent_to=list(result.get("sent_to") or []),
+    )
 
 
 @router.delete("/runs/{run_id}", status_code=status.HTTP_204_NO_CONTENT)

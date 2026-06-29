@@ -21,6 +21,10 @@ def parse_log_period_hours(task: str, *, default: int = 24) -> int:
     m = re.search(r"(\d+)\s*(?:jours?|jour|jr|j)\b", t) or re.search(r"(\d+)jr\b", t)
     if m:
         return min(int(m.group(1)) * 24, 168)
+    if re.search(r"\bderni[eè]re?s?\s+24\s*h\b", t):
+        return 24
+    if re.search(r"\bdernier\s+jour\b", t):
+        return 24
     if any(k in t for k in ("24h", "24 h", "journee", "journée", "aujourd", "today")):
         return 24
     if any(k in t for k in ("1h", "1 h", "une heure")):

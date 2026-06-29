@@ -717,6 +717,16 @@ def init_db() -> None:
         conn.execute(
             text("CREATE INDEX IF NOT EXISTS ix_admin_jarvis_sessions_admin_user_id ON admin_jarvis_sessions (admin_user_id)")
         )
+        # Session client miroir pour le pipeline admin_client (suivi/PDF/Excel/documents/notifications).
+        conn.execute(
+            text(
+                "ALTER TABLE admin_jarvis_sessions "
+                "ADD COLUMN IF NOT EXISTS chat_session_id INTEGER REFERENCES chat_sessions(id) ON DELETE SET NULL"
+            )
+        )
+        conn.execute(
+            text("CREATE INDEX IF NOT EXISTS ix_admin_jarvis_sessions_chat_session_id ON admin_jarvis_sessions (chat_session_id)")
+        )
         conn.execute(
             text(
                 "CREATE TABLE IF NOT EXISTS admin_jarvis_messages ("

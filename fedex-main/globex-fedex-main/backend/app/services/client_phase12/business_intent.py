@@ -45,6 +45,20 @@ def detect_business_intent(message: str) -> str | None:
         return "greeting"
     if is_daily_report_workspace(text):
         return "daily_report"
+    try:
+        from app.services.admin_client.dashboard.dashboard_workspace import is_dashboard_workspace
+
+        if is_dashboard_workspace(text):
+            return "admin_dashboard"
+    except ImportError:
+        pass
+    try:
+        from app.services.admin_client.reports.reports_workspace import is_reports_workspace
+
+        if is_reports_workspace(text):
+            return "admin_reports"
+    except ImportError:
+        pass
     if is_support_workspace(text):
         return "support"
     if _DOC_WORKSPACE_RE.search(text):

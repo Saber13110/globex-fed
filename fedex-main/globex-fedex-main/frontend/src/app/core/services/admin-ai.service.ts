@@ -92,11 +92,15 @@ export interface AdminExportDownloadSpec {
   hours?: number;
   limit?: number;
   module?: string;
-  tracking_numbers?: string;
+  /** Copilot admin : chaîne ; pipeline client : parfois tableau. */
+  tracking_numbers?: string | string[];
   filename: string;
   format?: 'pdf' | 'xlsx';
   export_token?: string;
   records?: number;
+  /** Champs renvoyés par le pipeline admin_client (exports client). */
+  session_id?: number;
+  include_events?: boolean;
 }
 
 export interface CopilotState {
@@ -399,6 +403,28 @@ export class AdminAiService {
     return this.http
       .get(`${API_BASE_URL}/admin/ai-assistant/export/context.pdf`, {
         params,
+        responseType: 'blob',
+      })
+      .pipe(
+        tap((blob) => {
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = filename;
+          anchor.click();
+          URL.revokeObjectURL(url);
+        }),
+      );
+  }
+
+  downloadContextXlsx(
+    preset: string,
+    exportToken: string,
+    filename = 'export.xlsx',
+  ): Observable<Blob> {
+    return this.http
+      .get(`${API_BASE_URL}/admin/ai-assistant/export/context.xlsx`, {
+        params: { preset, export_token: exportToken },
         responseType: 'blob',
       })
       .pipe(

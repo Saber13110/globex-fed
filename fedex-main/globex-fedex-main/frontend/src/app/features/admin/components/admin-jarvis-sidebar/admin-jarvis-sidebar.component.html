@@ -1,0 +1,186 @@
+<aside class="jsidebar" role="dialog" [attr.aria-label]="'admin.jarvis.sidebar.title' | t">
+  <header class="jsidebar__head">
+    <div class="jsidebar__head-left">
+      <span class="jsidebar__conv-label">{{ 'admin.jarvis.sidebar.newConversation' | t }}</span>
+      @if (ollamaReady() === true) {
+        <span class="jsidebar__status-dot jsidebar__status-dot--ok" [attr.title]="'admin.jarvisWindow.online' | t"></span>
+      } @else if (ollamaReady() === false && agentEnabled()) {
+        <span class="jsidebar__status-dot jsidebar__status-dot--warn" [attr.title]="'admin.jarvis.sidebar.ollamaDegraded' | t"></span>
+      }
+    </div>
+    <div class="jsidebar__head-actions">
+      <button
+        type="button"
+        class="jsidebar__icon-btn"
+        (click)="newConversation()"
+        [attr.title]="'admin.jarvisWindow.newChat' | t"
+        [attr.aria-label]="'admin.jarvisWindow.newChat' | t"
+      >
+        +
+      </button>
+      <button
+        type="button"
+        class="jsidebar__icon-btn"
+        (click)="expand()"
+        [attr.title]="'admin.jarvis.sidebar.expand' | t"
+        [attr.aria-label]="'admin.jarvis.sidebar.expand' | t"
+      >
+        ↗
+      </button>
+      <button
+        type="button"
+        class="jsidebar__icon-btn"
+        (click)="close()"
+        [attr.aria-label]="'admin.jarvis.sidebar.close' | t"
+      >
+        ×
+      </button>
+    </div>
+  </header>
+
+  @if (!agentEnabled()) {
+    <div class="jsidebar__alert" role="status">
+      <p>{{ 'admin.jarvis.sidebar.offlineHint' | t }}</p>
+      <button type="button" class="jsidebar__link-btn" (click)="refreshHealth()">
+        {{ 'admin.jarvisWindow.refresh' | t }}
+      </button>
+    </div>
+  }
+  @if (agentEnabled() && ollamaReady() === false) {
+    <div class="jsidebar__alert jsidebar__alert--warn" role="status">
+      <p>{{ 'admin.jarvis.sidebar.ollamaDegraded' | t }}</p>
+    </div>
+  }
+
+  <div class="jsidebar__body" #threadEl>
+    @if (messages().length === 0) {
+      <div class="jsidebar__welcome">
+        <img class="jsidebar__avatar" [src]="jarvisMarkSrc" alt="" width="72" height="72" />
+        <h2 class="jsidebar__hello">
+          {{ 'admin.jarvis.sidebar.hello' | t:{ name: adminName } }}
+        </h2>
+        <p class="jsidebar__sub">{{ 'admin.jarvis.sidebar.subtitle' | t }}</p>
+        <div class="jsidebar__chips">
+          @for (chip of suggestionChips(); track chip) {
+            <button type="button" class="jsidebar__chip" (click)="useSuggestion(chip)">
+              {{ chip }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    @for (m of messages(); track m.id) {
+      <article
+        class="jsidebar__msg"
+        [class.jsidebar__msg--admin]="m.role === 'admin'"
+        [class.jsidebar__msg--jarvis]="m.role === 'jarvis'"
+        [class.jsidebar__msg--system]="m.role === 'system'"
+      >
+        @if (m.role === 'jarvis') {
+          <img class="jsidebar__msg-avatar" [src]="jarvisMarkSrc" alt="" width="28" height="28" />
+        }
+        <div class="jsidebar__msg-bubble">
+          <div class="jsidebar__msg-text" [innerHTML]="m.content | chatFormattedText"></div>
+          @if (showShipmentCard(m.shipment)) {
+            <div class="jsidebar__shipment-card">
+              <app-shipment-card [shipment]="m.shipment!" [compact]="true" />
+            </div>
+          }
+          @if (m.exportDownload) {
+            <button type="button" class="jsidebar__dl-btn" (click)="downloadExport(m.exportDownload!)">
+              {{ 'admin.jarvis.sidebar.download' | t }} {{ m.exportDownload.filename || '' }}
+            </button>
+          }
+          @if (m.needsApproval && m.approvalId) {
+            <div class="jsidebar__approval">
+              <button
+                type="button"
+                class="jsidebar__approve"
+                [disabled]="approving()"
+                (click)="approve(m.approvalId!)"
+              >
+                {{ 'admin.jarvis.sidebar.approve' | t }}
+              </button>
+              <button
+                type="button"
+                class="jsidebar__reject"
+                [disabled]="approving()"
+                (click)="reject(m.approvalId!)"
+              >
+                {{ 'admin.jarvis.sidebar.reject' | t }}
+              </button>
+            </div>
+          }
+        </div>
+      </article>
+    }
+
+    @if (sending()) {
+      <article class="jsidebar__msg jsidebar__msg--jarvis jsidebar__msg--typing">
+        <img class="jsidebar__msg-avatar" [src]="jarvisMarkSrc" alt="" width="28" height="28" />
+        <div class="jsidebar__msg-bubble">
+          <p>{{ 'admin.jarvisWindow.thinking' | t }}</p>
+        </div>
+      </article>
+    }
+  </div>
+
+  @if (error()) {
+    <p class="jsidebar__error" role="alert">{{ error() }}</p>
+  }
+
+  <footer class="jsidebar__foot">
+    @if (attachment(); as att) {
+      <div class="jsidebar__attachment">
+        <span class="jsidebar__attachment-name">📎 {{ att.name }}</span>
+        <button
+          type="button"
+          class="jsidebar__attachment-remove"
+          (click)="removeAttachment()"
+          [attr.aria-label]="'admin.jarvis.sidebar.removeFile' | t"
+        >
+          ×
+        </button>
+      </div>
+    }
+    <div class="jsidebar__composer">
+      <input
+        #fileInput
+        type="file"
+        class="jsidebar__file-input"
+        accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.xlsx,.xls"
+        (change)="onFileSelected($event)"
+        hidden
+      />
+      <button
+        type="button"
+        class="jsidebar__attach"
+        (click)="openFilePicker()"
+        [attr.title]="'admin.jarvis.sidebar.attachFile' | t"
+        [attr.aria-label]="'admin.jarvis.sidebar.attachFile' | t"
+      >
+        📎
+      </button>
+      <textarea
+        class="jsidebar__input"
+        rows="1"
+        [ngModel]="prompt()"
+        (ngModelChange)="prompt.set($event)"
+        [placeholder]="'admin.jarvis.sidebar.placeholder' | t"
+        (keydown.enter)="onEnter($event)"
+        (paste)="onPaste($event)"
+      ></textarea>
+      <button
+        type="button"
+        class="jsidebar__send"
+        [disabled]="!canSend()"
+        (click)="send()"
+        [attr.aria-label]="'admin.jarvisWindow.send' | t"
+      >
+        ➤
+      </button>
+    </div>
+    <p class="jsidebar__paste-hint">{{ 'admin.jarvis.sidebar.pasteHint' | t }}</p>
+  </footer>
+</aside>

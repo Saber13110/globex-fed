@@ -121,6 +121,13 @@ class ReportPreviewResponse(BaseModel):
     total_rows: int
 
 
+class ReportShareRequest(BaseModel):
+    recipients: str = Field(default="", max_length=500)
+    confirm: bool = False
+
+
 class ReportShareResponse(BaseModel):
-    share_url: str
+    share_url: str = ""
     message: str
+    sent_to: list[str] = Field(default_factory=list)
+    pending_confirmation: bool = False

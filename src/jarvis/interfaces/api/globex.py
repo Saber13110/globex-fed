@@ -23,10 +23,14 @@ _CAPTURE_DIR = Path(settings.memory_dir) / "captures"
 
 
 class GlobexChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=8000)
+    message: str = Field(default="", max_length=8000)
     agent_mode: bool = True
     ui_language: str = "fr"
     conversation_history: list[dict[str, str]] = Field(default_factory=list)
+    chat_session_id: int | None = None
+    image_base64: str | None = None
+    image_mime_type: str | None = None
+    file_name: str | None = None
 
 
 class GlobexChatResponse(BaseModel):
@@ -43,6 +47,9 @@ class GlobexChatResponse(BaseModel):
     mode: str = "jarvis"
     llm_degraded: bool = False
     execution_time_ms: float | None = None
+    chat_session_id: int | None = None
+    intent: str | None = None
+    shipment: dict[str, Any] | None = None
 
 
 class GlobexApprovalResponse(BaseModel):
@@ -95,6 +102,7 @@ def _chat_response_from_data(data: dict[str, Any]) -> GlobexChatResponse:
     export_dl = data.get("export_download")
     cap_dl = data.get("capture_download")
     client_action = data.get("client_action")
+    shipment = data.get("shipment")
     return GlobexChatResponse(
         reply=data.get("reply") or "Pas de réponse du serveur Globex.",
         tools_used=data.get("tools_used") or [],
@@ -109,6 +117,9 @@ def _chat_response_from_data(data: dict[str, Any]) -> GlobexChatResponse:
         mode=data.get("mode") or "jarvis",
         llm_degraded=bool(data.get("llm_degraded")),
         execution_time_ms=data.get("execution_time_ms"),
+        chat_session_id=data.get("chat_session_id"),
+        intent=data.get("intent"),
+        shipment=shipment if isinstance(shipment, dict) else None,
     )
 
 
@@ -138,6 +149,10 @@ async def invoke_globex_chat(
     agent_mode: bool = True,
     ui_language: str = "fr",
     conversation_history: list[dict[str, str]] | None = None,
+    chat_session_id: int | None = None,
+    image_base64: str | None = None,
+    image_mime_type: str | None = None,
+    file_name: str | None = None,
 ) -> GlobexChatResponse:
     """Appelle l'API Globex Agent FedEx (utilisé par proxy HTTP, voix, etc.)."""
     if not settings.globex_os_enabled:
@@ -146,14 +161,22 @@ async def invoke_globex_chat(
     token = await _get_token()
     base = settings.globex_api_url.rstrip("/")
     history = conversation_history or []
-    payload = {
+    payload: dict[str, Any] = {
         "message": message,
         "agent_mode": agent_mode,
         "ui_language": ui_language,
         "conversation_history": history,
     }
+    if chat_session_id is not None:
+        payload["chat_session_id"] = chat_session_id
+    if image_base64:
+        payload["image_base64"] = image_base64
+    if image_mime_type:
+        payload["image_mime_type"] = image_mime_type
+    if file_name:
+        payload["file_name"] = file_name
 
-    timeout = 180.0 if _looks_like_export_request(message, history) else 130.0
+    timeout = 360.0 if _looks_like_export_request(message, history) else 300.0
 
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
@@ -297,13 +320,21 @@ async def fetch_latest_security_incident() -> dict[str, Any]:
 
 @router.post("/api/globex/chat", response_model=GlobexChatResponse)
 async def globex_proxy_chat(body: GlobexChatRequest) -> GlobexChatResponse:
+    message = (body.message or "").strip()
+    has_attachment = bool((body.image_base64 or "").strip())
+    if not message and not has_attachment:
+        raise HTTPException(status_code=400, detail="Message requis.")
     result = await invoke_globex_chat(
-        body.message,
+        message,
         agent_mode=body.agent_mode,
         ui_language=body.ui_language,
         conversation_history=body.conversation_history,
+        chat_session_id=body.chat_session_id,
+        image_base64=body.image_base64,
+        image_mime_type=body.image_mime_type,
+        file_name=body.file_name,
     )
-    if _looks_like_capture_request(body.message):
+    if _looks_like_capture_request(message):
         reply = result.reply or ""
         if "sélectionnez" not in reply.lower() and "capture" not in reply.lower():
             reply = (reply.rstrip() + "\n\n📷 Sélectionnez la zone à capturer à l'écran.").strip()
@@ -312,7 +343,7 @@ async def globex_proxy_chat(body: GlobexChatRequest) -> GlobexChatResponse:
                 "reply": reply,
                 "client_action": {
                     "type": "capture_region",
-                    "hint": body.message[:300],
+                    "hint": message[:300],
                 },
             }
         )

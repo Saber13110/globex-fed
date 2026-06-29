@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from app.schemas.chat import ShipmentSummary
+
 
 class AgentWindowHistoryMessage(BaseModel):
     role: str = Field(description="user | assistant")
@@ -9,9 +11,15 @@ class AgentWindowHistoryMessage(BaseModel):
 
 
 class AgentWindowChatRequest(BaseModel):
-    message: str = Field(min_length=1, max_length=4000)
+    message: str = Field(default="", max_length=4000)
     session_id: str | None = Field(default=None, description="ID session FedEx (UUID)")
     conversation_history: list[AgentWindowHistoryMessage] = Field(default_factory=list)
+    ui_language: str = Field(default="fr", max_length=8)
+    # Pipeline admin_client : session miroir + pièce jointe (image / PDF / Excel).
+    chat_session_id: int | None = None
+    image_base64: str | None = None
+    image_mime_type: str | None = None
+    file_name: str | None = None
 
 
 class AgentWindowChatResponse(BaseModel):
@@ -22,6 +30,9 @@ class AgentWindowChatResponse(BaseModel):
     latency_ms: float | None = None
     redirect_to_copilot: bool = False
     copilot_hint: str | None = None
+    shipment: ShipmentSummary | None = None
+    chat_session_id: int | None = None
+    export_download: dict | None = None
 
 
 class AgentWindowSessionRead(BaseModel):
