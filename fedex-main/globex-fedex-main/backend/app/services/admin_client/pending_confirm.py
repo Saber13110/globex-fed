@@ -48,6 +48,10 @@ def try_admin_pending_confirm_turn(
         is_tickets_cancel_message,
         is_tickets_confirm_message,
     )
+    from app.services.admin_client.missions.missions_pending import (
+        is_missions_cancel_message,
+        is_missions_confirm_message,
+    )
 
     session_id = getattr(session, "id", None)
     latest = resolve_latest_pending_kind(
@@ -64,6 +68,7 @@ def try_admin_pending_confirm_turn(
         or is_action_email_offer_accept(text)
         or is_users_confirm_message(text)
         or is_tickets_confirm_message(text)
+        or is_missions_confirm_message(text)
     )
     is_cancel = (
         is_email_cancel_message(text)
@@ -71,6 +76,7 @@ def try_admin_pending_confirm_turn(
         or is_action_email_offer_decline(text)
         or is_users_cancel_message(text)
         or is_tickets_cancel_message(text)
+        or is_missions_cancel_message(text)
     )
     if not is_confirm and not is_cancel:
         return None
@@ -140,6 +146,21 @@ def try_admin_pending_confirm_turn(
         from app.services.admin_client.tickets.tickets_pipeline import run_tickets_pipeline
 
         return run_tickets_pipeline(
+            db,
+            admin,
+            session,
+            message,
+            0,
+            ui_language,
+            history_text=history_text or "",
+            conversation_history=conversation_history,
+            ip_address=ip_address,
+        )
+
+    if latest == "missions" and (is_missions_confirm_message(text) or is_missions_cancel_message(text)):
+        from app.services.admin_client.missions.missions_pipeline import run_missions_pipeline
+
+        return run_missions_pipeline(
             db,
             admin,
             session,

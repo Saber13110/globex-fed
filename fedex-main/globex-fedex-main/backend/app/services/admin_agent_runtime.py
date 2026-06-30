@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 import uuid
 from typing import Any
@@ -47,6 +48,8 @@ from app.services.chat_export_service import generate_tracking_excel_bytes
 from app.services.client_agent_brain import verify_agent_result
 from app.services.email_service import is_email_configured, send_email_with_attachment
 from app.services.security_ids_service import reactivate_user, suspend_user
+
+logger = logging.getLogger(__name__)
 
 
 def _step(label: str, status: str, detail: str | None = None) -> dict[str, Any]:
@@ -219,6 +222,8 @@ def _execute_users_tool(
     require_approval: bool,
     approved: bool,
     steps: list[dict[str, Any]],
+    catalog_task_id: str | None = None,
+    mission_chain_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     output: dict[str, Any] = {
         "action": tool,
@@ -230,6 +235,38 @@ def _execute_users_tool(
         "agent_steps": steps,
     }
     if tool == "analyze_users":
+        if catalog_task_id in _CATALOG_USERS_TASKS:
+            from app.services.mission_catalog_runtime import execute_users_catalog_task
+            from app.services.mission_task_catalog import get_task_spec
+
+            catalog_out: dict[str, Any] | None = None
+            try:
+                catalog_out = execute_users_catalog_task(
+                    db,
+                    task,
+                    catalog_task_id,
+                    limit=mission.max_items or 30,
+                    chain_context=mission_chain_context,
+                )
+            except Exception as exc:
+                logger.exception("Users catalogue mission (%s)", catalog_task_id)
+                spec = get_task_spec("users", catalog_task_id)
+                catalog_out = _catalog_task_error(
+                    "Users Agent",
+                    spec.label if spec else catalog_task_id,
+                    f"Erreur technique : {exc}",
+                )
+            if not catalog_out:
+                spec = get_task_spec("users", catalog_task_id)
+                catalog_out = _catalog_task_error(
+                    "Users Agent",
+                    spec.label if spec else catalog_task_id,
+                    "Impossible d'exécuter la tâche catalogue utilisateurs.",
+                )
+            steps.append(_step("Utilisateurs catalogue", "done"))
+            output.update(catalog_out)
+            output["action"] = tool
+            return output
         steps.append(_step("Analyse comptes", "running"))
         return output
 
@@ -464,6 +501,20 @@ def _execute_tracking_tool(
     return output
 
 
+_CATALOG_SUPPORT_TASKS = frozenset({"ticket_list", "ticket_detail"})
+_CATALOG_USERS_TASKS = frozenset({"user_list", "user_detail", "user_logs", "user_permissions"})
+
+
+def _catalog_task_error(agent_label: str, task_label: str, detail: str) -> dict[str, Any]:
+    msg = f"**NON FAIT — {task_label}** ({agent_label})\n\n{detail}"
+    return {
+        "task_answer": msg,
+        "analysis": msg,
+        "deterministic_compose": True,
+        "analysis_only": True,
+    }
+
+
 def _execute_support_tool(
     db: Session,
     mission: AgentMission,
@@ -476,6 +527,7 @@ def _execute_support_tool(
     approved: bool,
     steps: list[dict[str, Any]],
     brain_plan: dict[str, Any] | None,
+    catalog_task_id: str | None = None,
 ) -> dict[str, Any]:
     params = (brain_plan or {}).get("parameters") or {}
     ticket_id = params.get("ticket_id")
@@ -505,6 +557,38 @@ def _execute_support_tool(
         "agent_steps": steps,
     }
     step.action_type = tool
+
+    if catalog_task_id in _CATALOG_SUPPORT_TASKS and tool == "analyze_tickets":
+        from app.services.mission_catalog_runtime import execute_support_catalog_task
+        from app.services.mission_task_catalog import get_task_spec
+
+        catalog_out: dict[str, Any] | None = None
+        try:
+            catalog_out = execute_support_catalog_task(
+                db,
+                task,
+                catalog_task_id,
+                limit=mission.max_items or 30,
+            )
+        except Exception as exc:
+            logger.exception("Support catalogue mission (%s)", catalog_task_id)
+            spec = get_task_spec("support", catalog_task_id)
+            catalog_out = _catalog_task_error(
+                "Support Agent",
+                spec.label if spec else catalog_task_id,
+                f"Erreur technique : {exc}",
+            )
+        if not catalog_out:
+            spec = get_task_spec("support", catalog_task_id)
+            catalog_out = _catalog_task_error(
+                "Support Agent",
+                spec.label if spec else catalog_task_id,
+                "Impossible d'exécuter la tâche catalogue support.",
+            )
+        steps.append(_step("Tickets catalogue", "done" if catalog_out.get("deterministic_compose") else "error"))
+        output.update(catalog_out)
+        output["action"] = tool
+        return output
 
     if tool == "analyze_tickets":
         from app.services.gpt.tool_handlers import HANDLERS
@@ -797,6 +881,238 @@ def _execute_logs_tool(
     return output
 
 
+_LOG_MISSION_TOOLS = frozenset(
+    {
+        "analyze_logs",
+        "export_activity_logs_pdf",
+        "export_activity_logs_excel",
+        "daily_behavior_report",
+        "generate_summary",
+    }
+)
+_SECURITY_MISSION_TOOLS = frozenset({"analyze_security", "analyze_notifications"})
+
+
+def _execute_security_tool(
+    db: Session,
+    mission: AgentMission,
+    step: AgentMissionStep,
+    *,
+    tool: str,
+    task: str,
+    steps: list[dict[str, Any]],
+    context: dict[str, Any] | None = None,
+    catalog_task_id: str | None = None,
+) -> dict[str, Any]:
+    from app.services.admin_client.security import security_tool
+    from app.services.admin_client.security.security_compose import compose_security_response
+    from app.services.admin_client.security.security_types import (
+        SecurityPlan,
+        SecurityProfile,
+        SecurityTaskType,
+    )
+    from app.services.mission_task_runner import (
+        security_plan_for_catalog_task,
+        task_wants_security_incident_list,
+    )
+
+    output: dict[str, Any] = {
+        "action": tool,
+        "agent_type": mission.agent_type,
+        "task": task,
+        "intent": tool,
+        "action_executed": False,
+        "analysis_only": True,
+        "agent_steps": steps,
+    }
+    step.action_type = tool
+    _mark_running_step_done(steps)
+
+    limit = min(int(mission.max_items or 15), 50)
+    plan = security_plan_for_catalog_task(catalog_task_id, limit=limit)
+
+    if plan is None and tool == "analyze_security" and task_wants_security_incident_list(task, catalog_task_id):
+        plan = SecurityPlan(
+            task_type=SecurityTaskType.security_incident_list,
+            profile=SecurityProfile.LIST,
+            status_filter="open",
+            limit=limit,
+        )
+
+    if plan is not None:
+        try:
+            if plan.profile == SecurityProfile.LIST:
+                steps.append(_step("Chargement incidents sécurité", "running"))
+                processed = security_tool.list_incidents(db, plan)
+                processed["filters"] = plan
+                answer = compose_security_response(processed, plan, lang="fr")
+                count = len(processed.get("incidents") or [])
+                steps.append(_step("Liste incidents IDS", "done", f"{count} ligne(s)"))
+                incident_ids = [
+                    int(i["id"])
+                    for i in (processed.get("incidents") or [])
+                    if isinstance(i, dict) and i.get("id") is not None
+                ]
+                output.update(
+                    {
+                        "security_incidents_count": count,
+                        "security_incidents_open": processed.get("open_count", 0),
+                        "security_incidents": processed.get("incidents") or [],
+                        "task_answer": answer,
+                        "analysis": answer,
+                        "deterministic_compose": True,
+                        "chain_context": {"security_incident_ids": incident_ids},
+                        "agent_reasoning": (
+                            "Objectif : lister les incidents de sécurité récents.\n\n"
+                            "Action : list_incidents (IDS) → tableau structuré.\n\n"
+                            "Vérification : chaque incident affiche id, date, sévérité, menace et titre."
+                        ),
+                    }
+                )
+                return output
+
+            if plan.profile == SecurityProfile.SUMMARY:
+                steps.append(_step("Synthèse incidents", "running"))
+                summary = security_tool.build_summary(db, plan)
+                answer = compose_security_response({"summary": summary}, plan, lang="fr")
+                steps.append(_step("Synthèse", "done"))
+                output.update(
+                    {
+                        "task_answer": answer,
+                        "analysis": answer,
+                        "deterministic_compose": True,
+                    }
+                )
+                return output
+
+            if plan.profile == SecurityProfile.SCAN:
+                steps.append(_step("Scan IDS", "running"))
+                scan = security_tool.run_scan(db, plan)
+                answer = compose_security_response({"scan": scan}, plan, lang="fr")
+                steps.append(_step("Scan terminé", "done"))
+                output.update(
+                    {
+                        "task_answer": answer,
+                        "analysis": answer,
+                        "deterministic_compose": True,
+                    }
+                )
+                return output
+
+            if plan.profile == SecurityProfile.REPORT:
+                steps.append(_step("Rapport sécurité", "running"))
+                report = security_tool.build_report(db)
+                answer = compose_security_response({"report": report}, plan, lang="fr")
+                steps.append(_step("Rapport prêt", "done"))
+                output.update(
+                    {
+                        "task_answer": answer,
+                        "analysis": answer,
+                        "deterministic_compose": True,
+                    }
+                )
+                return output
+
+            if plan.profile == SecurityProfile.DETAIL:
+                from app.services.admin_client.security.security_followup import (
+                    extract_incident_ref,
+                    format_incident_ids_hint,
+                    resolve_incident_id_from_context,
+                )
+                from app.services.mission_task_runner import split_prior_context
+
+                user_part, prior_context = split_prior_context(task)
+                history = prior_context or task
+                ref = extract_incident_ref(user_part or task, history_text=history)
+                incident_id = (
+                    resolve_incident_id_from_context(db, ref, history_text=history)
+                    if ref is not None
+                    else None
+                )
+                if incident_id:
+                    steps.append(_step(f"Incident #{incident_id}", "running"))
+                    incident = security_tool.get_incident_detail(db, int(incident_id))
+                    answer = compose_security_response({"incident": incident}, plan, lang="fr")
+                    steps.append(_step("Fiche incident", "done"))
+                    output.update(
+                        {
+                            "task_answer": answer,
+                            "analysis": answer,
+                            "deterministic_compose": True,
+                            "security_incident_id": incident_id,
+                            "chain_context": {"security_incident_id": incident_id},
+                        }
+                    )
+                    return output
+
+                hint = format_incident_ids_hint(history, lang="fr")
+                clarify = (
+                    "Je n'ai pas pu identifier l'incident à analyser.\n\n"
+                    "Indiquez **incident #ID** (ID en base) ou **#N** pour la Nᵉ ligne du tableau "
+                    "de l'étape précédente (ex. `#2` = 2ᵉ ligne)."
+                    f"{hint}"
+                )
+                steps.append(_step("Incident introuvable", "error"))
+                output.update(
+                    {
+                        "task_answer": clarify,
+                        "analysis": clarify,
+                        "needs_clarification": True,
+                        "deterministic_compose": True,
+                    }
+                )
+                return output
+        except Exception as exc:  # noqa: BLE001
+            steps.append(_step("Erreur sécurité IDS", "error", str(exc)[:120]))
+            output["task_answer"] = f"NON FAIT — Impossible de récupérer les incidents IDS.\nDétail : {exc}"
+            output["analysis"] = output["task_answer"]
+            return output
+
+    if tool == "analyze_security":
+        from app.services.security_ids_service import incident_to_read, list_incidents
+
+        steps.append(_step("Chargement incidents sécurité", "running"))
+        rows, total, open_count = list_incidents(db, status="open", limit=limit)
+        sample = [incident_to_read(db, row) for row in rows]
+        steps.append(_step("Incidents IDS", "done", f"{len(sample)} / {open_count} ouvert(s)"))
+        security_ctx = {
+            "task": task,
+            "agent_type": mission.agent_type,
+            "security_incidents": sample,
+            "security_incidents_total": total,
+            "security_incidents_open": open_count,
+            "focus": "incidents_ids_only",
+            "instruction": (
+                "Réponds UNIQUEMENT sur les incidents IDS listés dans security_incidents. "
+                "Ne mentionne pas les suspensions admin, les logs généraux ni les utilisateurs "
+                "sauf s'ils sont liés à un incident du tableau."
+            ),
+        }
+        steps.append(_step("Analyse sécurité", "running"))
+        answer = _run_analyst(task, security_ctx, output)
+        steps.append(_step("Synthèse", "done"))
+        output.update(
+            {
+                "security_incidents_count": len(sample),
+                "security_incidents_open": open_count,
+                "task_answer": answer,
+                "analysis": answer,
+            }
+        )
+        return output
+
+    steps.append(_step("Notifications plateforme", "running"))
+    notif_ctx = {
+        "task": task,
+        "agent_type": mission.agent_type,
+        "notifications_unread": (context or {}).get("notifications_unread"),
+    }
+    answer = _run_analyst(task, notif_ctx, output)
+    steps.append(_step("Synthèse", "done"))
+    output.update({"task_answer": answer, "analysis": answer})
+    return output
+
+
 def execute_admin_mission_task(
     db: Session,
     mission: AgentMission,
@@ -807,6 +1123,10 @@ def execute_admin_mission_task(
     require_approval: bool = True,
     approved: bool = False,
     context: dict[str, Any] | None = None,
+    catalog_tool_hint: str | None = None,
+    source_agent_type: str | None = None,
+    catalog_task_id: str | None = None,
+    mission_chain_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Point d'entrée unique : plan → outils → synthèse."""
     steps: list[dict[str, Any]] = []
@@ -815,10 +1135,11 @@ def execute_admin_mission_task(
 
     forced_tool = detect_forced_admin_tool(task)
     resolved_tool = resolve_tool_for_mission(mission, task)
-    tool = forced_tool or resolved_tool
+    tool = catalog_tool_hint or forced_tool or resolved_tool
 
+    brain_agent = source_agent_type or mission.agent_type
     ctx_summary = json.dumps(context or {}, ensure_ascii=False, default=str)[:4000]
-    brain_plan = plan_admin_mission(task, agent_type=mission.agent_type, context_summary=ctx_summary)
+    brain_plan = plan_admin_mission(task, agent_type=brain_agent, context_summary=ctx_summary)
 
     if brain_plan and brain_plan.get("objective"):
         steps[0] = _step("Objectif", "done", str(brain_plan["objective"])[:100])
@@ -834,7 +1155,9 @@ def execute_admin_mission_task(
     ):
         return _admin_clarification_output(brain_plan, tool, task, steps)
 
-    if brain_plan and brain_plan.get("action_tool") and not forced_tool:
+    if catalog_tool_hint:
+        tool = catalog_tool_hint
+    elif brain_plan and brain_plan.get("action_tool") and not forced_tool:
         brain_tool = str(brain_plan["action_tool"])
         bulk_tools = {"reactivate_all_suspended", "suspend_all_active"}
         export_tools = {
@@ -843,7 +1166,16 @@ def execute_admin_mission_task(
             "export_tracking_excel",
             "export_and_email_tracking",
         }
-        if resolved_tool in bulk_tools or resolved_tool in export_tools:
+        is_security_agent = mission.agent_type in ("security", "notifications") or (
+            source_agent_type in ("security", "notifications")
+        )
+        if is_security_agent:
+            tool = resolved_tool
+            if brain_tool in _SECURITY_MISSION_TOOLS:
+                tool = brain_tool
+            elif brain_tool not in _LOG_MISSION_TOOLS:
+                tool = resolved_tool
+        elif resolved_tool in bulk_tools or resolved_tool in export_tools:
             tool = resolved_tool
         elif brain_tool in export_tools and detect_forced_admin_tool(task):
             tool = detect_forced_admin_tool(task) or resolved_tool
@@ -862,12 +1194,17 @@ def execute_admin_mission_task(
             db, mission, step, tool=tool, task=task,
             actor_admin_id=actor_admin_id, require_approval=require_approval,
             approved=approved, steps=steps,
+            catalog_task_id=catalog_task_id,
+            mission_chain_context=mission_chain_context,
         )
         if output.get("analysis_only") and not output.get("task_answer") and context:
-            answer = _run_analyst(task, context, output)
-            output["task_answer"] = answer
-            output["analysis"] = answer
-            steps.append(_step("Analyse IA", "done"))
+            if output.get("deterministic_compose"):
+                pass
+            else:
+                answer = _run_analyst(task, context, output)
+                output["task_answer"] = answer
+                output["analysis"] = answer
+                steps.append(_step("Analyse IA", "done"))
     elif mission.agent_type == "tracking":
         output = _execute_tracking_tool(
             db, mission, step, tool=tool, task=task,
@@ -884,13 +1221,30 @@ def execute_admin_mission_task(
             db, mission, step, tool=tool, task=task,
             actor_admin_id=actor_admin_id, require_approval=require_approval,
             approved=approved, steps=steps, brain_plan=brain_plan,
+            catalog_task_id=catalog_task_id,
         )
         if output.get("analysis_only") and not output.get("task_answer") and context:
-            answer = _run_analyst(task, context, output)
-            output["task_answer"] = answer
-            output["analysis"] = answer
-            steps.append(_step("Analyse IA", "done"))
-    elif mission.agent_type in ("logs", "summary") or tool in (
+            if output.get("deterministic_compose"):
+                pass
+            else:
+                answer = _run_analyst(task, context, output)
+                output["task_answer"] = answer
+                output["analysis"] = answer
+                steps.append(_step("Analyse IA", "done"))
+    elif mission.agent_type in ("security", "notifications") or (
+        source_agent_type in ("security", "notifications")
+    ):
+        output = _execute_security_tool(
+            db,
+            mission,
+            step,
+            tool=tool,
+            task=task,
+            steps=steps,
+            context=context,
+            catalog_task_id=catalog_task_id,
+        )
+    elif mission.agent_type in ("logs", "summary", "reports") or tool in (
         "daily_behavior_report",
         "export_activity_logs_pdf",
         "export_activity_logs_excel",
@@ -950,11 +1304,15 @@ def execute_admin_mission_task(
         if vresult.get("note"):
             verified_note = str(vresult["note"])[:300]
 
-    output["agent_reasoning"] = _reasoning_from_plan(
-        brain_plan,
-        tool,
-        verified if isinstance(verified, bool) else None,
-        verified_note,
+    output["agent_reasoning"] = (
+        output.get("agent_reasoning")
+        if output.get("deterministic_compose")
+        else _reasoning_from_plan(
+            brain_plan,
+            tool,
+            verified if isinstance(verified, bool) else None,
+            verified_note,
+        )
     )
     output["agent_steps"] = steps
 

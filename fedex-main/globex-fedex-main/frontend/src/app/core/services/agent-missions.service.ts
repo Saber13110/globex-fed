@@ -4,13 +4,22 @@ import { Observable } from 'rxjs';
 
 import { API_BASE_URL } from '../api.config';
 
-export type AgentType = 'logs' | 'support' | 'users' | 'tracking' | 'notifications' | 'summary';
+export type AgentType =
+  | 'logs'
+  | 'support'
+  | 'users'
+  | 'tracking'
+  | 'security'
+  | 'reports'
+  | 'notifications'
+  | 'summary';
 export type ScheduleType = 'now' | 'datetime' | 'daily' | 'weekly';
 export type MissionStatus =
   | 'draft'
   | 'waiting_plan_approval'
   | 'scheduled'
   | 'running'
+  | 'paused'
   | 'waiting_permission'
   | 'completed'
   | 'failed'
@@ -201,9 +210,9 @@ export const AGENT_OPTIONS: { value: AgentType; label: string }[] = [
   { value: 'logs', label: 'Logs Agent' },
   { value: 'support', label: 'Support Agent' },
   { value: 'users', label: 'Users Agent' },
+  { value: 'security', label: 'Security Agent' },
   { value: 'tracking', label: 'Tracking Agent' },
-  { value: 'notifications', label: 'Notifications Agent' },
-  { value: 'summary', label: 'Summary Agent' },
+  { value: 'reports', label: 'Reports Agent' },
 ];
 
 export const SCHEDULE_OPTIONS: { value: ScheduleType; label: string }[] = [
@@ -253,6 +262,14 @@ export class AgentMissionsService {
 
   cancel(id: number): Observable<AgentMission> {
     return this.http.post<AgentMission>(`${this.base}/${id}/cancel`, {});
+  }
+
+  pause(id: number): Observable<AgentMission> {
+    return this.http.post<AgentMission>(`${this.base}/${id}/pause`, {});
+  }
+
+  resume(id: number): Observable<AgentMission> {
+    return this.http.post<AgentMission>(`${this.base}/${id}/resume`, {});
   }
 
   logs(id: number): Observable<AgentExecutionLog[]> {

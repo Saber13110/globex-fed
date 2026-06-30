@@ -7,13 +7,23 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-AgentType = Literal["logs", "support", "users", "tracking", "notifications", "summary"]
+AgentType = Literal[
+    "logs",
+    "support",
+    "users",
+    "tracking",
+    "security",
+    "reports",
+    "notifications",
+    "summary",
+]
 ScheduleType = Literal["now", "datetime", "daily", "weekly"]
 MissionStatus = Literal[
     "draft",
     "waiting_plan_approval",
     "scheduled",
     "running",
+    "paused",
     "waiting_permission",
     "completed",
     "failed",

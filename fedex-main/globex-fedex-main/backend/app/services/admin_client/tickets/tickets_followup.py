@@ -6,7 +6,7 @@ import re
 
 _TICKETS_HISTORY_MARKERS = re.compile(
     r"Liste des tickets|Ticket list|Tickets support|Support tickets|"
-    r"R[eé]sum[eé] des tickets|Ticket summary|"
+    r"Tickets\s*\(|R[eé]sum[eé] des tickets|Ticket summary|"
     r"D[eé]tails des tickets|Ticket details batch|"
     r"Fiche ticket|Ticket detail",
     re.I,
@@ -34,6 +34,7 @@ _ORDINAL_TICKET_RE = re.compile(
 _TKT_NUM_RE = re.compile(r"\b(TKT[-_]?|SUP-)\w+\b", re.I)
 _EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 _LIST_ROW_RE = re.compile(r"\|\s*#?(\d{1,8})\s*\|", re.MULTILINE)
+_BULLET_TICKET_RE = re.compile(r"^\s*-\s*#(\d{1,8})\s*\[", re.MULTILINE)
 _FICHE_TICKET_ID_RE = re.compile(r"Fiche ticket[^\n]*\n+#(\d{1,8})\b", re.I)
 _LOGS_LIST_MARKER = re.compile(
     r"Journal d.?activit[eé]|Activity log|\| Date \| Niveau \| Action \|",
@@ -63,10 +64,11 @@ def _message_targets_incidents(message: str) -> bool:
 
 def list_ticket_ids_from_history(history_text: str) -> list[int]:
     ids: list[int] = []
-    for m in _LIST_ROW_RE.finditer(history_text or ""):
-        tid = int(m.group(1))
-        if tid not in ids:
-            ids.append(tid)
+    for pattern in (_LIST_ROW_RE, _BULLET_TICKET_RE):
+        for m in pattern.finditer(history_text or ""):
+            tid = int(m.group(1))
+            if tid not in ids:
+                ids.append(tid)
     return ids
 
 

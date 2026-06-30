@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.activity_log import ActivityLog
@@ -52,6 +52,27 @@ from app.services.admin_agent_tools import (
     ticket_context_dict,
 )
 from app.services.notifications_service import _upsert as upsert_platform_notification
+from app.services.mission_chain_context import (
+    advance_chain_state,
+    extract_chain_context,
+    handoff_context_for_next_task,
+    merge_chain_context,
+    rebuild_chain_state_from_outputs,
+)
+from app.services.mission_task_handoff import validate_task_handoff
+from app.services.mission_task_catalog import (
+    AGENT_LABELS as CATALOG_AGENT_LABELS,
+    get_task_spec,
+    normalize_agent_type,
+)
+from app.services.mission_task_runner import (
+    assess_task_role as catalog_assess_task_role,
+    catalog_mission_tool,
+    resolve_task_from_node,
+    runtime_agent_type,
+    sort_task_nodes,
+    workflow_agent_for_task,
+)
 
 SENSITIVE_ACTIONS = frozenset(
     {
@@ -64,12 +85,7 @@ SENSITIVE_ACTIONS = frozenset(
 )
 
 AGENT_LABELS = {
-    "logs": "Logs Agent",
-    "support": "Support Agent",
-    "users": "Users Agent",
-    "tracking": "Tracking Agent",
-    "notifications": "Notifications Agent",
-    "summary": "Summary Agent",
+    **CATALOG_AGENT_LABELS,
 }
 
 AGENT_ROLE_META: dict[str, dict[str, Any]] = {
@@ -114,7 +130,23 @@ AGENT_ROLE_META: dict[str, dict[str, Any]] = {
         ],
         "action": "analyze_notifications",
     },
+    "security": {
+        "tools": ["Incidents IDS", "Alertes sécurité", "Scan intrusions"],
+        "keywords": [
+            "notification", "alerte", "attaque", "attack", "sécurité", "securite",
+            "incident", "ids", "tentative", "intrusion", "menace",
+        ],
+        "action": "analyze_security",
+    },
     "summary": {
+        "tools": ["Agréger données", "Synthétiser KPIs", "Rapport exécutif"],
+        "keywords": [
+            "résumé", "resume", "synthèse", "synthese", "rapport", "bilan",
+            "overview", "global", "jour", "semaine", "performance",
+        ],
+        "action": "generate_summary",
+    },
+    "reports": {
         "tools": ["Agréger données", "Synthétiser KPIs", "Rapport exécutif"],
         "keywords": [
             "résumé", "resume", "synthèse", "synthese", "rapport", "bilan",
@@ -442,58 +474,19 @@ def _workflow_output_destinations(wf: dict[str, Any]) -> list[str]:
     ]
 
 
-def _assess_task_role(task: str, agent_type: str) -> dict[str, Any]:
+def _assess_task_role(
+    task: str,
+    agent_type: str,
+    *,
+    task_id: str | None = None,
+) -> dict[str, Any]:
     """Vérifie si la tâche correspond au rôle de l'agent choisi."""
-    task_l = (task or "").lower()
-    meta = AGENT_ROLE_META.get(agent_type, AGENT_ROLE_META["summary"])
-
-    if agent_type == "summary":
-        return {
-            "matches": True,
-            "score": 1,
-            "reason": "L'agent Résumé traite les demandes globales et rapports.",
-            "suggested_agent": None,
-        }
-
-    score = sum(1 for kw in meta["keywords"] if kw in task_l)
-    if score >= 1:
-        return {
-            "matches": True,
-            "score": score,
-            "reason": f"Tâche alignée avec le {AGENT_LABELS[agent_type]}.",
-            "suggested_agent": None,
-        }
-
-    best_agent = "summary"
-    best_score = 0
-    for atype, ameta in AGENT_ROLE_META.items():
-        if atype == agent_type:
-            continue
-        s = sum(1 for kw in ameta["keywords"] if kw in task_l)
-        if s > best_score:
-            best_score = s
-            best_agent = atype
-
-    if best_score >= 1:
-        return {
-            "matches": False,
-            "score": score,
-            "reason": (
-                f"Cette tâche correspond plutôt au **{AGENT_LABELS.get(best_agent, best_agent)}**, "
-                f"pas au {AGENT_LABELS.get(agent_type, agent_type)}."
-            ),
-            "suggested_agent": best_agent,
-        }
-
-    return {
-        "matches": False,
-        "score": 0,
-        "reason": (
-            f"Le {AGENT_LABELS.get(agent_type, agent_type)} ne traite pas ce type de demande. "
-            "Choisissez un autre agent ou reformulez la tâche."
-        ),
-        "suggested_agent": "summary",
-    }
+    return catalog_assess_task_role(
+        task,
+        agent_type,
+        task_id=task_id,
+        legacy_meta=AGENT_ROLE_META,
+    )
 
 
 def _build_mission_schema(mission: AgentMission, role_check: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -596,25 +589,40 @@ def _notify_mission_lifecycle(
         return
     if phase == "complete" and not getattr(mission, "notify_on_complete", True):
         return
+    if phase == "failed":
+        notify_failed = getattr(mission, "notify_on_failed", None)
+        if notify_failed is None:
+            notify_failed = getattr(mission, "notify_on_complete", True)
+        if not notify_failed:
+            return
     label = AGENT_LABELS.get(mission.agent_type, mission.agent_type)
     if phase == "start":
         title = f"Mission agent démarrée — {label}"
         body = (mission.task_description or "")[:400]
+        route = f"/admin/agent-missions/{mission.id}?tab=results"
+        action_label = "Voir résultats"
+    elif phase == "failed":
+        title = f"Mission agent échouée — {label}"
+        body = summary[:500] or (mission.task_description or "")[:400]
+        route = f"/admin/agent-missions/{mission.id}?tab=logs"
+        action_label = "Voir les logs"
     else:
         title = f"Mission agent terminée — {label}"
         body = summary[:500] or (mission.task_description or "")[:400]
+        route = f"/admin/agent-missions/{mission.id}?tab=results"
+        action_label = "Voir résultats"
     upsert_platform_notification(
         db,
         external_key=f"agent-mission-{mission.id}-{phase}",
         category="agent_mission",
         title=title,
         message=body,
-        route=f"/admin/agent-missions/{mission.id}?tab=results",
+        route=route,
         icon="cpu",
-        action_label="Voir résultats",
+        action_label=action_label,
         action_type="agent_mission",
         action_ref=str(mission.id),
-        priority="normal",
+        priority="normal" if phase != "failed" else "high",
     )
 
 
@@ -798,7 +806,7 @@ def _list_item_from_mission(mission: AgentMission) -> AgentMissionListItem:
     )
 
 
-def list_missions(db: Session) -> AgentMissionListResponse:
+def _mission_rows_for_list(db: Session) -> list[AgentMission]:
     rows = list(
         db.scalars(
             select(AgentMission)
@@ -808,15 +816,118 @@ def list_missions(db: Session) -> AgentMissionListResponse:
         .unique()
         .all()
     )
-    rows = [r for r in rows if '"type": "copilot"' not in (r.plan_json or "") and '"type":"copilot"' not in (r.plan_json or "")]
+    return [
+        r
+        for r in rows
+        if '"type": "copilot"' not in (r.plan_json or "")
+        and '"type":"copilot"' not in (r.plan_json or "")
+    ]
+
+
+def list_missions(db: Session) -> AgentMissionListResponse:
+    return list_missions_filtered(db)
+
+
+def list_missions_filtered(
+    db: Session,
+    *,
+    status: str | None = None,
+    limit: int = 25,
+) -> AgentMissionListResponse:
+    rows = _mission_rows_for_list(db)
+    if status:
+        rows = [r for r in rows if r.status == status]
+    if limit > 0:
+        rows = rows[:limit]
     items = [_list_item_from_mission(r) for r in rows]
+    all_rows = _mission_rows_for_list(db)
     stats = {
-        "total": len(rows),
-        "waiting_plan_approval": sum(1 for r in rows if r.status in ("draft", "waiting_plan_approval")),
-        "running": sum(1 for r in rows if r.status in ("running", "waiting_permission")),
-        "completed": sum(1 for r in rows if r.status == "completed"),
+        "total": len(all_rows),
+        "waiting_plan_approval": sum(
+            1 for r in all_rows if r.status in ("draft", "waiting_plan_approval")
+        ),
+        "running": sum(1 for r in all_rows if r.status in ("running", "waiting_permission")),
+        "completed": sum(1 for r in all_rows if r.status == "completed"),
+        "failed": sum(1 for r in all_rows if r.status == "failed"),
     }
     return AgentMissionListResponse(items=items, total=len(items), stats=stats)
+
+
+def summarize_mission_logs(db: Session, mission_id: int) -> dict[str, Any]:
+    mission = db.scalar(
+        select(AgentMission)
+        .options(joinedload(AgentMission.steps))
+        .where(AgentMission.id == mission_id)
+    )
+    if not mission:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mission introuvable")
+
+    logs = get_mission_logs(db, mission_id)
+    counts: dict[str, int] = {"INFO": 0, "WARNING": 0, "ERROR": 0}
+    for log in logs:
+        level = (log.level or "INFO").upper()
+        counts[level] = counts.get(level, 0) + 1
+
+    recent_issues: list[dict[str, str]] = []
+    for log in reversed(logs):
+        if (log.level or "").upper() in ("WARNING", "ERROR"):
+            recent_issues.append(
+                {
+                    "level": log.level,
+                    "at": log.created_at.isoformat() if log.created_at else "",
+                    "message": log.message,
+                }
+            )
+            if len(recent_issues) >= 5:
+                break
+    recent_issues.reverse()
+
+    timeline: list[dict[str, Any]] = []
+    for step in sorted(mission.steps or [], key=lambda s: s.step_order):
+        output = _parse_step_output(step.output_json)
+        excerpt = ""
+        if output.get("handoff_mismatch"):
+            excerpt = str(output.get("task_answer") or "")[:120]
+        elif step.status in ("failed", "error"):
+            excerpt = str(output.get("task_answer") or output.get("analysis") or "")[:120]
+        timeline.append(
+            {
+                "step_order": step.step_order,
+                "status": step.status,
+                "title": step.title,
+                "excerpt": excerpt,
+            }
+        )
+
+    return {
+        "counts": counts,
+        "recent_issues": recent_issues,
+        "timeline": timeline[:8],
+        "link": f"/admin/agent-missions/{mission_id}?tab=logs",
+    }
+
+
+def delete_mission(db: Session, mission_id: int) -> None:
+    mission = db.scalar(select(AgentMission).where(AgentMission.id == mission_id))
+    if not mission:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mission introuvable")
+    if mission.status in ("running", "paused", "waiting_permission", "completed"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Suppression refusée pour le statut « {mission.status} »",
+        )
+    if mission.status not in ("draft", "failed", "cancelled"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Suppression refusée pour le statut « {mission.status} »",
+        )
+
+    db.execute(delete(AgentApprovalRequest).where(AgentApprovalRequest.mission_id == mission_id))
+    db.execute(delete(AgentExecutionLog).where(AgentExecutionLog.mission_id == mission_id))
+    db.execute(delete(AgentMissionMessage).where(AgentMissionMessage.mission_id == mission_id))
+    db.execute(delete(AgentMissionStep).where(AgentMissionStep.mission_id == mission_id))
+    db.delete(mission)
+    db.commit()
 
 
 def get_mission(db: Session, mission_id: int) -> AgentMissionDetailResponse | None:
@@ -968,6 +1079,39 @@ def cancel_mission(db: Session, mission_id: int) -> AgentMissionRead:
     db.commit()
     db.refresh(mission)
     return _mission_read(mission)
+
+
+def pause_mission(db: Session, mission_id: int) -> AgentMissionRead:
+    mission = db.scalar(
+        select(AgentMission).options(joinedload(AgentMission.steps), joinedload(AgentMission.approvals)).where(
+            AgentMission.id == mission_id
+        )
+    )
+    if not mission:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mission introuvable")
+    if mission.status != "running":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Seule une mission en cours peut être mise en pause",
+        )
+    mission.status = "paused"
+    mission.updated_at = _now()
+    _log(db, mission, "Mission mise en pause", level="warning")
+    db.commit()
+    db.refresh(mission)
+    return _mission_read(mission)
+
+
+def resume_mission(db: Session, mission_id: int) -> AgentMissionRead:
+    mission = db.scalar(select(AgentMission).where(AgentMission.id == mission_id))
+    if not mission:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mission introuvable")
+    if mission.status != "paused":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Seule une mission en pause peut être reprise",
+        )
+    return run_mission(db, mission_id)
 
 
 def _gather_mission_context(db: Session, mission: AgentMission) -> dict[str, Any]:
@@ -1294,19 +1438,33 @@ def _execute_direct_mission(
     *,
     actor_admin_id: int,
     approved: bool = False,
+    task: str | None = None,
+    catalog_tool_hint: str | None = None,
+    catalog_task_id: str | None = None,
+    mission_chain_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Exécution via runtime unifié (outils + cerveau Gemini)."""
+    task_text = task if task is not None else mission.task_description
     context = _enrich_mission_context(db, mission, _gather_mission_context(db, mission))
-    return execute_admin_mission_task(
-        db,
-        mission,
-        step,
-        task=mission.task_description,
-        actor_admin_id=actor_admin_id,
-        require_approval=mission.require_approval_sensitive,
-        approved=approved,
-        context=context,
-    )
+    saved_agent = mission.agent_type
+    mission.agent_type = runtime_agent_type(saved_agent)
+    try:
+        return execute_admin_mission_task(
+            db,
+            mission,
+            step,
+            task=task_text,
+            actor_admin_id=actor_admin_id,
+            require_approval=mission.require_approval_sensitive,
+            approved=approved,
+            context=context,
+            catalog_tool_hint=catalog_tool_hint,
+            source_agent_type=saved_agent,
+            catalog_task_id=catalog_task_id,
+            mission_chain_context=mission_chain_context,
+        )
+    finally:
+        mission.agent_type = saved_agent
 
 
 def _handle_step_output(
@@ -1347,11 +1505,17 @@ def _handle_step_output(
         _log(db, mission, "Analyse terminée", step_id=step.id)
 
 
-def _role_mismatch_output(mission: AgentMission, role: dict[str, Any]) -> dict[str, Any]:
+def _role_mismatch_output(
+    mission: AgentMission,
+    role: dict[str, Any],
+    *,
+    active_agent_type: str | None = None,
+) -> dict[str, Any]:
     suggested = role.get("suggested_agent")
     suggested_label = AGENT_LABELS.get(suggested, suggested) if suggested else "Summary Agent"
+    agent_key = active_agent_type or mission.agent_type
     msg = (
-        f"Ce n'est pas le rôle du {AGENT_LABELS.get(mission.agent_type, mission.agent_type)}.\n\n"
+        f"Ce n'est pas le rôle du {AGENT_LABELS.get(agent_key, agent_key)}.\n\n"
         f"{role.get('reason', '')}\n\n"
         f"Agent recommandé : **{suggested_label}**\n\n"
         "Créez une nouvelle mission avec le bon agent ou reformulez votre demande."
@@ -1387,6 +1551,8 @@ def run_mission(db: Session, mission_id: int) -> AgentMissionRead:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mission introuvable")
     if mission.status in ("cancelled", "completed"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Mission terminée ou annulée")
+    if mission.status == "running":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Mission déjà en cours")
     if mission.status == "failed":
         _reset_failed_mission(mission)
         _log(db, mission, "Mission réinitialisée après échec — nouvelle exécution")
@@ -1395,8 +1561,35 @@ def run_mission(db: Session, mission_id: int) -> AgentMissionRead:
     actor_admin_id = mission.admin_id
     wf = _parse_workflow_builder(mission.plan_json)
     is_first_start = mission.started_at is None
+    resuming = mission.status == "paused"
 
-    if mission.status != "waiting_permission":
+    if resuming:
+        from app.services.mission_scheduler import completed_step_orders
+
+        completed_orders = completed_step_orders(mission)
+        task_nodes_resume = sort_task_nodes(_workflow_ordered_tasks(wf)) if wf else []
+        resume_pairs: list[tuple[dict[str, Any], str | None, str]] = []
+        for s in sorted(mission.steps or [], key=lambda x: x.step_order):
+            if s.status != "completed" or not s.output_json:
+                continue
+            try:
+                out = json.loads(s.output_json or "{}")
+            except json.JSONDecodeError:
+                out = {}
+            step_agent = mission.agent_type
+            if s.step_order <= len(task_nodes_resume):
+                tn = task_nodes_resume[s.step_order - 1]
+                step_agent = workflow_agent_for_task(wf, tn.get("id", "")) or mission.agent_type
+            resume_pairs.append((out, out.get("task_id"), step_agent))
+        prior_summary, chain_context, prior_agent, prior_task_id = rebuild_chain_state_from_outputs(resume_pairs)
+    else:
+        completed_orders = set()
+        prior_summary = ""
+        chain_context: dict[str, Any] = {}
+        prior_agent: str | None = None
+        prior_task_id: str | None = None
+
+    if not resuming and mission.status != "waiting_permission":
         for step in list(mission.steps):
             db.delete(step)
         db.flush()
@@ -1415,21 +1608,72 @@ def run_mission(db: Session, mission_id: int) -> AgentMissionRead:
 
     try:
         if wf:
-            task_nodes = _workflow_ordered_tasks(wf)
+            task_nodes = sort_task_nodes(_workflow_ordered_tasks(wf))
             if not task_nodes:
                 raise ValueError("Aucune tâche reliée dans le workflow")
             outputs_dest = _workflow_output_destinations(wf)
+            if not resuming:
+                prior_summary = ""
+                chain_context = {}
+                prior_agent = None
+                prior_task_id = None
+            step_outputs: list[dict[str, Any]] = []
             for idx, task_node in enumerate(task_nodes, start=1):
-                task_text = (task_node.get("data") or {}).get("description", "").strip()
-                task_label = (task_node.get("data") or {}).get("label", f"Tâche {idx}")
-                role = _assess_task_role(task_text, mission.agent_type)
+                node_data = task_node.get("data") or {}
+                wf_agent = workflow_agent_for_task(wf, task_node.get("id", "")) or mission.agent_type
+                if resuming and idx in completed_orders:
+                    existing = next(
+                        (s for s in (mission.steps or []) if s.step_order == idx and s.status == "completed"),
+                        None,
+                    )
+                    if existing:
+                        try:
+                            prev_out = json.loads(existing.output_json or "{}")
+                        except json.JSONDecodeError:
+                            prev_out = {}
+                        step_outputs.append(prev_out)
+                        continue
+
+                handoff_summary, handoff_ctx = handoff_context_for_next_task(
+                    prior_summary,
+                    chain_context,
+                    prior_agent=prior_agent,
+                    next_agent=wf_agent,
+                    next_task_id=str(node_data.get("taskId") or node_data.get("task_id") or "").strip() or None,
+                    prior_task_id=prior_task_id,
+                )
+                resolved = resolve_task_from_node(
+                    wf_agent,
+                    node_data,
+                    prior_summary=handoff_summary,
+                    chain_context=handoff_ctx,
+                )
+                task_text = resolved["task_text"]
+                task_label = resolved.get("label") or node_data.get("label", f"Tâche {idx}")
+                task_id = resolved.get("task_id")
+                role = _assess_task_role(task_text, wf_agent, task_id=task_id)
+
+                handoff_err = None
+                next_spec = get_task_spec(normalize_agent_type(wf_agent), task_id or "") if task_id else None
+                if next_spec and next_spec.consumes_prior and (prior_summary or chain_context):
+                    handoff_err = validate_task_handoff(
+                        prior_agent,
+                        prior_task_id,
+                        wf_agent,
+                        task_id,
+                        has_prior_output=True,
+                    )
 
                 step = AgentMissionStep(
                     mission_id=mission.id,
                     step_order=idx,
                     title=task_label,
                     description=task_text[:500],
-                    action_type=AGENT_ROLE_META.get(mission.agent_type, AGENT_ROLE_META["summary"])["action"],
+                    action_type=resolved.get("action_type")
+                    or AGENT_ROLE_META.get(
+                        runtime_agent_type(wf_agent),
+                        AGENT_ROLE_META.get("summary", {}),
+                    ).get("action", "analyze_only"),
                     is_sensitive=False,
                     status="running",
                     started_at=_now(),
@@ -1438,27 +1682,84 @@ def run_mission(db: Session, mission_id: int) -> AgentMissionRead:
                 db.flush()
                 _log(db, mission, f"Tâche {idx} — {task_label}", step_id=step.id)
 
-                if not role["matches"]:
-                    output = _role_mismatch_output(mission, role)
+                if handoff_err:
+                    output = {
+                        "handoff_mismatch": True,
+                        "task_answer": handoff_err,
+                        "analysis": handoff_err,
+                        "prior_agent_type": prior_agent,
+                        "prior_task_id": prior_task_id,
+                        "task_id": task_id,
+                        "agent_type": normalize_agent_type(wf_agent),
+                    }
+                    _log(db, mission, "Enchaînement tâches incompatible", level="warning", step_id=step.id)
+                    step.output_json = _safe_json_dumps(output)
+                    step.status = "completed"
+                    step.finished_at = _now()
+                    _record_mission_conversation(db, mission, task_text, output)
+                    completion_summary = handoff_err
+                    step_outputs.append(output)
+                elif not role["matches"]:
+                    output = _role_mismatch_output(mission, role, active_agent_type=wf_agent)
                     _log(db, mission, "Hors rôle", level="warning", step_id=step.id)
                     step.output_json = _safe_json_dumps(output)
                     step.status = "completed"
                     step.finished_at = _now()
                     _record_mission_conversation(db, mission, task_text, output)
                     completion_summary = str(output.get("task_answer") or "")
+                    prior_summary, chain_context = advance_chain_state(
+                        prior_summary,
+                        chain_context,
+                        output,
+                        task_id=task_id,
+                        agent_type=wf_agent,
+                    )
+                    _spec_done = get_task_spec(normalize_agent_type(wf_agent), task_id or "") if task_id else None
+                    if _spec_done and _spec_done.produces_context:
+                        prior_agent = normalize_agent_type(wf_agent)
+                        prior_task_id = task_id
+                    step_outputs.append(output)
                 else:
                     saved_task = mission.task_description
+                    saved_agent = mission.agent_type
                     mission.task_description = task_text
+                    mission.agent_type = wf_agent
                     output = _execute_direct_mission(
-                        db, mission, step, actor_admin_id=actor_admin_id
+                        db,
+                        mission,
+                        step,
+                        actor_admin_id=actor_admin_id,
+                        task=task_text,
+                        catalog_tool_hint=catalog_mission_tool(resolved),
+                        catalog_task_id=task_id,
+                        mission_chain_context=handoff_ctx,
                     )
                     mission.task_description = saved_task
+                    mission.agent_type = saved_agent
                     output["workflow_node_id"] = task_node.get("id")
+                    output["task_id"] = task_id
+                    output["agent_type"] = normalize_agent_type(wf_agent)
                     if outputs_dest:
                         output["output_destinations"] = outputs_dest
+                    output["chain_context"] = merge_chain_context(
+                        chain_context,
+                        extract_chain_context(output, task_id=task_id, agent_type=wf_agent),
+                    )
                     _handle_step_output(db, mission, step, output)
                     _record_mission_conversation(db, mission, task_text, output)
                     completion_summary = str(output.get("task_answer") or completion_summary)
+                    prior_summary, chain_context = advance_chain_state(
+                        prior_summary,
+                        chain_context,
+                        output,
+                        task_id=task_id,
+                        agent_type=wf_agent,
+                    )
+                    _spec_done = get_task_spec(normalize_agent_type(wf_agent), task_id or "") if task_id else None
+                    if _spec_done and _spec_done.produces_context:
+                        prior_agent = normalize_agent_type(wf_agent)
+                        prior_task_id = task_id
+                    step_outputs.append(output)
                     if step.status == "waiting_approval":
                         mission_completed = False
                         break
@@ -1467,6 +1768,19 @@ def run_mission(db: Session, mission_id: int) -> AgentMissionRead:
                 mission.status = "completed"
                 mission.finished_at = _now()
                 _log(db, mission, f"Workflow terminé — {len(task_nodes)} tâche(s)")
+                if outputs_dest:
+                    delivery = deliver_mission_outputs(
+                        db,
+                        mission,
+                        summary=completion_summary,
+                        destinations=outputs_dest,
+                        step_outputs=step_outputs,
+                    )
+                    _log(
+                        db,
+                        mission,
+                        f"Livraison résultats — {delivery.get('delivered')}",
+                    )
         else:
             role = _assess_task_role(mission.task_description, mission.agent_type)
             _save_mission_schema(mission, role)
@@ -1520,6 +1834,7 @@ def run_mission(db: Session, mission_id: int) -> AgentMissionRead:
         mission.status = "failed"
         mission.finished_at = _now()
         _log(db, mission, f"Échec : {exc}", level="error")
+        _notify_mission_lifecycle(db, mission, "failed", summary=str(exc))
 
     db.commit()
     mission = db.scalar(

@@ -324,6 +324,7 @@
     @if (jarvisDrawerOpen()) {
       <app-admin-jarvis-sidebar
         [adminName]="adminDisplayName()"
+        [pendingPrompt]="pendingJarvisPrompt()"
         (closeDrawer)="closeJarvisDrawer()"
         (expandWindow)="openJarvisUi()"
       />

@@ -236,6 +236,10 @@ def should_route_logs(message: str, *, history_text: str = "") -> bool:
         return False
     if is_user_scoped_logs_message(text):
         return False
+    if re.search(r"\bmission\b", text, re.I) and re.search(
+        r"\blogs?\b|journal|r[eé]sum[eé]|synth[eè]se", text, re.I
+    ):
+        return False
     if is_logs_history_context(history_text) and _message_targets_logs(text):
         return True
     if not is_logs_workspace(text, history_text=history_text):
@@ -371,6 +375,45 @@ def should_route_tickets(message: str, *, history_text: str = "") -> bool:
     if re.search(r"\b(colis|suivi|tracking|shipment|package)\b", text, re.I):
         if is_admin_shipment_pdf_request(text) or wants_pdf_format(text):
             return False
+    return True
+
+
+def should_route_missions(message: str, *, history_text: str = "") -> bool:
+    """Tour Mission Control admin — après logs plateforme, avant tickets."""
+    text = (message or "").strip()
+    from app.services.admin_client.missions.missions_followup import is_missions_followup_message
+    from app.services.admin_client.missions.missions_pending import is_missions_action_pending
+    from app.services.admin_client.missions.missions_workspace import (
+        is_missions_workspace,
+        should_exclude_platform_logs,
+    )
+
+    if should_exclude_platform_logs(text):
+        return False
+    if is_missions_action_pending(history_text=history_text):
+        return True
+    if is_missions_followup_message(text, history_text=history_text):
+        return True
+    if not is_missions_workspace(text, history_text=history_text):
+        return False
+
+    tn = extract_tracking_number(text)
+    if tn and is_plausible_tracking_number(tn):
+        return False
+    if is_admin_explicit_notification(text):
+        return False
+    if is_pdf_clarify_choice_message(text):
+        return False
+    if is_dashboard_report_message(text):
+        return False
+    if should_route_reports(text, history_text=history_text) and not re.search(
+        r"\bmission\b", text, re.I
+    ):
+        return False
+    if should_route_security(text, history_text=history_text):
+        return False
+    if should_route_logs(text, history_text=history_text):
+        return False
     return True
 
 

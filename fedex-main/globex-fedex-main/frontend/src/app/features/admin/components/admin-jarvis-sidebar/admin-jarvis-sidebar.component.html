@@ -133,6 +133,13 @@
   <footer class="jsidebar__foot">
     @if (attachment(); as att) {
       <div class="jsidebar__attachment">
+        @if (att.isImage) {
+          <img
+            class="jsidebar__attachment-thumb"
+            [src]="'data:' + att.mime + ';base64,' + att.base64"
+            alt=""
+          />
+        }
         <span class="jsidebar__attachment-name">📎 {{ att.name }}</span>
         <button
           type="button"

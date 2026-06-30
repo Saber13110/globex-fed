@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, HostBinding, HostListener, Input, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Component, HostBinding, HostListener, Input, NgZone, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -32,7 +32,7 @@ import { AdminAuditLogsComponent, AuditLogNavigateEvent } from './components/adm
 import { AdminSupportTicketsComponent } from './components/admin-support-tickets/admin-support-tickets.component';
 import { AdminSettingsComponent } from './components/admin-settings/admin-settings.component';
 import { AdminReportsComponent } from './components/admin-reports/admin-reports.component';
-import { AdminJarvisSidebarComponent } from './components/admin-jarvis-sidebar/admin-jarvis-sidebar.component';
+import { AdminJarvisSidebarComponent, JarvisInjectedPrompt } from './components/admin-jarvis-sidebar/admin-jarvis-sidebar.component';
 import { AdminAiAssistantComponent } from './components/admin-ai-assistant/admin-ai-assistant.component';
 import { AdminAiHealthComponent } from './components/admin-ai-health/admin-ai-health.component';
 import { AdminGptKnowledgeComponent } from './components/admin-gpt-knowledge/admin-gpt-knowledge.component';
@@ -95,6 +95,9 @@ export class AdminPageComponent implements OnInit, OnDestroy {
 
   readonly activeSection = signal<AdminSection>('dashboard');
   readonly jarvisDrawerOpen = signal(AdminJarvisSidebarComponent.readPersistedOpen());
+  /** Prompt/capture poussé par l'overlay Accompagnement vers la sidebar Jarvis. */
+  readonly pendingJarvisPrompt = signal<JarvisInjectedPrompt | null>(null);
+  private jarvisPromptSeq = 0;
   readonly agentMissionsActive = signal(false);
   readonly activeTab = signal<AdminTab>('overview');
   readonly globalSearch = signal('');
@@ -239,10 +242,68 @@ export class AdminPageComponent implements OnInit, OnDestroy {
     private readonly assetPreload: AssetPreloadService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly zone: NgZone,
   ) {}
+
+  // ── Pont overlay Accompagnement (vanilla JS) → sidebar Jarvis ────────────
+  private readonly onJarvisOpenEvt = (): void => {
+    this.zone.run(() => this.openJarvisDrawer());
+  };
+
+  private readonly onJarvisPromptEvt = (evt: Event): void => {
+    const detail = ((evt as CustomEvent).detail || {}) as {
+      text?: string;
+      imageBase64?: string;
+      mime?: string;
+      name?: string;
+      autosend?: boolean;
+    };
+    this.zone.run(() => {
+      const wasClosed = !this.jarvisDrawerOpen();
+      this.openJarvisDrawer();
+      const apply = (): void => {
+        const image = detail.imageBase64
+          ? {
+              base64: detail.imageBase64,
+              mime: detail.mime || 'image/jpeg',
+              name: detail.name || 'capture.jpg',
+            }
+          : null;
+        this.pendingJarvisPrompt.set({
+          id: ++this.jarvisPromptSeq,
+          text: typeof detail.text === 'string' ? detail.text : '',
+          image,
+          autosend: detail.autosend === true,
+        });
+      };
+      // La sidebar est recréée quand le tiroir était fermé : attendre son montage.
+      if (wasClosed) {
+        setTimeout(() => apply(), 80);
+      } else {
+        apply();
+      }
+    });
+  };
+
+  private readonly onJarvisWindowEvt = (evt: Event): void => {
+    const detail = ((evt as CustomEvent).detail || {}) as { text?: string };
+    const text = typeof detail.text === 'string' ? detail.text.trim() : '';
+    const url = text
+      ? `${JARVIS_UI_URL}&acc_prompt=${encodeURIComponent(text)}`
+      : JARVIS_UI_URL;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  private openJarvisDrawer(): void {
+    this.jarvisDrawerOpen.set(true);
+    AdminJarvisSidebarComponent.persistOpen(true);
+  }
 
   ngOnInit(): void {
     localStorage.removeItem('globex_admin_sidebar');
+    window.addEventListener('jarvis:open', this.onJarvisOpenEvt);
+    window.addEventListener('jarvis:prompt', this.onJarvisPromptEvt as EventListener);
+    window.addEventListener('jarvis:window', this.onJarvisWindowEvt as EventListener);
     this.assetPreload.preloadAdminVisuals();
     this.refreshAll();
     this.loadPlatformNotifications();
@@ -502,6 +563,9 @@ export class AdminPageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.notificationsApi.stopPolling();
+    window.removeEventListener('jarvis:open', this.onJarvisOpenEvt);
+    window.removeEventListener('jarvis:prompt', this.onJarvisPromptEvt as EventListener);
+    window.removeEventListener('jarvis:window', this.onJarvisWindowEvt as EventListener);
   }
 
   @HostListener('document:click')

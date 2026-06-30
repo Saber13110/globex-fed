@@ -10,6 +10,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.models.support_ticket import SupportTicket
+from app.models.user import User
 from app.services.admin_client.tickets.tickets_entity_memory import (
     is_pronoun_ticket_reference,
     resolve_pronoun_or_context,
@@ -489,6 +490,35 @@ def resolve_target_ticket(
 
     q = (plan.search_query or "").strip()
     if q:
+        if "@" in q:
+            matches = list(
+                db.scalars(
+                    select(SupportTicket)
+                    .join(User, User.id == SupportTicket.user_id)
+                    .where(User.email.ilike(q))
+                    .order_by(SupportTicket.updated_at.desc())
+                    .limit(5)
+                ).all()
+            )
+            if len(matches) == 1:
+                return TargetTicketResolution(ticket_id=matches[0].id)
+            if len(matches) > 1:
+                if plan.task_type == TicketsTaskType.ticket_detail:
+                    open_rows = [t for t in matches if (t.status or "").lower() == "open"]
+                    chosen = open_rows[0] if len(open_rows) == 1 else (open_rows or matches)[0]
+                    return TargetTicketResolution(ticket_id=chosen.id)
+                return TargetTicketResolution(
+                    needs_clarification=True,
+                    clarification_question=(
+                        f"Plusieurs tickets pour **{q}** — précisez #id."
+                        if lang == "fr"
+                        else f"Multiple tickets for **{q}** — specify #id."
+                    ),
+                    candidates=[
+                        {"id": str(t.id), "subject": (t.subject or "")[:80]}
+                        for t in matches[:5]
+                    ],
+                )
         pattern = f"%{q}%"
         matches = list(
             db.scalars(

@@ -58,6 +58,7 @@ export class AgentMissionsListComponent implements OnInit {
       waiting_plan_approval: 'Prête',
       scheduled: 'Planifiée',
       running: 'En cours',
+      paused: 'En pause',
       waiting_permission: 'Permission requise',
       completed: 'Terminée',
       failed: 'Échouée',
@@ -77,11 +78,13 @@ export class AgentMissionsListComponent implements OnInit {
   }
 
   canEdit(item: AgentMissionListItem): boolean {
-    return ['draft', 'failed', 'waiting_plan_approval', 'scheduled'].includes(item.status);
+    return ['draft', 'failed', 'waiting_plan_approval', 'scheduled', 'paused'].includes(item.status);
   }
 
   canRun(item: AgentMissionListItem): boolean {
-    return ['draft', 'scheduled', 'waiting_permission', 'failed', 'waiting_plan_approval'].includes(item.status);
+    return ['draft', 'scheduled', 'waiting_permission', 'failed', 'waiting_plan_approval', 'paused'].includes(
+      item.status,
+    );
   }
 
   canCancel(item: AgentMissionListItem): boolean {

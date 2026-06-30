@@ -31,7 +31,7 @@ OUTILS ADMIN (action_tool) :
 - export_activity_logs_pdf : télécharger les logs d'activité en PDF (période en heures dans la tâche, ex. 2h)
 - export_activity_logs_excel : télécharger les logs en Excel (colonnes Date, Titre, Type de log)
 - daily_behavior_report : rapport comportement utilisateurs (analyse)
-- analyze_tracking / analyze_tickets / analyze_notifications / analyze_logs / generate_summary : analyse seule
+- analyze_tracking / analyze_tickets / analyze_notifications / analyze_security / analyze_logs / generate_summary : analyse seule
 - analyze_users : analyse comptes sans action destructive
 
 RÈGLES :
@@ -39,6 +39,7 @@ RÈGLES :
 - Chaque fait cité doit référencer les données fournies (user_id, action, horodatage).
 - Si paramètres manquants (email, numéros colis) : needs_clarification=true, UNE question, ready_to_execute=false.
 - Si la tâche est simple et complète (ex. PDF logs 2h) : ready_to_execute=true, needs_clarification=false.
+- Agent sécurité / notifications : incidents IDS → analyze_security ; notifications plateforme → analyze_notifications. Ne jamais utiliser analyze_logs pour les incidents de sécurité.
 - Action sensible (mail tiers, suspend) : note dans verification.
 
 Réponds UNIQUEMENT en JSON :
@@ -210,12 +211,34 @@ def analyze_with_facts(task: str, facts: dict[str, Any], *, ui_language: str = "
 
 
 def _fallback_analyst_text(task: str, facts: dict[str, Any]) -> str:
+    task_l = (task or "").lower()
     behavior = facts.get("behavior") if isinstance(facts.get("behavior"), dict) else facts
     flags = (behavior.get("risk_flags") if isinstance(behavior, dict) else None) or facts.get("risk_flags") or []
-    period = behavior.get("period_hours") if isinstance(behavior, dict) else facts.get("period_hours", 24)
+    period = behavior.get("period_hours") if isinstance(behavior, dict) else facts.get("period_hours")
+    if period is None:
+        period = 24
     logs_total = behavior.get("logs_total") if isinstance(behavior, dict) else facts.get("logs_total", 0)
+
+    if any(k in task_l for k in ("utilisateur", "user", "compte", "logs utilisateur", "activit")):
+        users_total = facts.get("users_total") or facts.get("total_users")
+        sample = facts.get("sample_users") or []
+        lines = [
+            "Synthèse locale (Gemini indisponible) — données plateforme uniquement.",
+            f"Tâche : {task[:120]}",
+        ]
+        if users_total is not None:
+            lines.append(f"Comptes en base : {users_total}")
+        if sample:
+            lines.append("Échantillon : " + ", ".join(str(u.get("email", u)) for u in sample[:3]))
+        else:
+            lines.append(
+                "Précisez l'e-mail ou #id utilisateur, ou enchaînez après un ticket support "
+                "dont le client est connu."
+            )
+        return "\n".join(lines)
+
     lines = [
-        "⚠️ Gemini indisponible — synthèse locale uniquement (pas d'invention de données).",
+        "Synthèse locale (Gemini indisponible) — pas d'invention de données.",
         f"Tâche : {task[:120]}",
         "",
         f"Logs sur {period}h : {logs_total}",

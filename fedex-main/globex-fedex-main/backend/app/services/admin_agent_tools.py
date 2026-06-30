@@ -57,6 +57,7 @@ ADMIN_TOOL_LABELS: dict[str, str] = {
     "analyze_tickets": "Analyser tickets",
     "reply_support_ticket": "Répondre au ticket support",
     "analyze_notifications": "Analyser notifications",
+    "analyze_security": "Analyser sécurité IDS",
     "analyze_logs": "Analyser journaux",
     "export_activity_logs_pdf": "Export PDF des logs",
     "export_activity_logs_excel": "Export Excel des logs",
@@ -523,16 +524,28 @@ def post_admin_support_reply(
     }
 
 
+def parse_security_intent(task: str) -> str:
+    """Outil sécurité vs notifications plateforme."""
+    t = (task or "").lower()
+    if any(k in t for k in ("notification plateforme", "notifications admin", "notif_list")):
+        return "analyze_notifications"
+    if any(k in t for k in ("notification", "notif")) and "incident" not in t and "sécurité" not in t and "securite" not in t:
+        return "analyze_notifications"
+    return "analyze_security"
+
+
 def resolve_tool_for_mission(mission: AgentMission, task: str) -> str:
     at = mission.agent_type
+    if at in ("security", "notifications"):
+        return parse_security_intent(task)
+    if at in ("reports", "summary"):
+        return parse_summary_intent(task)
     if at == "users":
         return parse_users_intent(task)
     if at == "tracking":
         return parse_tracking_intent(task)
-    if at in ("logs", "summary"):
+    if at == "logs":
         return parse_summary_intent(task)
     if at == "support":
         return parse_support_intent(task)
-    if at == "notifications":
-        return "analyze_notifications"
     return "analyze_only"

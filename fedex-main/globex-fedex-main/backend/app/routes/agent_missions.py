@@ -24,6 +24,15 @@ from app.services import agent_mission_service as svc
 router = APIRouter(prefix="/admin/agent-missions", tags=["admin-agent-missions"])
 
 
+@router.get("/task-catalog")
+def get_mission_task_catalog(
+    _: User = Depends(require_role("admin")),
+) -> list[dict]:
+    from app.services.mission_task_catalog import catalog_for_api
+
+    return catalog_for_api()
+
+
 @router.get("", response_model=AgentMissionListResponse)
 def list_agent_missions(
     _: User = Depends(require_role("admin")),
@@ -97,6 +106,33 @@ def cancel_agent_mission(
     db: Session = Depends(get_db),
 ) -> AgentMissionRead:
     return svc.cancel_mission(db, mission_id)
+
+
+@router.post("/{mission_id}/pause", response_model=AgentMissionRead)
+def pause_agent_mission(
+    mission_id: int,
+    _: User = Depends(require_role("admin")),
+    db: Session = Depends(get_db),
+) -> AgentMissionRead:
+    return svc.pause_mission(db, mission_id)
+
+
+@router.post("/{mission_id}/resume", response_model=AgentMissionRead)
+def resume_agent_mission(
+    mission_id: int,
+    _: User = Depends(require_role("admin")),
+    db: Session = Depends(get_db),
+) -> AgentMissionRead:
+    return svc.resume_mission(db, mission_id)
+
+
+@router.delete("/{mission_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_agent_mission(
+    mission_id: int,
+    _: User = Depends(require_role("admin")),
+    db: Session = Depends(get_db),
+) -> None:
+    svc.delete_mission(db, mission_id)
 
 
 @router.get("/{mission_id}/results", response_model=AgentMissionResults)

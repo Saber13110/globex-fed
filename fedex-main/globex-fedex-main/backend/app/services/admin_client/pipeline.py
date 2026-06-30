@@ -56,6 +56,7 @@ from app.services.admin_client.security.security_executor import try_admin_secur
 from app.services.admin_client.users.users_executor import try_admin_users_turn
 from app.services.admin_client.pending_confirm import try_admin_pending_confirm_turn
 from app.services.admin_client.tickets.tickets_executor import try_admin_tickets_turn
+from app.services.admin_client.missions.missions_executor import try_admin_missions_turn
 from app.services.admin_client.email.email_executor import try_admin_email_turn
 from app.services.admin_client.intent_priority import (
     should_route_dashboard,
@@ -64,6 +65,7 @@ from app.services.admin_client.intent_priority import (
     should_route_reports,
     should_route_security,
     should_route_logs,
+    should_route_missions,
     should_route_tickets,
     should_route_users,
 )
@@ -192,6 +194,18 @@ def _should_engage(
     if is_logs_pdf_followup(message, history_text=history_text):
         return True
     if should_route_logs(message, history_text=history_text):
+        return True
+    from app.services.admin_client.missions.missions_pending import is_missions_action_pending
+    from app.services.admin_client.missions.missions_followup import is_missions_followup_message
+
+    if is_missions_action_pending(
+        conversation_history=conversation_history,
+        history_text=history_text,
+    ):
+        return True
+    if is_missions_followup_message(message, history_text=history_text):
+        return True
+    if should_route_missions(message, history_text=history_text):
         return True
     from app.services.admin_client.users.users_pending import is_users_action_pending
 
@@ -338,6 +352,19 @@ def _dispatch(
     )
     if logs is not None:
         return logs
+
+    missions = try_admin_missions_turn(
+        db,
+        admin,
+        session,
+        message,
+        user_msg_id,
+        ui_language,
+        history_text=history_text,
+        conversation_history=history,
+    )
+    if missions is not None:
+        return missions
 
     tickets = try_admin_tickets_turn(
         db,
@@ -585,6 +612,18 @@ def run_admin_client_turn(
             if (is_logs_confirm_message(message) or is_logs_cancel_message(message)) and (
                 is_logs_action_pending_in_session(db, chat_session_id)
             ):
+                engage = True
+            from app.services.admin_client.missions.missions_pending import (
+                is_missions_action_pending_in_session,
+                is_missions_cancel_message,
+                is_missions_confirm_message,
+            )
+
+            if (is_missions_confirm_message(message) or is_missions_cancel_message(message)) and (
+                is_missions_action_pending_in_session(db, chat_session_id)
+            ):
+                engage = True
+            elif is_missions_action_pending_in_session(db, chat_session_id):
                 engage = True
         if not engage:
             return None

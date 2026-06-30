@@ -28,7 +28,15 @@ import {
   newNodeId,
   parseWorkflowBuilder,
   validateWorkflow,
+  workflowAgentForTask,
+  suggestNextAgentType,
 } from '../../workflow-builder.types';
+import {
+  MissionTaskCatalogEntry,
+  getTaskSpec,
+  normalizeMissionAgentType,
+  tasksForAgent,
+} from '../../mission-task-catalog';
 
 @Component({
   selector: 'app-agent-mission-builder',
@@ -60,6 +68,13 @@ export class AgentMissionBuilderComponent implements OnInit {
   readonly selectedNode = computed(() => {
     const id = this.selectedNodeId();
     return this.workflow().nodes.find((n) => n.id === id) ?? null;
+  });
+
+  readonly taskCatalogForSelected = computed((): MissionTaskCatalogEntry[] => {
+    const node = this.selectedNode();
+    if (!node || node.type !== 'task') return [];
+    const agentType = workflowAgentForTask(this.workflow(), node.id) ?? 'reports';
+    return tasksForAgent(normalizeMissionAgentType(agentType));
   });
 
   private missionId: number | null = null;
@@ -99,14 +114,18 @@ export class AgentMissionBuilderComponent implements OnInit {
       type: 'agent',
       x: 320,
       y: 180,
-      data: { label: 'Notifications Agent', agentType: 'notifications' },
+      data: { label: 'Security Agent', agentType: 'security' },
     };
     const task: WorkflowNode = {
       id: newNodeId(),
       type: 'task',
       x: 580,
       y: 180,
-      data: { label: 'Tâche', description: 'Détecter les attaques et alertes sécurité sur la plateforme' },
+      data: {
+        label: 'Incidents sécurité',
+        taskId: 'incident_list',
+        description: '',
+      },
     };
     const output: WorkflowNode = {
       id: newNodeId(),
@@ -129,6 +148,20 @@ export class AgentMissionBuilderComponent implements OnInit {
       next: (m) => {
         const wf = parseWorkflowBuilder(m.plan_json);
         if (wf) {
+          wf.nodes = wf.nodes.map((n) => {
+            if (n.type === 'agent' && n.data.agentType) {
+              const agentType = normalizeMissionAgentType(n.data.agentType);
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  agentType,
+                  label: this.agentOptions.find((a) => a.value === agentType)?.label || n.data.label,
+                },
+              };
+            }
+            return n;
+          });
           this.workflow.set(wf);
         } else {
           this.seedDefaultWorkflow();
@@ -177,6 +210,22 @@ export class AgentMissionBuilderComponent implements OnInit {
     };
     this.workflow.update((wf) => ({ ...wf, nodes: [...wf.nodes, node] }));
     this.selectedNodeId.set(node.id);
+  }
+
+  addNextDistinctAgent(): void {
+    this.addAgentBox(suggestNextAgentType(this.workflow()));
+  }
+
+  taskAgentLabel(taskNodeId: string): string {
+    const agent = workflowAgentForTask(this.workflow(), taskNodeId);
+    return agent ? this.agentLabelFor(agent) : 'Aucun agent en amont';
+  }
+
+  taskPreviewLabel(node: WorkflowNode): string {
+    const agent = workflowAgentForTask(this.workflow(), node.id) ?? 'reports';
+    const spec = getTaskSpec(agent, node.data.taskId || '');
+    const text = (node.data.description || spec?.label || 'Tâche').trim();
+    return text.length > 40 ? `${text.slice(0, 40)}…` : text;
   }
 
   selectNode(id: string, event?: MouseEvent): void {
@@ -262,7 +311,28 @@ export class AgentMissionBuilderComponent implements OnInit {
   }
 
   agentLabelFor(type?: string): string {
-    return this.agentOptions.find((a) => a.value === type)?.label || 'Agent';
+    const normalized = type ? normalizeMissionAgentType(type as AgentType) : undefined;
+    return this.agentOptions.find((a) => a.value === normalized)?.label || 'Agent';
+  }
+
+  onTaskIdChange(taskId: string): void {
+    const node = this.selectedNode();
+    if (!node || node.type !== 'task') return;
+    const agentType = workflowAgentForTask(this.workflow(), node.id) ?? 'reports';
+    const spec = getTaskSpec(agentType, taskId);
+    this.updateSelectedData({
+      taskId,
+      label: spec?.label || node.data.label,
+      description: spec?.requires_description ? node.data.description || '' : node.data.description || '',
+    });
+  }
+
+  taskNeedsDescription(taskId?: string): boolean {
+    if (!taskId || taskId === 'custom') return true;
+    const node = this.selectedNode();
+    if (!node || node.type !== 'task') return false;
+    const agentType = workflowAgentForTask(this.workflow(), node.id) ?? 'reports';
+    return getTaskSpec(agentType, taskId)?.requires_description ?? false;
   }
 
   outputLabelFor(dest?: string): string {

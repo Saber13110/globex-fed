@@ -6,7 +6,15 @@
     </div>
     @if (mission(); as m) {
       <div class="am-detail__hero-actions">
-        @if (m.status === 'draft' || m.status === 'scheduled' || m.status === 'failed' || m.status === 'waiting_plan_approval') {
+        @if (m.status === 'running') {
+          <button type="button" class="am-detail__btn" [disabled]="busy()" (click)="pause()">Pause</button>
+        }
+        @if (m.status === 'paused') {
+          <button type="button" class="am-detail__btn am-detail__btn--primary" [disabled]="busy()" (click)="resume()">
+            Reprendre
+          </button>
+        }
+        @if (m.status === 'draft' || m.status === 'scheduled' || m.status === 'failed' || m.status === 'waiting_plan_approval' || m.status === 'paused') {
           <a [routerLink]="['/admin/agent-missions', m.id, 'edit']" class="am-detail__btn">Orchestrateur</a>
           <button type="button" class="am-detail__btn am-detail__btn--primary" [disabled]="busy()" (click)="run()">
             {{ busy() ? 'Exécution…' : m.status === 'failed' ? 'Relancer' : 'Lancer maintenant' }}

@@ -3,7 +3,9 @@ import {
   Component,
   ElementRef,
   Input,
+  OnChanges,
   OnInit,
+  SimpleChanges,
   ViewChild,
   computed,
   inject,
@@ -38,6 +40,14 @@ import {
   readPersistedAdminChatSessionId,
 } from '../../utils/admin-chat-session.util';
 
+/** Prompt injecté depuis l'overlay Accompagnement (mode Accompagnement). */
+export interface JarvisInjectedPrompt {
+  id: number;
+  text: string;
+  image?: { base64: string; mime: string; name: string } | null;
+  autosend?: boolean;
+}
+
 export interface JarvisSidebarMessage {
   id: number;
   role: 'admin' | 'jarvis' | 'system';
@@ -61,7 +71,7 @@ const STORAGE_KEY = 'globex_admin_jarvis_drawer';
   templateUrl: './admin-jarvis-sidebar.component.html',
   styleUrl: './admin-jarvis-sidebar.component.scss',
 })
-export class AdminJarvisSidebarComponent implements OnInit {
+export class AdminJarvisSidebarComponent implements OnInit, OnChanges {
   private readonly jarvis = inject(JarvisAdminService);
   private readonly adminAi = inject(AdminAiService);
   private readonly history = inject(HistoryService);
@@ -69,6 +79,9 @@ export class AdminJarvisSidebarComponent implements OnInit {
   private chatId = 0;
 
   @Input() adminName = 'Admin';
+  /** Prompt/capture poussé par l'overlay Accompagnement (via AdminPageComponent). */
+  @Input() pendingPrompt: JarvisInjectedPrompt | null = null;
+  private lastInjectedId = 0;
   readonly jarvisMarkSrc = JARVIS_MARK;
 
   readonly closeDrawer = output<void>();
@@ -104,6 +117,41 @@ export class AdminJarvisSidebarComponent implements OnInit {
   ngOnInit(): void {
     this.chatSessionId.set(readPersistedAdminChatSessionId());
     this.refreshHealth();
+    // Si un prompt a déjà été poussé avant le montage de la sidebar.
+    this.applyInjectedPrompt();
+  }
+
+  ngOnChanges(_changes: SimpleChanges): void {
+    this.applyInjectedPrompt();
+  }
+
+  /** Applique un prompt/capture injecté par l'overlay Accompagnement (1 seule fois par id). */
+  private applyInjectedPrompt(): void {
+    const p = this.pendingPrompt;
+    if (!p || !p.id || p.id === this.lastInjectedId) return;
+    this.lastInjectedId = p.id;
+    if (typeof p.text === 'string' && p.text) {
+      this.prompt.set(p.text);
+    }
+    if (p.image && p.image.base64) {
+      this.attachment.set({
+        base64: p.image.base64,
+        mime: p.image.mime || 'image/jpeg',
+        name: p.image.name || 'capture.jpg',
+        isImage: true,
+      });
+      this.error.set(null);
+    }
+    if (p.autosend) {
+      // Laisse le change-detection appliquer les signaux avant d'envoyer.
+      setTimeout(() => this.send(), 0);
+    } else {
+      // Met le focus sur le chat pour que l'utilisateur voie la capture collée.
+      setTimeout(() => {
+        const el = document.querySelector('.jsidebar__input') as HTMLTextAreaElement | null;
+        el?.focus();
+      }, 60);
+    }
   }
 
   refreshHealth(): void {

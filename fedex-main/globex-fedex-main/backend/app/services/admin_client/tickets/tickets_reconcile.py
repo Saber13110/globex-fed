@@ -113,7 +113,7 @@ def reconcile_tickets_plan(message: str, plan: TicketsPlan, *, history_text: str
         ):
             plan.search_query = _extract_search_query(text)
     elif plan.task_type == TicketsTaskType.ticket_detail:
-        if not plan.ticket_id:
+        if not plan.ticket_id and not plan.search_query:
             q = _extract_search_query(text)
             if q and not q.upper().startswith("TKT"):
                 plan.search_query = q

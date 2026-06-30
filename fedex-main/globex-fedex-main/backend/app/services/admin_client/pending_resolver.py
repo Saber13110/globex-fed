@@ -17,6 +17,7 @@ PendingKind = Literal[
     "users",
     "tickets",
     "logs",
+    "missions",
 ]
 
 
@@ -62,6 +63,7 @@ def detect_pending_kind_in_text(text: str | None) -> PendingKind | None:
     from app.services.admin_client.users.users_pending import _has_users_marker
     from app.services.admin_client.tickets.tickets_pending import _has_tickets_marker
     from app.services.admin_client.logs.logs_pending import _has_marker as _has_logs_marker
+    from app.services.admin_client.missions.missions_pending import _has_missions_marker
 
     if _has_email_marker(text):
         return "email_send"
@@ -75,6 +77,8 @@ def detect_pending_kind_in_text(text: str | None) -> PendingKind | None:
         return "tickets"
     if _has_logs_marker(text):
         return "logs"
+    if _has_missions_marker(text):
+        return "missions"
     return None
 
 

@@ -3,7 +3,7 @@
     <div>
       <a routerLink="/admin/agent-missions" class="wf-page__back">← Missions</a>
       <h1>Orchestrateur de mission</h1>
-      <p>Glissez les blocs, reliez-les : Déclencheur → Agent → Tâche(s) → Résultat</p>
+      <p>Reliez les blocs : Déclencheur → Agent → Tâche → Agent → Tâche → … → Résultat</p>
     </div>
     <div class="wf-page__actions">
       @if (linkSourceId()) {
@@ -73,7 +73,8 @@
                 {{ agentLabelFor(node.data.agentType) }}
               }
               @case ('task') {
-                {{ (node.data.description || 'Décrivez la tâche…').slice(0, 48) }}{{ (node.data.description || '').length > 48 ? '…' : '' }}
+                <span class="wf-node__agent">{{ taskAgentLabel(node.id) }}</span>
+                {{ taskPreviewLabel(node) }}
               }
               @case ('output') {
                 {{ outputLabelFor(node.data.destination) }}
@@ -117,6 +118,10 @@
 
       <section class="wf-sidebar__section">
         <h2>Agents rapides</h2>
+        <p class="wf-sidebar__hint">Chaque nouvelle étape doit utiliser un <strong>agent différent</strong>.</p>
+        <button type="button" class="wf-btn wf-btn--ghost wf-chip-row" [disabled]="readOnly()" (click)="addNextDistinctAgent()">
+          + Agent suivant (différent)
+        </button>
         <div class="wf-agent-chips">
           @for (a of agentPalette; track a.agentType) {
             <button type="button" class="wf-chip" [disabled]="readOnly()" (click)="addAgentBox(a.agentType)">
@@ -198,14 +203,50 @@
             }
             @case ('task') {
               <label class="wf-field">
-                <span>Description de la tâche</span>
-                <textarea
-                  rows="5"
-                  [ngModel]="node.data.description"
-                  (ngModelChange)="updateSelectedData({ description: $event })"
+                <span>Tâche catalogue</span>
+                <select
+                  [ngModel]="node.data.taskId || 'custom'"
+                  (ngModelChange)="onTaskIdChange($event)"
                   [disabled]="readOnly()"
-                  placeholder="Ex. : Détecter les tentatives d'attaque IDS et lister les alertes critiques"
-                ></textarea>
+                >
+                  @for (opt of taskCatalogForSelected(); track opt.task_id) {
+                    <option [value]="opt.task_id">{{ opt.label }}</option>
+                  }
+                </select>
+              </label>
+              @if (taskNeedsDescription(node.data.taskId)) {
+                <label class="wf-field">
+                  <span>Précisions / description</span>
+                  <textarea
+                    rows="4"
+                    [ngModel]="node.data.description"
+                    (ngModelChange)="updateSelectedData({ description: $event })"
+                    [disabled]="readOnly()"
+                    placeholder="Ex. : e-mail du compte, #id ticket, filtres…"
+                  ></textarea>
+                </label>
+              } @else {
+                <label class="wf-field">
+                  <span>Précisions (optionnel)</span>
+                  <textarea
+                    rows="3"
+                    [ngModel]="node.data.description"
+                    (ngModelChange)="updateSelectedData({ description: $event })"
+                    [disabled]="readOnly()"
+                    placeholder="Compléments optionnels pour affiner la tâche"
+                  ></textarea>
+                </label>
+              }
+              <label class="wf-field wf-field--inline">
+                <span>Priorité</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="999"
+                  [ngModel]="node.data.priority || 100"
+                  (ngModelChange)="updateSelectedData({ priority: +$event })"
+                  [disabled]="readOnly()"
+                />
               </label>
             }
             @case ('output') {
@@ -225,8 +266,9 @@
           }
 
           <p class="wf-sidebar__link-tip">
-            Pour relier : cliquez sur le point <strong>→</strong> du bloc source, puis sur le bloc cible.
-            Vous pouvez relier un agent à plusieurs tâches.
+            Chaîne type : <strong>Déclencheur → Agent 1 → Tâche 1 → Agent 2 → Tâche 2 → Résultat</strong>.
+            La tâche 2 reçoit automatiquement le résultat de la tâche 1 si elle est marquée « consomme l’étape précédente » dans le catalogue.
+            Chaque tâche utilise l’agent relié juste en amont. Reliez avec le point <strong>→</strong>.
           </p>
         </section>
       }
