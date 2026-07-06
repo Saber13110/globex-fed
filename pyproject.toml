@@ -54,7 +54,7 @@ dependencies = [
     "libusb-package>=1.0.26.3",
     "python-telegram-bot>=21.0",
     # Recherche sémantique (couche 3 mémoire) — ONNX offline, multilingue
-    "fastembed>=0.4.0",
+    "fastembed>=0.8.0",
 ]
 
 [project.optional-dependencies]
